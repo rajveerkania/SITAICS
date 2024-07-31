@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -30,36 +29,25 @@ export default function Login() {
       });
 
       const data = await res.json();
-
-      if (res.ok) {
-        const result = await signIn("credentials", {
-          emailOrUsername: authState.emailOrUsername,
-          password: authState.password,
-          redirect: false,
-        });
-
-        if (result?.error) {
-          setErrors({ general: result.error });
-        } else {
-          const role = data.role;
-
-          switch (role) {
-            case "Admin":
-              router.push("/admin/dashboard");
-              break;
-            case "FacultyStaff":
-              router.push("staff/dashboard");
-              break;
-            case "PlacementOfficer":
-              router.push("po/dashboard");
-              break;
-            default:
-              router.push("student/dashboard");
-              break;
-          }
-        }
+      if (!data.success) {
+        setErrors({ general: data.message });
       } else {
-        setErrors({ general: data.error || "An error occurred during login." });
+        const role = data.role;
+
+        switch (role) {
+          case "Admin":
+            router.push("/admin/dashboard");
+            break;
+          case "FacultyStaff":
+            router.push("staff/dashboard");
+            break;
+          case "PlacementOfficer":
+            router.push("po/dashboard");
+            break;
+          default:
+            router.push("student/dashboard");
+            break;
+        }
       }
     } catch (error) {
       console.error("An error occurred during login:", error);
