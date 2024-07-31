@@ -16,7 +16,6 @@ export default function Login() {
     const [loading, setLoading] = useState<boolean>(false);
     const [errors, setError] = useState<loginErrorType>({});
 
-
     const submitForm = () => {
         console.log("The Auth state is",authState)
         axios
@@ -29,7 +28,7 @@ export default function Login() {
               signIn("credentials" ,{
                 email:authState.email,
                 password:authState.password,
-                callbackUrl:"/dashbord",
+                callbackUrl:"/Student",
                 redirect: true, 
               })
           } else if (response?.status == 400) {
