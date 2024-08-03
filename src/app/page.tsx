@@ -38,7 +38,7 @@ export default function Login() {
           case "Admin":
             router.push("/admin/dashboard");
             break;
-          case "FacultyStaff":
+          case "Staff":
             router.push("staff/dashboard");
             break;
           case "PlacementOfficer":

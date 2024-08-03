@@ -1,5 +1,11 @@
-"use client";
+import React from "react";
 
-export default function Dashboard() {
-  return <>Welcome</>;
-}
+const StaffDashboard = () => {
+  return (
+    <div>
+      <h1>Staff Dashboard</h1>
+    </div>
+  );
+};
+
+export default StaffDashboard;

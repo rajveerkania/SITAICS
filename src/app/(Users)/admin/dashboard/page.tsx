@@ -1,9 +1,11 @@
-"use client"
+import React from "react";
 
-export default function Dashboard(){
+const AdminDashboard = () => {
   return (
-    <>
-    Welcome 
-    </>
-  )
-}
+    <div>
+      <h1>Admin Dashboard</h1>
+    </div>
+  );
+};
+
+export default AdminDashboard;

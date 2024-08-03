@@ -1,5 +1,11 @@
-"use client";
+import React from "react";
 
-export default function Dashboard() {
-  return <>Welcome</>;
-}
+const PODashboard = () => {
+  return (
+    <div>
+      <h1>Placement Officer Dashboard</h1>
+    </div>
+  );
+};
+
+export default PODashboard;
