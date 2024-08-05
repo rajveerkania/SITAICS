@@ -9,11 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.1",
+    "@radix-ui/react-select": "^2.1.1",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-tabs": "^1.1.0",
     "@vinejs/vine": "^2.1.0",
     "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
     "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.424.0",
     "mongodb": "^6.8.0",
     "mongoose": "^8.5.1",
     "mongosh": "^2.2.15",
@@ -21,7 +28,11 @@
     "next-auth": "^4.24.7",
     "nodemailer": "^6.9.14",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-icons": "^5.2.1",
+    "recharts": "^2.12.7",
+    "tailwind-merge": "^2.4.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
