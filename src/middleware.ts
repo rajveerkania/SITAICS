@@ -1,94 +1,85 @@
-import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-interface CustomUser {
-  role?: "Admin" | "PlacementOfficer" | "Staff" | "Student";
-}
+// Define the roles and their accessible routes
+type UserRole = 'Admin' | 'Student' | 'PO' | 'Staff';
 
-type ProtectedRoutes = {
-  [K in NonNullable<CustomUser["role"]>]: string[];
+const protectedRoutes: Record<UserRole, string[]> = {
+    Admin: ['/admin/dashboard'],
+    Student: ['/student/dashboard'],
+    PO: ['/po/dashboard'],
+    Staff: ['/staff/dashboard'],
 };
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  console.log(`Accessing path: ${pathname}`);
+export function middleware(request: NextRequest) {
+    const { pathname } = request.nextUrl;
+    const token = request.cookies.get("token")?.value || '';
 
-  const publicRoutes = ["/"];
-  const protectedRoutes: ProtectedRoutes = {
-    Admin: ["/admin"],
-    PlacementOfficer: ["/po"],
-    Staff: ["/staff"],
-    Student: ["/student"],
-  };
+    console.log(`Accessing path: ${pathname}`);
+    console.log(`Token: ${token}`);
 
-  const allProtectedRoutes = Object.values(protectedRoutes).flat();
+    // Define protected paths
+    const protectedPaths = Object.values(protectedRoutes).flat();
+    const isPublicPath = pathname === '/';
+    const isProtectedPath = protectedPaths.includes(pathname);
 
-  try {
-    const token = request.cookies.get("token")?.value;
-    console.log(`Token received: ${token ? "Yes" : "No"}`);
+    // If the user is authenticated and trying to access a public path
+    if (isPublicPath && token) {
+        try {
+            // Decode the token to get the user's role
+            const user = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+            const userRole = user.role as UserRole; // Explicitly assert the type
 
-    if (
-      !token &&
-      allProtectedRoutes.some((route) => pathname.startsWith(route))
-    ) {
-      console.log("No token found for protected route. Redirecting to home.");
-      return NextResponse.redirect(
-        new URL(`/?error=unauthorized`, request.url)
-      );
-    }
-
-    if (token) {
-      const secret = new TextEncoder().encode(process.env.TOKEN_SECRET!);
-      const { payload } = await jwtVerify(token, secret);
-      const user = payload as CustomUser;
-      console.log(`User role: ${user.role || "undefined"}`);
-
-      if (!user || !user.role) {
-        console.error("User or role is undefined in the token");
-        return NextResponse.redirect(
-          new URL(`/?error=invalid_user_data`, request.url)
-        );
-      }
-
-      if (publicRoutes.includes(pathname)) {
-        const dashboardPath =
-          protectedRoutes[user.role]?.[0] + "/dashboard" || "/";
-        console.log(
-          `Redirecting authenticated user from public route to: ${dashboardPath}`
-        );
-        return NextResponse.redirect(new URL(dashboardPath, request.url));
-      }
-
-      if (allProtectedRoutes.some((route) => pathname.startsWith(route))) {
-        const isAuthorized = protectedRoutes[user.role]?.some((route) =>
-          pathname.startsWith(route)
-        );
-
-        if (!isAuthorized) {
-          console.log(
-            `Unauthorized access attempt. User role: ${user.role}, Attempted route: ${pathname}`
-          );
-          return NextResponse.redirect(
-            new URL(`/?error=unauthorized`, request.url)
-          );
+            // Ensure the role is valid and get the corresponding dashboard path
+            if (protectedRoutes[userRole]) {
+                const dashboardPath = protectedRoutes[userRole]?.[0] || '/';
+                return NextResponse.redirect(new URL(dashboardPath, request.url));
+            } else {
+                console.error('Invalid user role:', userRole);
+                return NextResponse.redirect(new URL('/', request.url));
+            }
+        } catch (error) {
+            console.error('Error parsing token:', error);
+            return NextResponse.redirect(new URL('/', request.url));
         }
-      }
     }
 
-    console.log("Access granted");
+    // Redirect unauthenticated users from protected routes to the public route
+    if (isProtectedPath && !token) {
+        console.log('No token found for protected route. Redirecting to public route.');
+        return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    // Check if the user is authenticated and trying to access a protected route
+    if (isProtectedPath && token) {
+        try {
+            // Decode the token to get the user's role
+            const user = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+            const userRole = user.role as UserRole;
+
+            // Check if the user's role has access to the requested path
+            if (!Object.values(protectedRoutes[userRole] || []).includes(pathname)) {
+                console.log(`Unauthorized access attempt. User role: ${userRole}, Attempted route: ${pathname}`);
+                return NextResponse.redirect(new URL('/', request.url));
+            }
+        } catch (error) {
+            console.error('Error parsing token:', error);
+            return NextResponse.redirect(new URL('/', request.url));
+        }
+    }
+
+    // Allow the request if none of the above conditions are met
     return NextResponse.next();
-  } catch (error) {
-    console.error("Error in middleware:", error);
-    return NextResponse.redirect(new URL(`/404`, request.url));
-  }
 }
 
+// See "Matching Paths" below to learn more
 export const config = {
-  matcher: [
-    "/", // Public route
-    "/admin/:path*", // Admin protected routes
-    "/po/:path*", // PO protected routes
-    "/staff/:path*", // Staff protected routes
-    "/student/:path*", // Student protected routes
-  ],
+    matcher: [
+        '/',
+        '/admin/dashboard',
+        '/student/dashboard',
+        '/po/dashboard',
+        '/staff/dashboard',
+    ]
 };
+    
