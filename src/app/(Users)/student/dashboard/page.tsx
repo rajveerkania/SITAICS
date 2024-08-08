@@ -1,11 +1,10 @@
-import React from "react";
-
-const StudentDashboard = () => {
+"use client";
+import { LogoutButton } from "@/app/components/Button";
+export default function Dashboard() {
   return (
     <div>
-      <h1>Student Dashboard</h1>
+      Welcome Student
+      <LogoutButton />
     </div>
   );
-};
-
-export default StudentDashboard;
+}
