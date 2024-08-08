@@ -1,5 +1,5 @@
 "use client";
-import { LogoutButton } from "@/app/components/Button";
+import { LogoutButton } from "@/components/LogoutButton";
 export default function Dashboard() {
   return (
     <div>

@@ -2,7 +2,7 @@ import { connect } from "@/database/mongo.config";
 import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
-import { SignJWT } from "jose";
+import jwt from "jsonwebtoken";
 
 connect();
 
@@ -10,16 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const reqBody = await request.json();
     const { emailOrUsername, password } = reqBody;
-
-    if (!emailOrUsername || !password) {
-      return NextResponse.json(
-        { error: "Email/Username and password are required" },
-        { status: 400 }
-      );
-    }
-
-    const isEmail =
-      typeof emailOrUsername === "string" && emailOrUsername.includes("@");
+    const isEmail = emailOrUsername.includes("@");
 
     let user;
     if (isEmail) {
@@ -36,16 +27,17 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("User found, checking password...");
-    const validPassword = await bcryptjs.compare(password, user.password);
 
+    const validPassword = await bcryptjs.compare(password, user.password);
     if (!validPassword) {
       return NextResponse.json(
-        { error: "Invalid credentials" },
+        { error: "Check Your Credentials" },
         { status: 400 }
       );
     }
 
     console.log("Password valid, generating token...");
+
     const tokenData = {
       id: user._id,
       username: user.username,
@@ -53,19 +45,12 @@ export async function POST(request: NextRequest) {
       role: user.role,
     };
 
-    const secret = process.env.TOKEN_SECRET;
-    if (!secret) {
-      throw new Error("TOKEN_SECRET is not defined");
-    }
-
-    const token = await new SignJWT(tokenData)
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime("1d")
-      .sign(new TextEncoder().encode(secret));
+    const token = jwt.sign(tokenData, process.env.TOKEN_SECRET!, {
+      expiresIn: "1d",
+    });
 
     const response = NextResponse.json({
-      message: "Logged in successfully",
+      message: "Logged In Successfully",
       success: true,
       role: user.role,
     });
@@ -80,7 +65,6 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error: any) {
-    console.error("Authentication error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

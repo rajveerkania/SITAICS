@@ -1,6 +1,5 @@
-"use client";
-
-import React, { useState } from "react";
+"use client"
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -9,8 +8,19 @@ import {
   LabelList,
 } from "recharts";
 import { Bell } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -50,7 +60,7 @@ interface UserDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Mock data
+// Mock data and initial state
 const studentData = [
   { course: "BTech", students: 120 },
   { course: "MTech CS", students: 25 },
@@ -58,10 +68,11 @@ const studentData = [
   { course: "MSCDF", students: 30 },
 ];
 
-const users = [
+const initialUsers = [
   {
     id: 1,
     username: "Het Patel",
+    name: "Het Patel",
     email: "21bcscs021@student.rru.ac.in",
     role: "Student",
     batch: "BTech 2021-2025",
@@ -69,14 +80,16 @@ const users = [
   {
     id: 2,
     username: "Vivek Joshi",
+    name: "Vivek Joshi",
     email: "vivek.joshi@rru.ac.in",
-    role: "Assistant Professor",
+    role: "FacultyStaff",
   },
   {
     id: 3,
     username: "Darshan Prajapati",
+    name: "Darshan Prajapati",
     email: "darshan.prajapati@rru.ac.in",
-    role: "Placement Officer",
+    role: "PlacementOfficer",
   },
 ];
 
@@ -208,13 +221,12 @@ const IndianCalendar = () => {
         {days.map((day) => (
           <div
             key={day}
-            className={`text-center p-2 ${
-              day === new Date().getDate() &&
+            className={`text-center p-2 ${day === new Date().getDate() &&
               currentDate.getMonth() === new Date().getMonth() &&
               currentDate.getFullYear() === new Date().getFullYear()
-                ? "bg-black text-white rounded-full"
-                : ""
-            }`}
+              ? "bg-black text-white rounded-full"
+              : ""
+              }`}
           >
             {day}
           </div>
@@ -226,25 +238,77 @@ const IndianCalendar = () => {
 
 // AddUserForm component
 const AddUserForm = () => {
+  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("/api/newUser", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, name, email, password, role }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert("User added successfully!");
+        setUsername("");
+        setName("");
+        setEmail("");
+        setRole("");
+        setPassword("");
+      } else {
+        alert(data.error);
+      }
+    } catch (error) {
+      console.error("Error adding user:", error);
+      alert("An error occurred while adding the user");
+    }
+  };
+
   return (
-    <form className="space-y-4 mt-4">
-      <Input placeholder="Username" />
-      <Input placeholder="Email" type="email" />
-      <Select>
+    <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
+      <Input
+        placeholder="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <Input
+        placeholder="Full Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <Input
+        placeholder="Email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <Select value={role} onValueChange={setRole}>
         <SelectTrigger>
           <SelectValue placeholder="Select role" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="student">Student</SelectItem>
-          <SelectItem value="assistant_professor">
-            Assistant Professor
-          </SelectItem>
-          <SelectItem value="placement_officer">Placement Officer</SelectItem>
-          <SelectItem value="admin">Admin</SelectItem>
+          <SelectItem value="Student">Student</SelectItem>
+          <SelectItem value="FacultyStaff">Assistant Professor</SelectItem>
+          <SelectItem value="PlacementOfficer">Placement Officer</SelectItem>
+          <SelectItem value="Admin">Admin</SelectItem>
         </SelectContent>
       </Select>
-      <Input placeholder="Password" type="password" />
-      <Button>Add User</Button>
+      <Input
+        placeholder="Password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <Button type="submit">Add User</Button>
     </form>
   );
 };
@@ -281,6 +345,33 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [showUserDetails, setShowUserDetails] = useState(false);
+  const [users, setUsers] = useState(initialUsers);
+
+  const handleDeleteUser = async (username: string) => {
+    try {
+      const response = await fetch("/api/deleteUser", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setUsers((prevUsers) =>
+          prevUsers.filter((user) => user.username !== username)
+        );
+        alert("User deleted successfully");
+      } else {
+        alert(data.error || "An error occurred");
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("An error occurred while deleting the user");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -400,13 +491,17 @@ const AdminDashboard = () => {
                             <TableRow key={user.id}>
                               <TableCell>{user.username}</TableCell>
                               <TableCell>{user.email}</TableCell>
+
                               <TableCell>{user.role}</TableCell>
                               <TableCell>
-                                <Button
-                                  onClick={() => setShowUserDetails(true)}
-                                >
-                                  View Details
-                                </Button>
+                                <div className="flex items-center space-x-2">
+                                  <Button onClick={() => setShowUserDetails(true)}>
+                                    <FaRegEdit className="h-4 w-4" />
+                                  </Button>
+                                  <Button onClick={() => handleDeleteUser(user.username)}>
+                                    <FaTrashAlt className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}

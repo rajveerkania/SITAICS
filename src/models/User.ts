@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-
 const userSchema = new Schema(
   {
     username: {
@@ -8,13 +7,11 @@ const userSchema = new Schema(
       type: Schema.Types.String,
       unique: true,
     },
-
     name: {
       required: [true, "Name field is required."],
       minLength: [2, "Name must be 2 character long."],
       type: Schema.Types.String,
     },
-
     email: {
       required: [true, "Email field is required."],
       type: Schema.Types.String,
@@ -25,13 +22,15 @@ const userSchema = new Schema(
       required: true,
       type: Schema.Types.String,
     },
-
     role: {
       required: true,
       type: Schema.Types.String,
       default: "User",
     },
-
+    isActive: {
+      type: Schema.Types.Boolean,
+      default: true,
+    },
     password_reset_token: {
       required: false,
       type: Schema.Types.String,
@@ -40,5 +39,4 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
-
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
