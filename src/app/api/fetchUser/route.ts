@@ -6,7 +6,7 @@ connect();
 
 export async function GET(request: NextRequest) {
   try {
-    const users = await User.find({}).select("-password");
+    const users = await User.find({ isActive: true }).select("-password");
 
     if (!users.length) {
       return NextResponse.json({ message: "No users found." }, { status: 404 });

@@ -50,17 +50,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import Image from "next/image";
 import NumberTicker from "@/components/magicui/number-ticker";
 
-interface StatCardProps {
-  title: string;
-  value: string | number;
-}
-
-interface UserDetailsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-// Mock data and initial state
+// Mock data for student distribution
 const studentData = [
   { course: "BTech", students: 120 },
   { course: "MTech CS", students: 25 },
@@ -68,45 +58,34 @@ const studentData = [
   { course: "MSCDF", students: 30 },
 ];
 
-const initialUsers = [
-  {
-    id: 1,
-    username: "Het Patel",
-    name: "Het Patel",
-    email: "21bcscs021@student.rru.ac.in",
-    role: "Student",
-    batch: "BTech 2021-2025",
-  },
-  {
-    id: 2,
-    username: "Vivek Joshi",
-    name: "Vivek Joshi",
-    email: "vivek.joshi@rru.ac.in",
-    role: "FacultyStaff",
-  },
-  {
-    id: 3,
-    username: "Darshan Prajapati",
-    name: "Darshan Prajapati",
-    email: "darshan.prajapati@rru.ac.in",
-    role: "PlacementOfficer",
-  },
-];
 
-// NotificationDialog component
 const NotificationDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [notificationType, setNotificationType] = useState("specific");
   const [recipient, setRecipient] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleSend = () => {
-    console.log("Sending notification:", {
-      type: notificationType,
-      recipient,
-      message,
-    });
-    setIsOpen(false);
+  const handleSend = async () => {
+    try {
+      const response = await fetch("/api/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ type: notificationType, recipient, message }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert("Notification sent successfully!");
+        setIsOpen(false);
+      } else {
+        alert(data.error || "Failed to send notification");
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+      alert("An error occurred while sending the notification");
+    }
   };
 
   return (
@@ -153,7 +132,10 @@ const NotificationDialog = () => {
 };
 
 // StatCard component
-const StatCard: React.FC<StatCardProps> = ({ title, value }) => (
+const StatCard: React.FC<{ title: string; value: string | number }> = ({
+  title,
+  value,
+}) => (
   <Card>
     <CardHeader>
       <CardTitle>{title}</CardTitle>
@@ -237,93 +219,19 @@ const IndianCalendar = () => {
 };
 
 // AddUserForm component
-const AddUserForm = () => {
-  const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    try {
-      const response = await fetch("/api/newUser", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, name, email, password, role }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        alert("User added successfully!");
-        setUsername("");
-        setName("");
-        setEmail("");
-        setRole("");
-        setPassword("");
-      } else {
-        alert(data.error);
-      }
-    } catch (error) {
-      console.error("Error adding user:", error);
-      alert("An error occurred while adding the user");
-    }
-  };
-
-  return (
-    <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
-      <Input
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <Input
-        placeholder="Full Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <Input
-        placeholder="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <Select value={role} onValueChange={setRole}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select role" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="Student">Student</SelectItem>
-          <SelectItem value="FacultyStaff">Assistant Professor</SelectItem>
-          <SelectItem value="PlacementOfficer">Placement Officer</SelectItem>
-          <SelectItem value="Admin">Admin</SelectItem>
-        </SelectContent>
-      </Select>
-      <Input
-        placeholder="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <Button type="submit">Add User</Button>
-    </form>
-  );
-};
 
 // UserDetailsDialog component
-const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
-  open,
-  onOpenChange,
-}) => (
+const UserDetailsDialog: React.FC<{
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}> = ({ open, onOpenChange }) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent>
       <DialogHeader>
         <DialogTitle>User Details</DialogTitle>
       </DialogHeader>
       <div>
+
         <p>
           <strong>Username:</strong> john_doe
         </p>
@@ -341,11 +249,89 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
   </Dialog>
 );
 
+
 // Main AdminDashboard component
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
   const [showUserDetails, setShowUserDetails] = useState(false);
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState<any[]>([]); // Update the type as needed
+  const [activeTab, setActiveTab] = useState("overview");
+  const AddUserForm = () => {
+    const [username, setUsername] = useState("");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [role, setRole] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleAddUser = async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
+        const response = await fetch("/api/newUser", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, name, email, password, role }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert("User added successfully!");
+          setUsers([...users, data.user]);
+          setUsername("");
+          setName("");
+          setEmail("");
+          setRole("");
+          setPassword("");
+        } else {
+          alert(data.error);
+        }
+      } catch (error) {
+        console.error("Error adding user:", error);
+        alert("An error occurred while adding the user");
+      }
+    };
+
+    return (
+      <form className="space-y-4 mt-4" onSubmit={handleAddUser}>
+        <Input
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <Input
+          placeholder="Full Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <Input
+          placeholder="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Select value={role} onValueChange={setRole}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Student">Student</SelectItem>
+            <SelectItem value="FacultyStaff">Assistant Professor</SelectItem>
+            <SelectItem value="PlacementOfficer">Placement Officer</SelectItem>
+            <SelectItem value="Admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
+          placeholder="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Button type="submit">Add User</Button>
+      </form>
+    );
+  };
+
 
   const handleDeleteUser = async (username: string) => {
     try {
@@ -360,9 +346,7 @@ const AdminDashboard = () => {
       const data = await response.json();
 
       if (data.success) {
-        setUsers((prevUsers) =>
-          prevUsers.filter((user) => user.username !== username)
-        );
+        setUsers(users.filter((user) => user.username !== username)); // Decrement by removing the user
         alert("User deleted successfully");
       } else {
         alert(data.error || "An error occurred");
@@ -372,7 +356,25 @@ const AdminDashboard = () => {
       alert("An error occurred while deleting the user");
     }
   };
-
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("/api/fetchUser");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.success) {
+        setUsers(data.users);
+      } else {
+        console.error("Failed to fetch users:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+  useEffect(() => {
+    fetchUsers();
+  }, [setUsers]);
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-white shadow-md p-4">
@@ -488,10 +490,9 @@ const AdminDashboard = () => {
                         </TableHeader>
                         <TableBody>
                           {users.map((user) => (
-                            <TableRow key={user.id}>
+                            <TableRow key={user._id}>
                               <TableCell>{user.username}</TableCell>
                               <TableCell>{user.email}</TableCell>
-
                               <TableCell>{user.role}</TableCell>
                               <TableCell>
                                 <div className="flex items-center space-x-2">
