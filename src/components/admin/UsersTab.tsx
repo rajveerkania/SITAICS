@@ -13,9 +13,46 @@ import AddUserForm from "./AddUserForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { UserDetailsDialog } from "./UserDetailsDialog";
 
+interface User {
+  _id: string;
+  username: string;
+  email: string;
+  role: string;
+}
+
 const UsersTab = () => {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [showUserDetails, setShowUserDetails] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/fetchUsers");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.success && Array.isArray(data.users)) {
+        setUsers(data.users);
+      } else {
+        throw new Error(
+          data.error || "Failed to fetch users or invalid data structure"
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setError("Failed to load users. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleDeleteUser = async (username: string) => {
     try {
@@ -26,11 +63,9 @@ const UsersTab = () => {
         },
         body: JSON.stringify({ username }),
       });
-
       const data = await response.json();
-
       if (data.success) {
-        setUsers(users.filter((user) => user.username !== username)); // Decrement by removing the user
+        setUsers(users.filter((user) => user.username !== username));
         alert("User deleted successfully");
       } else {
         alert(data.error || "An error occurred");
@@ -41,26 +76,17 @@ const UsersTab = () => {
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("/api/fetchUsers");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      if (data.success) {
-        setUsers(data.users);
-      } else {
-        console.error("Failed to fetch users:", data.error);
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
+  const handleAddUserSuccess = async () => {
+    await fetchUsers(); // Refetch the user list after adding a new user
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, [setUsers]);
+  if (isLoading) {
+    return <div>Loading users...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div>
@@ -81,29 +107,39 @@ const UsersTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user._id}>
-                    <TableCell>{user.username}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.role}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button onClick={() => setShowUserDetails(true)}>
-                          <FaRegEdit className="h-4 w-4" />
-                        </Button>
-                        <Button onClick={() => handleDeleteUser(user.username)}>
-                          <FaTrashAlt className="h-4 w-4" />
-                        </Button>
-                      </div>
+                {users.length > 0 ? (
+                  users.map((user) => (
+                    <TableRow key={user._id}>
+                      <TableCell>{user.username}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.role}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button onClick={() => setShowUserDetails(true)}>
+                            <FaRegEdit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteUser(user.username)}
+                          >
+                            <FaTrashAlt className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center">
+                      No users found
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>
         </TabsContent>
         <TabsContent value="add">
-          <AddUserForm setUsers={setUsers} />
+          <AddUserForm onAddUserSuccess={handleAddUserSuccess} />
         </TabsContent>
       </Tabs>
       <UserDetailsDialog

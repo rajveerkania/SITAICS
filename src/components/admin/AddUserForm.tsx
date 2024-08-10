@@ -1,5 +1,3 @@
-// components/admin/AddUserForm.tsx
-"use client";
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,17 +8,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
 const AddUserForm = ({
-  setUsers,
+  onAddUserSuccess,
 }: {
-  setUsers: React.Dispatch<React.SetStateAction<any[]>>;
+  onAddUserSuccess: () => void;
 }) => {
   const [username, setUsername] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,12 +32,10 @@ const AddUserForm = ({
         },
         body: JSON.stringify({ username, name, email, password, role }),
       });
-
       const data = await response.json();
-
       if (data.success) {
         alert("User added successfully!");
-        setUsers((prevUsers) => [...prevUsers, data.user]);
+        onAddUserSuccess(); // Trigger a refetch in the parent component
         setUsername("");
         setName("");
         setEmail("");
@@ -81,12 +79,26 @@ const AddUserForm = ({
           <SelectItem value="Admin">Admin</SelectItem>
         </SelectContent>
       </Select>
-      <Input
-        placeholder="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      <div className="relative">
+        <Input
+          placeholder="Password"
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="pr-10"
+        />
+        <button
+          type="button"
+          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? (
+            <EyeOff className="h-5 w-5 text-gray-400" />
+          ) : (
+            <Eye className="h-5 w-5 text-gray-400" />
+          )}
+        </button>
+      </div>
       <Button type="submit">Add User</Button>
     </form>
   );

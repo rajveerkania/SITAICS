@@ -1,8 +1,10 @@
 "use client";
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const router = useRouter();
@@ -11,9 +13,9 @@ export default function Login() {
     password: "",
   });
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const submitForm = async () => {
     try {
@@ -130,67 +132,39 @@ export default function Login() {
                 Password
               </label>
             </div>
-            <div className="mt-2">
+            <div className="mt-2 relative">
               <input
-                className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 pr-10"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 onChange={(e) =>
                   setAuthState({ ...authState, password: e.target.value })
                 }
               />
-              <div className="mt-3 p-1 flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="show-password"
-                    type="checkbox"
-                    checked={showPassword}
-                    onChange={() => setShowPassword(!showPassword)}
-                    className="hidden"
-                  />
-                  <label
-                    htmlFor="show-password"
-                    className="flex items-center cursor-pointer"
-                  >
-                    <span
-                      className={`w-4 h-4 inline-block mr-2 rounded border ${
-                        showPassword
-                          ? "bg-black border-black"
-                          : "border-gray-300"
-                      }`}
-                    >
-                      {showPassword && (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3 w-3 text-white mx-auto my-auto"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </span>
-                    <span className="text-sm font-semibold text-black">
-                      Show Password
-                    </span>
-                  </label>
-                </div>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm font-semibold text-black hover:underline mt-2 lg:mt-0"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400" />
+                )}
+              </button>
               {errors.password && (
                 <span className="text-red-500 font-bold">
                   {errors.password}
                 </span>
               )}
+            </div>
+            <div className="mt-3 flex">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-semibold text-black hover:underline"
+              >
+                Forgot password?
+              </Link>
             </div>
           </div>
           <div>

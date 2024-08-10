@@ -28,9 +28,5 @@ export default function RootLayout({
     return <p>Access Denied</p>;
   }
 
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
+  return <>{children}</>;
 }
