@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const Roles = ["Admin", "FacultyStaff", "PlacementOfficer", "Student"];
+    const Roles = ["Admin", "staff", "PlacementOfficer", "Student"];
     if (!Roles.includes(role)) {
       throw new Error(
         "Unspecified Role!\nPlease choose role from the following:\n 1. Admin\n 2. FacultyStaff\n 3. PlacementOfficer\n 4. Student"
