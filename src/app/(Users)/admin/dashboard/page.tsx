@@ -36,7 +36,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { LogoutButton } from "@/components/LogoutButton";
+import { LogoutButton } from "@/components/logoutbutton";
 import Image from "next/image";
 import NumberTicker from "@/components/magicui/number-ticker";
 
