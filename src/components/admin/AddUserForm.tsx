@@ -74,8 +74,8 @@ const AddUserForm = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="Student">Student</SelectItem>
-          <SelectItem value="FacultyStaff">Assistant Professor</SelectItem>
-          <SelectItem value="PlacementOfficer">Placement Officer</SelectItem>
+          <SelectItem value="Staff">Staff</SelectItem>
+          <SelectItem value="PO">Placement Officer</SelectItem>
           <SelectItem value="Admin">Admin</SelectItem>
         </SelectContent>
       </Select>

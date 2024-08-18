@@ -2,7 +2,6 @@ import { connect } from "@/database/mongo.config";
 import { Course } from "@/models/Course";
 import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
-;
 connect();
 export async function POST(request: NextRequest) {
     try {
@@ -10,17 +9,18 @@ export async function POST(request: NextRequest) {
         const { courseName, courseDuration } = reqBody;
         console.log(reqBody);
         const course = await Course.findOne({ courseName })
-        if (course) {
+        if (course) 
+        {
             return NextResponse.json(
                 { error: "course already exists" },
                 { status: 400 }
             );
         }
-        const newCourse = new Course({
+        const addCourse = new Course({
             courseName,
             courseDuration
         });
-        const savedCourse = await newCourse.save();
+        const savedCourse = await addCourse.save();
         console.log(savedCourse);
 
 
@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
             success: true,
             savedCourse,
         });
-    } catch (error: any) {
+    } 
+    catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 })
 
     }

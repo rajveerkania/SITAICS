@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 const subjectSchema = new Schema({
+  
   subjectName:{
 
     required:[true,"CourseName field is required"],

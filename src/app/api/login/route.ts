@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { error: "User does not exist" },
-        { status: 400 }
+        { status: 404 }
       );
     }
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     if (!validPassword) {
       return NextResponse.json(
         { error: "Check Your Credentials" },
-        { status: 400 }
+        { status: 403 }
       );
     }
 

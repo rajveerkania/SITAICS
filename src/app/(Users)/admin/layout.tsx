@@ -15,16 +15,13 @@ export default function RootLayout({
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
 
-  let userRole = null;
-
-  if (token) {
-    const decodedToken = verifyToken(token);
-    if (decodedToken && typeof decodedToken === "object") {
-      userRole = decodedToken.role;
-    }
+  if (!token) {
+    return <p>Access Denied</p>;
   }
 
-  if (userRole !== "Admin") {
+  const decodedToken = verifyToken(token);
+
+  if (!decodedToken || typeof decodedToken !== "object" || decodedToken.role !== "Admin") {
     return <p>Access Denied</p>;
   }
 
