@@ -14,8 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { UserDetailsDialog } from "./UserDetailsDialog";
 
 interface User {
-  _id: string;
-  username: string;
+  id: string;
+  name: string;
   email: string;
   role: string;
 }
@@ -54,18 +54,18 @@ const UsersTab = () => {
     fetchUsers();
   }, []);
 
-  const handleDeleteUser = async (username: string) => {
+  const handleDeleteUser = async (id: string) => {
     try {
       const response = await fetch("/api/deleteUser", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ id }),
       });
       const data = await response.json();
       if (data.success) {
-        setUsers(users.filter((user) => user.username !== username));
+        setUsers(users.filter((user) => user.id !== id));
         alert("User deleted successfully");
       } else {
         alert(data.error || "An error occurred");
@@ -77,7 +77,7 @@ const UsersTab = () => {
   };
 
   const handleAddUserSuccess = async () => {
-    await fetchUsers(); // Refetch the user list after adding a new user
+    await fetchUsers();
   };
 
   if (isLoading) {
@@ -100,7 +100,7 @@ const UsersTab = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Username</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Actions</TableHead>
@@ -109,8 +109,8 @@ const UsersTab = () => {
               <TableBody>
                 {users.length > 0 ? (
                   users.map((user) => (
-                    <TableRow key={user._id}>
-                      <TableCell>{user.username}</TableCell>
+                    <TableRow key={user.id}>
+                      <TableCell>{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.role}</TableCell>
                       <TableCell>
@@ -118,9 +118,7 @@ const UsersTab = () => {
                           <Button onClick={() => setShowUserDetails(true)}>
                             <FaRegEdit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            onClick={() => handleDeleteUser(user.username)}
-                          >
+                          <Button onClick={() => handleDeleteUser(user.id)}>
                             <FaTrashAlt className="h-4 w-4" />
                           </Button>
                         </div>
