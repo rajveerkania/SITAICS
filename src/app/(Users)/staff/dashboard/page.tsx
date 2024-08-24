@@ -45,89 +45,250 @@ const FacultyDashboard: React.FC = () => {
     students: [
       { name: "John Doe", rollNumber: "CS001", present: false },
       { name: "Jane Smith", rollNumber: "CS002", present: false },
-      // Add more students as needed
+      { name: "Alice Johnson", rollNumber: "CS003", present: false },
     ],
   });
 
-  const handleNotificationChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    stateSetter: React.Dispatch<React.SetStateAction<any>>
   ) => {
-    const { name, value } = e.target;
-    setNotification((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleLeaveRequestChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setLeaveRequest((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleResultReportChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, files } = e.target as HTMLInputElement;
-    if (name === "file" && files) {
-      setResultReport((prev) => ({ ...prev, [name]: files[0] }));
+    const { name, value, type } = e.target;
+    if (type === "file") {
+      const fileInput = e.target as HTMLInputElement;
+      stateSetter((prev: any) => ({
+        ...prev,
+        [name]: fileInput.files?.[0] || null,
+      }));
     } else {
-      setResultReport((prev) => ({ ...prev, [name]: value }));
+      stateSetter((prev: any) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleAttendanceChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setAttendance((prev) => ({ ...prev, [name]: value }));
+  const handleStudentAttendanceChange = (index: number) => {
+    setAttendance((prev) => ({
+      ...prev,
+      students: prev.students.map((student, i) =>
+        i === index ? { ...student, present: !student.present } : student
+      ),
+    }));
   };
 
-  const handleStudentAttendanceChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    const updatedStudents = [...attendance.students];
-    updatedStudents[index].present = e.target.checked;
-    setAttendance((prev) => ({ ...prev, students: updatedStudents }));
-  };
-
-  const sendNotification = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent, action: string) => {
     e.preventDefault();
-    console.log("Sending notification:", notification);
-    // Implement the actual sending logic here
-    alert("Notification sent successfully!");
-    setNotification({ recipient: "", message: "" });
+    console.log(
+      `Submitting ${action}:`,
+      { notification, leaveRequest, resultReport, attendance }[action]
+    );
+    alert(`${action.charAt(0).toUpperCase() + action.slice(1)} submitted successfully!`);
+    // Reset form state here
   };
 
-  const submitLeaveRequest = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Submitting leave request:", leaveRequest);
-    // Implement the actual submission logic here
-    alert("Leave request submitted successfully!");
-    setLeaveRequest({ startDate: "", endDate: "", reason: "" });
-  };
+  const renderDashboardContent = () => (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 rounded-lg shadow-lg">
+          <h3 className="font-bold text-lg">Total Classes</h3>
+          <p className="text-2xl">5</p>
+        </div>
+        <div className="bg-gradient-to-r from-green-500 to-teal-500 text-white p-4 rounded-lg shadow-lg">
+          <h3 className="font-bold text-lg">Students</h3>
+          <p className="text-2xl">150</p>
+        </div>
+        <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white p-4 rounded-lg shadow-lg">
+          <h3 className="font-bold text-lg">Pending Leaves</h3>
+          <p className="text-2xl">2</p>
+        </div>
+      </div>
 
-  const uploadResultReport = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Uploading result report:", resultReport);
-    // Implement the actual upload logic here
-    alert("Result report uploaded successfully!");
-    setResultReport({ course: "", semester: "", file: null });
-  };
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow-lg">
+          <h3 className="font-bold text-lg mb-2">Today's Schedule</h3>
+          <ul className="space-y-2">
+            <li>09:00 AM - Data Structures (Room 101)</li>
+            <li>11:00 AM - Database Management (Lab 2)</li>
+            <li>02:00 PM - Algorithms (Room 203)</li>
+          </ul>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-lg">
+          <h3 className="font-bold text-lg mb-2">Calendar</h3>
+          <p>Calendar component placeholder</p>
+        </div>
+      </div>
+    </>
+  );
 
-  const submitAttendance = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Submitting attendance:", attendance);
-    // Implement the actual attendance submission logic here
-    alert("Attendance submitted successfully!");
-    setAttendance({
-      course: "",
-      date: "",
-      students: attendance.students.map((student) => ({
-        ...student,
-        present: false,
-      })),
-    });
-  };
+  const renderNotificationsForm = () => (
+    <div className="bg-white p-4 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4">Send Notification</h2>
+      <form onSubmit={(e) => handleSubmit(e, "notification")} className="space-y-4">
+        <input
+          type="text"
+          name="recipient"
+          placeholder="Recipient (Student ID or 'All')"
+          value={notification.recipient}
+          onChange={(e) => handleInputChange(e, setNotification)}
+          className="w-full p-2 border rounded"
+          required
+        />
+        <textarea
+          name="message"
+          placeholder="Notification message"
+          value={notification.message}
+          onChange={(e) => handleInputChange(e, setNotification)}
+          className="w-full p-2 border rounded"
+          required
+        />
+        <button
+          type="submit"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+        >
+          Send Notification
+        </button>
+      </form>
+    </div>
+  );
+
+  const renderLeaveRequestForm = () => (
+    <div className="bg-white p-4 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4">Request Leave</h2>
+      <form onSubmit={(e) => handleSubmit(e, "leaveRequest")} className="space-y-4">
+        <input
+          type="date"
+          name="startDate"
+          value={leaveRequest.startDate}
+          onChange={(e) => handleInputChange(e, setLeaveRequest)}
+          className="w-full p-2 border rounded"
+          required
+        />
+        <input
+          type="date"
+          name="endDate"
+          value={leaveRequest.endDate}
+          onChange={(e) => handleInputChange(e, setLeaveRequest)}
+          className="w-full p-2 border rounded"
+          required
+        />
+        <textarea
+          name="reason"
+          placeholder="Reason for leave"
+          value={leaveRequest.reason}
+          onChange={(e) => handleInputChange(e, setLeaveRequest)}
+          className="w-full p-2 border rounded"
+          required
+        />
+        <button
+          type="submit"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+        >
+          Submit Leave Request
+        </button>
+      </form>
+    </div>
+  );
+
+  const renderResultReportForm = () => (
+    <div className="bg-white p-4 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4">Upload Result Report</h2>
+      <form onSubmit={(e) => handleSubmit(e, "resultReport")} className="space-y-4">
+        <select
+          name="course"
+          value={resultReport.course}
+          onChange={(e) => handleInputChange(e, setResultReport)}
+          className="w-full p-2 border rounded"
+          required
+        >
+          <option value="">Select Course</option>
+          <option value="B.Tech Computer Science">B.Tech Computer Science</option>
+          <option value="M.Tech AI/ML">M.Tech AI/ML</option>
+        </select>
+        <select
+          name="semester"
+          value={resultReport.semester}
+          onChange={(e) => handleInputChange(e, setResultReport)}
+          className="w-full p-2 border rounded"
+          required
+        >
+          <option value="">Select Semester</option>
+          <option value="Semester 1">Semester 1</option>
+          <option value="Semester 2">Semester 2</option>
+        </select>
+        <input
+          type="file"
+          name="file"
+          onChange={(e) => handleInputChange(e, setResultReport)}
+          className="w-full p-2 border rounded"
+          required
+        />
+        <button
+          type="submit"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+        >
+          Upload Result Report
+        </button>
+      </form>
+    </div>
+  );
+
+  const renderStudentList = () => (
+    <div className="bg-white p-4 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4">Student List</h2>
+      <ul className="space-y-2">
+        {attendance.students.map((student) => (
+          <li key={student.rollNumber}>
+            {student.name} - {student.rollNumber}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  const renderAttendanceForm = () => (
+    <div className="bg-white p-4 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4">Mark Attendance</h2>
+      <form onSubmit={(e) => handleSubmit(e, "attendance")} className="space-y-4">
+        <select
+          name="course"
+          value={attendance.course}
+          onChange={(e) => handleInputChange(e, setAttendance)}
+          className="w-full p-2 border rounded"
+          required
+        >
+          <option value="">Select Course</option>
+          <option value="B.Tech Computer Science">B.Tech Computer Science</option>
+          <option value="M.Tech AI/ML">M.Tech AI/ML</option>
+        </select>
+        <input
+          type="date"
+          name="date"
+          value={attendance.date}
+          onChange={(e) => handleInputChange(e, setAttendance)}
+          className="w-full p-2 border rounded"
+          required
+        />
+        <div className="space-y-2">
+          {attendance.students.map((student, index) => (
+            <div key={student.rollNumber} className="flex items-center space-x-4">
+              <span>{student.name}</span>
+              <span>{student.rollNumber}</span>
+              <input
+                type="checkbox"
+                checked={student.present}
+                onChange={() => handleStudentAttendanceChange(index)}
+              />
+              <label>Present</label>
+            </div>
+          ))}
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+        >
+          Submit Attendance
+        </button>
+      </form>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -137,15 +298,15 @@ const FacultyDashboard: React.FC = () => {
       </Head>
 
       <header className="bg-white shadow-md">
-        <div className="container mx-auto px-4 py-2 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <Image src="/logo.png" alt="SITAICS" width={50} height={50} />
-            <h1 className="ml-2 text-xl font-bold text-black-500">SITAICS</h1>
+            <h1 className="ml-2 text-xl font-bold text-gray-700">SITAICS</h1>
           </div>
           <div className="flex items-center">
             <span className="mr-2 text-gray-700">Welcome {facultyInfo.name}</span>
             <Image
-              src="/logo.png"
+              src="/profile.png"
               alt="Profile"
               width={40}
               height={40}
@@ -155,237 +316,36 @@ const FacultyDashboard: React.FC = () => {
         </div>
       </header>
 
-      <nav className="bg-gray-800 text-white">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <ul className="flex space-x-4 py-2">
-            {[
-              "Dashboard",
-              "Notifications",
-              "Leave",
-              "Results",
-              "Students",
-              "Attendance",
-            ].map((item) => (
+      <div className="container mx-auto mt-8 px-4">
+        <nav className="bg-gray-800 text-white mb-8">
+          <ul className="flex flex-wrap">
+            {["Dashboard", "Notifications", "Leave", "Results", "Students", "Attendance"].map((item) => (
               <li key={item}>
                 <button
-                  className={`px-4 py-2 rounded-md transition-colors duration-300 ${
-                    activeTab === item.toLowerCase()
-                      ? "bg-gray-900"
-                      : "bg-gray-800 hover:bg-gray-700"
-                  }`}
                   onClick={() => setActiveTab(item.toLowerCase())}
+                  className={`px-4 py-2 transition-all duration-300 ${
+                    activeTab === item.toLowerCase()
+                      ? "bg-gray-700"
+                      : "hover:bg-gray-600"
+                  }`}
                 >
                   {item}
                 </button>
               </li>
             ))}
           </ul>
-          <LogoutButton />
-        </div>
-      </nav>
+        </nav>
 
-      <main className="container mx-auto mt-8 px-4">
-        {activeTab === "dashboard" && (
-          <div className="bg-white shadow-md rounded-lg p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4">Faculty Information</h2>
-            <div className="border border-gray-300 rounded-lg p-4">
-              <p className="font-semibold text-lg">SITAICS (School of Information Technology)</p>
-              <p className="mt-2"><strong>Name:</strong> {facultyInfo.name}</p>
-              <p><strong>Email:</strong> {facultyInfo.email}</p>
-              <p><strong>Employee ID:</strong> {facultyInfo.employeeId}</p>
-              <p><strong>Department:</strong> {facultyInfo.department}</p>
-              <p><strong>Designation:</strong> {facultyInfo.designation}</p>
-              <p><strong>Join Date:</strong> {facultyInfo.joinDate}</p>
-              <p><strong>Mobile No.:</strong> {facultyInfo.mobileNo}</p>
-              <p><strong>Address:</strong> {facultyInfo.address}</p>
-              <p><strong>City:</strong> {facultyInfo.city}</p>
-              <p><strong>State:</strong> {facultyInfo.state}</p>
-              <p><strong>PIN Code:</strong> {facultyInfo.pinCode}</p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "notifications" && (
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">Send Notification</h2>
-            <form onSubmit={sendNotification} className="space-y-4">
-              <input
-                type="text"
-                name="recipient"
-                placeholder="Recipient (Student ID or 'All')"
-                value={notification.recipient}
-                onChange={handleNotificationChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              <textarea
-                name="message"
-                placeholder="Notification message"
-                value={notification.message}
-                onChange={handleNotificationChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              <button
-                type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-              >
-                Send Notification
-              </button>
-            </form>
-          </div>
-        )}
-
-        {activeTab === "leave" && (
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">Request Leave</h2>
-            <form onSubmit={submitLeaveRequest} className="space-y-4">
-              <input
-                type="date"
-                name="startDate"
-                value={leaveRequest.startDate}
-                onChange={handleLeaveRequestChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              <input
-                type="date"
-                name="endDate"
-                value={leaveRequest.endDate}
-                onChange={handleLeaveRequestChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              <textarea
-                name="reason"
-                placeholder="Reason for leave"
-                value={leaveRequest.reason}
-                onChange={handleLeaveRequestChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              <button
-                type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-              >
-                Submit Leave Request
-              </button>
-            </form>
-          </div>
-        )}
-
-        {activeTab === "results" && (
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">Upload Result Report</h2>
-            <form onSubmit={uploadResultReport} className="space-y-4">
-              <select
-                name="course"
-                value={resultReport.course}
-                onChange={handleResultReportChange}
-                className="w-full p-2 border rounded"
-                required
-              >
-                <option value="">Select Course</option>
-                <option value="B.Tech Computer Science">
-                  B.Tech Computer Science
-                </option>
-                {/* Add more course options as needed */}
-              </select>
-              <select
-                name="semester"
-                value={resultReport.semester}
-                onChange={handleResultReportChange}
-                className="w-full p-2 border rounded"
-                required
-              >
-                <option value="">Select Semester</option>
-                <option value="Semester 1">Semester 1</option>
-                <option value="Semester 2">Semester 2</option>
-                {/* Add more semester options as needed */}
-              </select>
-              <input
-                type="file"
-                name="file"
-                onChange={handleResultReportChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              <button
-                type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-              >
-                Upload Result Report
-              </button>
-            </form>
-          </div>
-        )}
-
-        {activeTab === "students" && (
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">Student List</h2>
-            <ul className="space-y-2">
-              <li>Student 1</li>
-              <li>Student 2</li>
-              <li>Student 3</li>
-              {/* Add more students as needed */}
-            </ul>
-          </div>
-        )}
-
-        {activeTab === "attendance" && (
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">Mark Attendance</h2>
-            <form onSubmit={submitAttendance} className="space-y-4">
-              <select
-                name="course"
-                value={attendance.course}
-                onChange={handleAttendanceChange}
-                className="w-full p-2 border rounded"
-                required
-              >
-                <option value="">Select Course</option>
-                <option value="B.Tech Computer Science">
-                  B.Tech Computer Science
-                </option>
-                {/* Add more course options as needed */}
-              </select>
-              <input
-                type="date"
-                name="date"
-                value={attendance.date}
-                onChange={handleAttendanceChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              <div className="space-y-2">
-                {attendance.students.map((student, index) => (
-                  <div
-                    key={student.rollNumber}
-                    className="flex items-center space-x-4"
-                  >
-                    <span>{student.name}</span>
-                    <span>{student.rollNumber}</span>
-                    <input
-                      type="checkbox"
-                      checked={student.present}
-                      onChange={(e) =>
-                        handleStudentAttendanceChange(e, index)
-                      }
-                    />
-                    <label>Present</label>
-                  </div>
-                ))}
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-              >
-                Submit Attendance
-              </button>
-            </form>
-          </div>
-        )}
-      </main>
+        <main>
+          {activeTab === "dashboard" && renderDashboardContent()}
+          {activeTab === "notifications" && renderNotificationsForm()}
+          {activeTab === "leave" && renderLeaveRequestForm()}
+          {activeTab === "results" && renderResultReportForm()}
+          {activeTab === "students" && renderStudentList()}
+          {activeTab === "attendance" && renderAttendanceForm()}
+        </main>
+        <LogoutButton/>
+      </div>
     </div>
   );
 };

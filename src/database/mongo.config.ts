@@ -23,3 +23,4 @@ export async function connect() {
     process.exit(1);
   }
 }
+

@@ -34,3 +34,4 @@ export default class ErrorReporter implements ErrorReporterContract {
     return new errors.E_VALIDATION_ERROR(this.errors);
   }
 }
+
