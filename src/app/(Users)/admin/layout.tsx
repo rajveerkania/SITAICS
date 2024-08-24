@@ -21,7 +21,11 @@ export default function RootLayout({
 
   const decodedToken = verifyToken(token);
 
-  if (!decodedToken || typeof decodedToken !== "object" || decodedToken.role !== "Admin") {
+  if (
+    !decodedToken ||
+    typeof decodedToken !== "object" ||
+    decodedToken.role !== "Admin"
+  ) {
     return <p>Access Denied</p>;
   }
 
