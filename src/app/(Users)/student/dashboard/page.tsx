@@ -1,8 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import Head from "next/head";
 import StudentAuthentication from "@/components/student/StudentAuthentication";
-import Header from "@/components/student/Header";
+import { Navbar } from "@/components/Navbar";
 import Navigation from "@/components/student/Navigation";
 import Dashboard from "@/components/student/Dashbord";
 import Timetable from "@/components/student/Timetable";
@@ -36,19 +35,15 @@ const Page: React.FC = () => {
     return (
       <StudentAuthentication
         setIsAuthenticated={setIsAuthenticated}
-        setStudentInfo={setStudentInfo}
-      />
+        setStudentInfo={setStudentInfo} handleLogout={function (): void {
+          throw new Error("Function not implemented.");
+        } }      />
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Head>
-        <title>SITAICS Student Portal</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <Header studentName={studentInfo.name} />
+    <Navbar />
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main className="container mx-auto mt-8 px-4">
