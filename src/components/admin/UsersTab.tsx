@@ -25,6 +25,10 @@ const UsersTab = () => {
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("view");
+  const usersPerPage = 2;
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -80,6 +84,17 @@ const UsersTab = () => {
     await fetchUsers();
   };
 
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
+  const currentUsers = filteredUsers.slice(
+    (currentPage - 1) * usersPerPage,
+    currentPage * usersPerPage
+  );
+
   if (isLoading) {
     return <div>Loading users...</div>;
   }
@@ -90,10 +105,26 @@ const UsersTab = () => {
 
   return (
     <div>
-      <Tabs defaultValue="view">
-        <TabsList>
-          <TabsTrigger value="view">View Users</TabsTrigger>
-          <TabsTrigger value="add">Add User</TabsTrigger>
+      <Tabs defaultValue="view" onValueChange={(value) => setActiveTab(value)}>
+        <TabsList className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+          <div className="flex space-x-4">
+            <TabsTrigger value="view">View Users</TabsTrigger>
+            <TabsTrigger value="add">Add User</TabsTrigger>
+          </div>
+          {activeTab === "view" && (
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder="Search by username"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1); // Reset to page 1 on search
+                }}
+                className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all duration-300"
+              />
+            </div>
+          )}
         </TabsList>
         <TabsContent value="view">
           <div className="w-full overflow-auto">
@@ -107,8 +138,8 @@ const UsersTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.length > 0 ? (
-                  users.map((user) => (
+                {currentUsers.length > 0 ? (
+                  currentUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
@@ -134,6 +165,25 @@ const UsersTab = () => {
                 )}
               </TableBody>
             </Table>
+            <div className="pagination mt-4 flex justify-center items-center space-x-4">
+              <Button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+                className="pagination-button"
+              >
+                Previous
+              </Button>
+              <span className="pagination-info">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+                className="pagination-button"
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </TabsContent>
         <TabsContent value="add">

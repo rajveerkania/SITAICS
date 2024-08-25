@@ -37,21 +37,21 @@ const Timetable: React.FC = () => {
     <div className="bg-white shadow-md rounded-lg p-6">
       <h2 className="text-2xl font-bold mb-4">Student Timetable</h2>
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table className="min-w-full border-collapse">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border p-2">Time Slot</th>
-              <th className="border p-2">Monday</th>
-              <th className="border p-2">Tuesday</th>
-              <th className="border p-2">Wednesday</th>
-              <th className="border p-2">Thursday</th>
-              <th className="border p-2">Friday</th>
-              <th className="border p-2">Saturday</th>
+              <th className="border p-2 text-left">Time Slot</th>
+              <th className="border p-2 text-left">Monday</th>
+              <th className="border p-2 text-left">Tuesday</th>
+              <th className="border p-2 text-left">Wednesday</th>
+              <th className="border p-2 text-left">Thursday</th>
+              <th className="border p-2 text-left">Friday</th>
+              <th className="border p-2 text-left">Saturday</th>
             </tr>
           </thead>
           <tbody>
             {timetableData.map((row, index) => (
-              <tr key={index}>
+              <tr key={index} className="hover:bg-gray-100">
                 <td className="border p-2">{row.time}</td>
                 <td className="border p-2">{row.monday}</td>
                 <td className="border p-2">{row.tuesday}</td>
