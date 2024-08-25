@@ -41,7 +41,7 @@ export function Navbar() {
               priority
             />
           </div>
-          <span className="text-lg font-medium text-gray-900">WELCOME TO RRU LAVAD</span>
+          <span className="text-lg font-medium text-gray-900">Welcome, Harshil Khokhar</span>
         </div>
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">
