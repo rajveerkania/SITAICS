@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { NotificationDialog } from "./admin/AdminNotification";
-import { LogoutButton } from "./LogoutButton";
+import { LogoutButton } from "./logoutbutton";
 import { FaSignOutAlt } from "react-icons/fa";
 
 export function Navbar() {
@@ -41,7 +41,7 @@ export function Navbar() {
               priority
             />
           </div>
-          <span className="text-lg font-medium text-gray-900">Welcome, Harshil Khokhar</span>
+          <span className="text-lg font-medium text-gray-900">Welcome.!</span>
         </div>
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">

@@ -48,7 +48,7 @@ const Page: React.FC = () => {
 
       <main className="container mx-auto mt-8 px-4">
         {activeTab === "dashboard" && <Dashboard studentInfo={studentInfo} />}
-        {activeTab === "timetable" && <Timetable />}
+        {activeTab === "timetable" && <Timetable timetableData={[]} />}
         {activeTab === "exam" && <ExamResults />}
         {activeTab === "leave" && <LeaveManagement />}
         {activeTab === "achievement" && <Achievement />}

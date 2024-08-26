@@ -10,7 +10,6 @@ export default function Login() {
   const [authState, setAuthState] = useState({
     emailOrUsername: "",
     password: "",
-    role: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -20,9 +19,6 @@ export default function Login() {
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
-    if (!authState.role) {
-      errors.role = "Please select a role.";
-    }
     if (!authState.emailOrUsername) {
       errors.emailOrUsername = "Email or Username is required.";
     }
@@ -58,15 +54,16 @@ export default function Login() {
       } else {
         setDialogMessage("Login successful!");
         setTimeout(() => {
-          switch (authState.role) {
+          // Assuming role comes from API response
+          switch (data.role) {
             case "Admin":
               router.push("/admin/dashboard");
               break;
             case "Staff":
-              router.push("staff/dashboard");
+              router.push("/staff/dashboard");
               break;
             default:
-              router.push("student/dashboard");
+              router.push("/student/dashboard");
               break;
           }
         }, 1500);
@@ -124,48 +121,6 @@ export default function Login() {
             priority
           />
         </div>
-
-        <div className="flex justify-center space-x-4 mb-6">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="role"
-              value="Student"
-              onChange={(e) =>
-                setAuthState({ ...authState, role: e.target.value })
-              }
-              className="form-radio"
-            />
-            <span className="ml-2 text-base text-gray-900">Student</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="role"
-              value="Admin"
-              onChange={(e) =>
-                setAuthState({ ...authState, role: e.target.value })
-              }
-              className="form-radio"
-            />
-            <span className="ml-2 text-base text-gray-900">Admin</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="role"
-              value="Staff"
-              onChange={(e) =>
-                setAuthState({ ...authState, role: e.target.value })
-              }
-              className="form-radio"
-            />
-            <span className="ml-2 text-base text-gray-900">Staff</span>
-          </label>
-        </div>
-        {errors.role && (
-          <p className="text-red-500 font-bold mb-4">{errors.role}</p>
-        )}
 
         <form
           onSubmit={(e) => {

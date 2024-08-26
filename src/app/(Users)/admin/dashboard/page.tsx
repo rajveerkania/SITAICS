@@ -18,8 +18,7 @@ import UsersTab from "@/components/admin/UsersTab";
 import CoursesTab from "@/components/admin/CoursesTab";
 import SubjectsTab from "@/components/admin/SubjectsTab";
 import LeavesTab from "@/components/admin/LeavesTab";
-
-// Mock data for student distribution
+import AttendanceTab from "@/components/admin/Attedance"; 
 const studentData = [
   { course: "BTech", students: 120 },
   { course: "MTech CS", students: 25 },
@@ -44,33 +43,39 @@ const AdminDashboard = () => {
           <TabsList className="flex flex-wrap justify-start gap-2 mb-8">
             <TabsTrigger
               value="overview"
-              className="flex-grow basis-1/3 sm:basis-auto"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="users"
-              className="flex-grow basis-1/3 sm:basis-auto"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Users
             </TabsTrigger>
             <TabsTrigger
               value="courses"
-              className="flex-grow basis-1/3 sm:basis-auto"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Courses
             </TabsTrigger>
             <TabsTrigger
               value="subjects"
-              className="flex-grow basis-1/3 sm:basis-auto"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Subjects
             </TabsTrigger>
             <TabsTrigger
               value="leaves"
-              className="flex-grow basis-1/3 sm:basis-auto"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Leaves
+            </TabsTrigger>
+            <TabsTrigger
+              value="attendance"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
+            >
+              Attendance
             </TabsTrigger>
           </TabsList>
 
@@ -148,6 +153,17 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <LeavesTab />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="attendance">
+            <Card>
+              <CardHeader>
+                <CardTitle>Attendance Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AttendanceTab />
               </CardContent>
             </Card>
           </TabsContent>

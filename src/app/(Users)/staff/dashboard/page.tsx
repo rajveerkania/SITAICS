@@ -2,10 +2,53 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Image from "next/image";
-import { LogoutButton } from "@/components/LogoutButton";
+import { LogoutButton } from "@/components/logoutbutton";
+
+interface FacultyInfo {
+  name: string;
+  email: string;
+  employeeId: string;
+  department: string;
+  designation: string;
+  joinDate: string;
+  mobileNo: string;
+  address: string;
+  city: string;
+  state: string;
+  pinCode: string;
+}
+
+interface Notification {
+  recipient: string;
+  message: string;
+}
+
+interface LeaveRequest {
+  startDate: string;
+  endDate: string;
+  reason: string;
+}
+
+interface ResultReport {
+  course: string;
+  semester: string;
+  file: File | null;
+}
+
+interface Student {
+  name: string;
+  rollNumber: string;
+  present: boolean;
+}
+
+interface Attendance {
+  course: string;
+  date: string;
+  students: Student[];
+}
 
 const FacultyDashboard: React.FC = () => {
-  const [facultyInfo] = useState({
+  const [facultyInfo] = useState<FacultyInfo>({
     name: "Dr. Jatin Patel",
     email: "jatini@rru.ac.in",
     employeeId: "ABC001",
@@ -19,27 +62,27 @@ const FacultyDashboard: React.FC = () => {
     pinCode: "380015",
   });
 
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [isBatchCoordinator] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const [isBatchCoordinator] = useState<boolean>(true);
 
-  const [notification, setNotification] = useState({
+  const [notification, setNotification] = useState<Notification>({
     recipient: "",
     message: "",
   });
 
-  const [leaveRequest, setLeaveRequest] = useState({
+  const [leaveRequest, setLeaveRequest] = useState<LeaveRequest>({
     startDate: "",
     endDate: "",
     reason: "",
   });
 
-  const [resultReport, setResultReport] = useState({
+  const [resultReport, setResultReport] = useState<ResultReport>({
     course: "",
     semester: "",
-    file: null as File | null,
+    file: null,
   });
 
-  const [attendance, setAttendance] = useState({
+  const [attendance, setAttendance] = useState<Attendance>({
     course: "",
     date: "",
     students: [
@@ -47,6 +90,10 @@ const FacultyDashboard: React.FC = () => {
       { name: "Jane Smith", rollNumber: "CS002", present: false },
       { name: "Alice Johnson", rollNumber: "CS003", present: false },
     ],
+  });
+
+  const [timetable, setTimetable] = useState<{ file: File | null }>({
+    file: null,
   });
 
   const handleInputChange = (
@@ -76,12 +123,39 @@ const FacultyDashboard: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent, action: string) => {
     e.preventDefault();
-    console.log(
-      `Submitting ${action}:`,
-      { notification, leaveRequest, resultReport, attendance }[action]
-    );
-    alert(`${action.charAt(0).toUpperCase() + action.slice(1)} submitted successfully!`);
-    // Reset form state here
+    switch (action) {
+      case "timetable":
+        console.log("Uploading timetable:", timetable.file);
+        alert("Timetable uploaded successfully!");
+        setTimetable({ file: null });
+        break;
+      case "notification":
+        console.log("Submitting notification:", notification);
+        alert("Notification submitted successfully!");
+        setNotification({ recipient: "", message: "" });
+        break;
+      case "leaveRequest":
+        console.log("Submitting leave request:", leaveRequest);
+        alert("Leave request submitted successfully!");
+        setLeaveRequest({ startDate: "", endDate: "", reason: "" });
+        break;
+      case "resultReport":
+        console.log("Submitting result report:", resultReport);
+        alert("Result report submitted successfully!");
+        setResultReport({ course: "", semester: "", file: null });
+        break;
+      case "attendance":
+        console.log("Submitting attendance:", attendance);
+        alert("Attendance submitted successfully!");
+        setAttendance({
+          course: "",
+          date: "",
+          students: attendance.students.map((student) => ({ ...student, present: false })),
+        });
+        break;
+      default:
+        break;
+    }
   };
 
   const renderDashboardContent = () => (
@@ -216,6 +290,7 @@ const FacultyDashboard: React.FC = () => {
         <input
           type="file"
           name="file"
+          accept=".pdf"
           onChange={(e) => handleInputChange(e, setResultReport)}
           className="w-full p-2 border rounded"
           required
@@ -290,6 +365,28 @@ const FacultyDashboard: React.FC = () => {
     </div>
   );
 
+  const renderTimetableUploadForm = () => (
+    <div className="bg-white p-4 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4">Upload Timetable</h2>
+      <form onSubmit={(e) => handleSubmit(e, "timetable")} className="space-y-4">
+        <input
+          type="file"
+          name="file"
+          accept=".pdf"
+          onChange={(e) => handleInputChange(e, setTimetable)}
+          className="w-full p-2 border rounded"
+          required
+        />
+        <button
+          type="submit"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+        >
+          Upload Timetable
+        </button>
+      </form>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Head>
@@ -319,7 +416,7 @@ const FacultyDashboard: React.FC = () => {
       <div className="container mx-auto mt-8 px-4">
         <nav className="bg-gray-800 text-white mb-8">
           <ul className="flex flex-wrap">
-            {["Dashboard", "Notifications", "Leave", "Results", "Students", "Attendance"].map((item) => (
+            {["Dashboard", "Notifications", "Leave", "Results", "Students", "Attendance", "Timetable"].map((item) => (
               <li key={item}>
                 <button
                   onClick={() => setActiveTab(item.toLowerCase())}
@@ -343,8 +440,9 @@ const FacultyDashboard: React.FC = () => {
           {activeTab === "results" && renderResultReportForm()}
           {activeTab === "students" && renderStudentList()}
           {activeTab === "attendance" && renderAttendanceForm()}
+          {activeTab === "timetable" && renderTimetableUploadForm()}
         </main>
-        <LogoutButton/>
+        <LogoutButton />
       </div>
     </div>
   );

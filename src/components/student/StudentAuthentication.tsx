@@ -281,29 +281,40 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
               {errors.enrollmentNo && (
                 <p className="text-red-500">{errors.enrollmentNo}</p>
               )}
-              <input
-                type="text"
+              <select
                 name="course"
-                placeholder="Course"
                 value={studentFormData.course}
                 onChange={handleStudentInputChange}
                 className="w-full p-2 border rounded"
                 required
-              />
+              >
+                <option value="">Select Course</option>
+               
+                <option value="BTech">BTech</option>
+                <option value="MTech">MTech</option>
+                <option value="MTech AI/ML">MTech AI/ML</option>
+                <option value="MSCDF">MSCDF</option>
+              </select>
               {errors.course && <p className="text-red-500">{errors.course}</p>}
             </>
           )}
           {currentStep === 3 && (
             <>
-              <input
-                type="text"
-                name="semester"
-                placeholder="Semester"
-                value={studentFormData.semester}
-                onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
-                required
-              />
+              <select
+              name="semester"
+              value={studentFormData.semester}
+              onChange={handleStudentInputChange}
+              className="w-full p-2 border rounded"
+              required
+              >
+  <option value="">Select Semester</option>
+  {Array.from({ length: 8 }, (_, i) => (
+    <option key={i + 1} value={i + 1}>
+      Semester {i + 1}
+    </option>
+  ))}
+</select>
+
               {errors.semester && (
                 <p className="text-red-500">{errors.semester}</p>
               )}
@@ -331,15 +342,18 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
           )}
           {currentStep === 4 && (
             <>
-              <input
-                type="text"
+              <select
                 name="gender"
-                placeholder="Gender"
                 value={studentFormData.gender}
                 onChange={handleStudentInputChange}
                 className="w-full p-2 border rounded"
                 required
-              />
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
               {errors.gender && <p className="text-red-500">{errors.gender}</p>}
               <input
                 type="text"

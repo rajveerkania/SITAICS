@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { MdAdd, MdDelete } from 'react-icons/md'; // Importing icons
 
 const SubjectsTab = () => {
   const [subjects, setSubjects] = useState([
@@ -12,13 +13,13 @@ const SubjectsTab = () => {
   ]);
   const [newSubject, setNewSubject] = useState({ name: '', course: '' });
 
-  const handleAddSubject = (e:any) => {
+  const handleAddSubject = (e: React.FormEvent) => {
     e.preventDefault();
     setSubjects([...subjects, { id: subjects.length + 1, ...newSubject }]);
     setNewSubject({ name: '', course: '' });
   };
 
-  const handleDeleteSubject = (id:any) => {
+  const handleDeleteSubject = (id: number) => {
     setSubjects(subjects.filter(subject => subject.id !== id));
   };
 
@@ -40,7 +41,10 @@ const SubjectsTab = () => {
             value={newSubject.course}
             onChange={(e) => setNewSubject({ ...newSubject, course: e.target.value })}
           />
-          <Button type="submit">Add Subject</Button>
+          <Button type="submit" className="flex items-center">
+            <MdAdd className="mr-2" />
+            Add Subject
+          </Button>
         </form>
       </TabsContent>
       <TabsContent value="manage">
@@ -58,7 +62,15 @@ const SubjectsTab = () => {
                 <TableCell>{subject.name}</TableCell>
                 <TableCell>{subject.course}</TableCell>
                 <TableCell>
-                  <Button variant="destructive" onClick={() => handleDeleteSubject(subject.id)}>Delete</Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => handleDeleteSubject(subject.id)} 
+                    style={{ backgroundColor: 'black', color: 'white' }} // Inline style for black background and white text
+                    className="flex items-center"
+                  >
+                    <MdDelete style={{ color: 'white' }} className="mr-2" /> {/* White icon */}
+                    Delete
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
