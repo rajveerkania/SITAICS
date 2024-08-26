@@ -14,10 +14,11 @@ import { StatCard } from "@/components/StatCard";
 import { IndianCalendar } from "@/components/IndianCalendar";
 import { UserDetailsDialog } from "@/components/admin/UserDetailsDialog";
 import { Navbar } from "@/components/Navbar";
-
 import UsersTab from "@/components/admin/UsersTab";
-
-// Mock data for student distribution
+import CoursesTab from "@/components/admin/CoursesTab";
+import SubjectsTab from "@/components/admin/SubjectsTab";
+import LeavesTab from "@/components/admin/LeavesTab";
+import AttendanceTab from "@/components/admin/Attendance";
 const studentData = [
   { course: "BTech", students: 120 },
   { course: "MTech CS", students: 25 },
@@ -42,33 +43,39 @@ const AdminDashboard = () => {
           <TabsList className="flex flex-wrap justify-start gap-2 mb-8">
             <TabsTrigger
               value="overview"
-              className="flex-grow basis-1/3 sm:basis-auto"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="users"
-              className="flex-grow basis-1/3 sm:basis-auto"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Users
             </TabsTrigger>
             <TabsTrigger
               value="courses"
-              className="flex-grow basis-1/3 sm:basis-auto"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Courses
             </TabsTrigger>
             <TabsTrigger
               value="subjects"
-              className="flex-grow basis-1/3 sm:basis-auto"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Subjects
             </TabsTrigger>
             <TabsTrigger
               value="leaves"
-              className="flex-grow basis-1/3 sm:basis-auto"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Leaves
+            </TabsTrigger>
+            <TabsTrigger
+              value="attendance"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
+            >
+              Attendance
             </TabsTrigger>
           </TabsList>
 
@@ -123,7 +130,7 @@ const AdminDashboard = () => {
                 <CardTitle>Course Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>Course management functionality to be implemented.</p>
+                <CoursesTab />
               </CardContent>
             </Card>
           </TabsContent>
@@ -134,7 +141,7 @@ const AdminDashboard = () => {
                 <CardTitle>Subject Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>Subject management functionality to be implemented.</p>
+                <SubjectsTab />
               </CardContent>
             </Card>
           </TabsContent>
@@ -145,7 +152,18 @@ const AdminDashboard = () => {
                 <CardTitle>Leave Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>Leave management functionality to be implemented.</p>
+                <LeavesTab />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="attendance">
+            <Card>
+              <CardHeader>
+                <CardTitle>Attendance Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AttendanceTab />
               </CardContent>
             </Card>
           </TabsContent>

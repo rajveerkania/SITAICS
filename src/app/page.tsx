@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -16,11 +15,30 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("");
+
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+    if (!authState.emailOrUsername) {
+      errors.emailOrUsername = "Email or Username is required.";
+    }
+    if (!authState.password) {
+      errors.password = "Password is required.";
+    }
+    return errors;
+  };
 
   const submitForm = async () => {
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
     try {
       setLoading(true);
       setErrors({});
+      setDialogMessage("");
 
       const res = await fetch("/api/login", {
         method: "POST",
@@ -32,63 +50,77 @@ export default function Login() {
 
       const data = await res.json();
       if (!data.success) {
-        setErrors({ general: data.message });
+        setDialogMessage("Incorrect username or password.");
       } else {
-        const role = data.role;
-
-        switch (role) {
-          case "Admin":
-            router.push("/admin/dashboard");
-            break;
-          case "Staff":
-            router.push("staff/dashboard");
-            break;
-          case "PlacementOfficer":
-            router.push("po/dashboard");
-            break;
-          default:
-            router.push("student/dashboard");
-            break;
-        }
+        setDialogMessage("Login successful!");
+        setTimeout(() => {
+          // Assuming role comes from API response
+          switch (data.role) {
+            case "Admin":
+              router.push("/admin/dashboard");
+              break;
+            case "Staff":
+              router.push("/staff/dashboard");
+              break;
+            default:
+              router.push("/student/dashboard");
+              break;
+          }
+        }, 1500);
       }
+
+      // Add the timeout to hide the dialog message after 3 seconds
+      setTimeout(() => {
+        setDialogMessage("");
+      }, 3000);
     } catch (error) {
       console.error("An error occurred during login:", error);
-      setErrors({ general: "An error occurred during login." });
+      setDialogMessage("An error occurred during login.");
+
+      // Add the timeout to hide the error message after 3 seconds
+      setTimeout(() => {
+        setDialogMessage("");
+      }, 3000);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section className="bg-[#f3f4f6] min-h-screen flex items-center justify-center sm:*:justify-">
-      <div className="bg-white shadow-2xl rounded-2xl p-8 max-w-md w-full">
-        <div className="flex items-center justify-between mb-10">
+    <section className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 relative">
+      {dialogMessage && (
+        <div
+          className={`absolute top-8 left-1/2 transform -translate-x-1/2 p-4 rounded-md text-white z-50 ${
+            dialogMessage === "Login successful!"
+              ? "bg-green-500"
+              : "bg-red-500"
+          }`}
+        >
+          {dialogMessage}
+        </div>
+      )}
+      <div className="bg-white shadow-2xl rounded-2xl p-8 max-w-md w-full transform transition-transform duration-300 ease-in-out hover:scale-105">
+        <div className="flex flex-col items-center justify-center mb-10 space-y-4 sm:space-y-0 sm:flex-row sm:justify-between">
           <Image
             src="/rru.png"
             alt="RRU Logo"
-            className="mr-2"
+            className="h-auto w-20 sm:w-24"
             height={80}
             width={80}
             priority
           />
-          <h1 className="text-4xl font-bold leading-tight text-black text-center flex-1">
+          <h1 className="text-4xl font-bold leading-tight text-black text-center">
             SITAICS
           </h1>
           <Image
             src="/sitaics.png"
             alt="SITAICS Logo"
-            className="ml-2"
+            className="h-auto w-20 sm:w-24"
             width={80}
             height={80}
             priority
           />
         </div>
-
-        {errors.general && (
-          <p className="bg-red-400 font-bold rounded-md p-4 mt-4">
-            {errors.general}
-          </p>
-        )}
 
         <form
           onSubmit={(e) => {
@@ -106,7 +138,15 @@ export default function Login() {
             </label>
             <div className="mt-2">
               <input
-                className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
+                  errors.emailOrUsername
+                    ? "border-red-500"
+                    : "border-gray-300"
+                } bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-1 ${
+                  errors.emailOrUsername
+                    ? "focus:ring-red-500"
+                    : "focus:ring-gray-400"
+                } focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 transition duration-150 ease-in-out`}
                 type="text"
                 placeholder="Email or Username"
                 onChange={(e) =>
@@ -117,7 +157,7 @@ export default function Login() {
                 }
               />
               {errors.emailOrUsername && (
-                <span className="text-red-500 font-bold">
+                <span className="text-red-500 font-bold mt-2 block">
                   {errors.emailOrUsername}
                 </span>
               )}
@@ -134,7 +174,11 @@ export default function Login() {
             </div>
             <div className="mt-2 relative">
               <input
-                className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 pr-10"
+                className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
+                  errors.password ? "border-red-500" : "border-gray-300"
+                } bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-1 ${
+                  errors.password ? "focus:ring-red-500" : "focus:ring-gray-400"
+                } focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 pr-10 transition duration-150 ease-in-out`}
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 onChange={(e) =>
@@ -152,12 +196,12 @@ export default function Login() {
                   <Eye className="h-5 w-5 text-gray-400" />
                 )}
               </button>
-              {errors.password && (
-                <span className="text-red-500 font-bold">
-                  {errors.password}
-                </span>
-              )}
             </div>
+            {errors.password && (
+              <span className="text-red-500 font-bold mt-2 block animate-pulse">
+                {errors.password}
+              </span>
+            )}
             <div className="mt-3 flex">
               <Link
                 href="/forgot-password"
@@ -172,7 +216,9 @@ export default function Login() {
               type="submit"
               className={`inline-flex w-full items-center justify-center rounded-md px-3.5 py-2.5 font-semibold leading-7 text-white ${
                 loading ? "bg-gray-500" : "bg-black"
-              } hover:bg-black/80`}
+              } hover:bg-black/80 transition duration-150 ease-in-out transform ${
+                loading ? "scale-95" : "hover:scale-105"
+              }`}
               disabled={loading}
             >
               {loading ? "Authenticating" : "Login"}

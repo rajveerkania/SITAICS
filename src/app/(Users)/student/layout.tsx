@@ -1,10 +1,11 @@
 import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 import type { Metadata } from "next";
+import AccessDenied from "@/components/accessDenied";
 
 export const metadata: Metadata = {
-  title: "Admin",
-  description: "Admin Dashboard",
+  title: "Student Dashboard",
+  description: "Student Dashboard",
 };
 
 export default function RootLayout({
@@ -24,9 +25,9 @@ export default function RootLayout({
   if (
     !decodedToken ||
     typeof decodedToken !== "object" ||
-    decodedToken.role !== "Admin"
+    decodedToken.role !== "Student"
   ) {
-    return <p>Access Denied</p>;
+    return <AccessDenied />;
   }
 
   return <>{children}</>;
