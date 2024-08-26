@@ -18,7 +18,7 @@ import UsersTab from "@/components/admin/UsersTab";
 import CoursesTab from "@/components/admin/CoursesTab";
 import SubjectsTab from "@/components/admin/SubjectsTab";
 import LeavesTab from "@/components/admin/LeavesTab";
-import AttendanceTab from "@/components/admin/Attedance"; 
+import AttendanceTab from "@/components/admin/Attendance";
 const studentData = [
   { course: "BTech", students: 120 },
   { course: "MTech CS", students: 25 },

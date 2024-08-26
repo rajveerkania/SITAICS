@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     } = reqBody;
 
     const parsedDateOfBirth = new Date(dateOfBirth);
-    
+
     parsedDateOfBirth.setHours(0, 0, 0, 0);
 
     const batchRecord = await prisma.batch.findUnique({

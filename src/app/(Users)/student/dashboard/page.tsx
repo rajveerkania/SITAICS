@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import StudentAuthentication from "@/components/student/StudentAuthentication";
 import { Navbar } from "@/components/Navbar";
 import Navigation from "@/components/student/Navigation";
-import Dashboard from "@/components/student/Dashbord";
+import Dashboard from "@/components/student/Dashboard";
 import Timetable from "@/components/student/Timetable";
 import ExamResults from "@/components/student/ExamResults";
 import LeaveManagement from "@/components/student/LeaveManagement";
@@ -35,15 +35,17 @@ const Page: React.FC = () => {
     return (
       <StudentAuthentication
         setIsAuthenticated={setIsAuthenticated}
-        setStudentInfo={setStudentInfo} handleLogout={function (): void {
+        setStudentInfo={setStudentInfo}
+        handleLogout={function (): void {
           throw new Error("Function not implemented.");
-        } }      />
+        }}
+      />
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-100">
-    <Navbar />
+      <Navbar />
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main className="container mx-auto mt-8 px-4">

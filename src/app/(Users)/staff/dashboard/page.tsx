@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Image from "next/image";
-import { LogoutButton } from "@/components/logoutbutton";
+import { LogoutButton } from "@/components/logoutButton";
 
 interface FacultyInfo {
   name: string;
@@ -97,7 +97,9 @@ const FacultyDashboard: React.FC = () => {
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
     stateSetter: React.Dispatch<React.SetStateAction<any>>
   ) => {
     const { name, value, type } = e.target;
@@ -150,7 +152,10 @@ const FacultyDashboard: React.FC = () => {
         setAttendance({
           course: "",
           date: "",
-          students: attendance.students.map((student) => ({ ...student, present: false })),
+          students: attendance.students.map((student) => ({
+            ...student,
+            present: false,
+          })),
         });
         break;
       default:
@@ -195,7 +200,10 @@ const FacultyDashboard: React.FC = () => {
   const renderNotificationsForm = () => (
     <div className="bg-white p-4 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Send Notification</h2>
-      <form onSubmit={(e) => handleSubmit(e, "notification")} className="space-y-4">
+      <form
+        onSubmit={(e) => handleSubmit(e, "notification")}
+        className="space-y-4"
+      >
         <input
           type="text"
           name="recipient"
@@ -226,7 +234,10 @@ const FacultyDashboard: React.FC = () => {
   const renderLeaveRequestForm = () => (
     <div className="bg-white p-4 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Request Leave</h2>
-      <form onSubmit={(e) => handleSubmit(e, "leaveRequest")} className="space-y-4">
+      <form
+        onSubmit={(e) => handleSubmit(e, "leaveRequest")}
+        className="space-y-4"
+      >
         <input
           type="date"
           name="startDate"
@@ -264,7 +275,10 @@ const FacultyDashboard: React.FC = () => {
   const renderResultReportForm = () => (
     <div className="bg-white p-4 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Upload Result Report</h2>
-      <form onSubmit={(e) => handleSubmit(e, "resultReport")} className="space-y-4">
+      <form
+        onSubmit={(e) => handleSubmit(e, "resultReport")}
+        className="space-y-4"
+      >
         <select
           name="course"
           value={resultReport.course}
@@ -273,7 +287,9 @@ const FacultyDashboard: React.FC = () => {
           required
         >
           <option value="">Select Course</option>
-          <option value="B.Tech Computer Science">B.Tech Computer Science</option>
+          <option value="B.Tech Computer Science">
+            B.Tech Computer Science
+          </option>
           <option value="M.Tech AI/ML">M.Tech AI/ML</option>
         </select>
         <select
@@ -321,7 +337,10 @@ const FacultyDashboard: React.FC = () => {
   const renderAttendanceForm = () => (
     <div className="bg-white p-4 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Mark Attendance</h2>
-      <form onSubmit={(e) => handleSubmit(e, "attendance")} className="space-y-4">
+      <form
+        onSubmit={(e) => handleSubmit(e, "attendance")}
+        className="space-y-4"
+      >
         <select
           name="course"
           value={attendance.course}
@@ -330,7 +349,9 @@ const FacultyDashboard: React.FC = () => {
           required
         >
           <option value="">Select Course</option>
-          <option value="B.Tech Computer Science">B.Tech Computer Science</option>
+          <option value="B.Tech Computer Science">
+            B.Tech Computer Science
+          </option>
           <option value="M.Tech AI/ML">M.Tech AI/ML</option>
         </select>
         <input
@@ -343,7 +364,10 @@ const FacultyDashboard: React.FC = () => {
         />
         <div className="space-y-2">
           {attendance.students.map((student, index) => (
-            <div key={student.rollNumber} className="flex items-center space-x-4">
+            <div
+              key={student.rollNumber}
+              className="flex items-center space-x-4"
+            >
               <span>{student.name}</span>
               <span>{student.rollNumber}</span>
               <input
@@ -368,7 +392,10 @@ const FacultyDashboard: React.FC = () => {
   const renderTimetableUploadForm = () => (
     <div className="bg-white p-4 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Upload Timetable</h2>
-      <form onSubmit={(e) => handleSubmit(e, "timetable")} className="space-y-4">
+      <form
+        onSubmit={(e) => handleSubmit(e, "timetable")}
+        className="space-y-4"
+      >
         <input
           type="file"
           name="file"
@@ -401,7 +428,9 @@ const FacultyDashboard: React.FC = () => {
             <h1 className="ml-2 text-xl font-bold text-gray-700">SITAICS</h1>
           </div>
           <div className="flex items-center">
-            <span className="mr-2 text-gray-700">Welcome {facultyInfo.name}</span>
+            <span className="mr-2 text-gray-700">
+              Welcome {facultyInfo.name}
+            </span>
             <Image
               src="/profile.png"
               alt="Profile"
@@ -416,7 +445,15 @@ const FacultyDashboard: React.FC = () => {
       <div className="container mx-auto mt-8 px-4">
         <nav className="bg-gray-800 text-white mb-8">
           <ul className="flex flex-wrap">
-            {["Dashboard", "Notifications", "Leave", "Results", "Students", "Attendance", "Timetable"].map((item) => (
+            {[
+              "Dashboard",
+              "Notifications",
+              "Leave",
+              "Results",
+              "Students",
+              "Attendance",
+              "Timetable",
+            ].map((item) => (
               <li key={item}>
                 <button
                   onClick={() => setActiveTab(item.toLowerCase())}
