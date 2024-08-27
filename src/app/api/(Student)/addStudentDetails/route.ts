@@ -5,25 +5,39 @@ export async function POST(request: NextRequest) {
   try {
     const reqBody = await request.json();
     const {
-      studentId,
+      id,
+      name,
+      fatherName,
+      motherName,
       enrollmentNumber,
-      batch,
+      courseName,
+      batchName,
+      dateOfBirth,
+      gender,
+      bloodGroup,
+      contactNo,
       address,
       city,
       state,
-      gender,
       pinCode,
-      bloodGroup,
-      dateOfBirth,
-       contactNo,
-     } = reqBody;
+    } = reqBody;
 
-    const parsedDateOfBirth = new Date(dateOfBirth);
+    const parsedDateOfBirth = new Date(`${dateOfBirth}T00:00:00Z`);
 
-    parsedDateOfBirth.setHours(0, 0, 0, 0);
+    const courseRecord = await prisma.course.findUnique({
+      where: { courseName: courseName },
+      select: { courseName: true },
+    });
+
+    if (!courseRecord) {
+      return NextResponse.json(
+        { error: `Course with name '${courseName}' does not exist` },
+        { status: 400 }
+      );
+    }
 
     const batchRecord = await prisma.batch.findUnique({
-      where: { batchName: batch },
+      where: { batchName: batchName },
       select: { batchId: true },
     });
 
@@ -32,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     const existingStudent = await prisma.studentDetails.findUnique({
-      where: { id: studentId },
+      where: { id: id },
     });
 
     let studentDetails;
@@ -41,26 +55,30 @@ export async function POST(request: NextRequest) {
     if (existingStudent) {
       [studentDetails, updatedBatch] = await prisma.$transaction([
         prisma.studentDetails.update({
-          where: { id: studentId },
+          where: { id: id },
           data: {
+            name,
+            fatherName,
+            motherName,
             enrollmentNumber,
-            batchId: batchRecord.batchId,
-            address,
+            courseName,
+            batchName,
+            dateOfBirth: parsedDateOfBirth,
+            gender,
             bloodGroup,
-            dob:parsedDateOfBirth,
+            contactNo,
+            address,
             city,
             state,
-            gender,
             pinCode,
-            contactNo,
-           isProfileCompleted: true,
+            isProfileCompleted: true,
           },
         }),
         prisma.batch.update({
           where: { batchId: batchRecord.batchId },
           data: {
             students: {
-              connect: { id: studentId },
+              connect: { id: id },
             },
           },
         }),

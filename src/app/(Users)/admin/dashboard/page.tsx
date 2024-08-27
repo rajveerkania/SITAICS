@@ -1,5 +1,6 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -9,7 +10,6 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 import { StatCard } from "@/components/StatCard";
 import { IndianCalendar } from "@/components/IndianCalendar";
 import { UserDetailsDialog } from "@/components/admin/UserDetailsDialog";
@@ -19,7 +19,10 @@ import CoursesTab from "@/components/admin/CoursesTab";
 import SubjectsTab from "@/components/admin/SubjectsTab";
 import LeavesTab from "@/components/admin/LeavesTab";
 import AttendanceTab from "@/components/admin/Attendance";
-import BatchTab from "@/components/admin/BatchTab"
+import BatchTab from "@/components/admin/BatchTab";
+import { NextResponse } from "next/server";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+
 const studentData = [
   { course: "BTech", students: 120 },
   { course: "MTech CS", students: 25 },
@@ -30,11 +33,41 @@ const studentData = [
 const AdminDashboard = () => {
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [userData, setUserData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/fetchUserDetails`
+        );
+        const data = await response.json();
+        setUserData(data.user);
+      } catch (error) {
+        return NextResponse.json(
+          { message: "Error while fetching user details" },
+          { status: 500 }
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="">
+        <LoadingSkeleton loadingText="Dashboard" />;
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar />
-
+      <Navbar name={userData?.name} />
       <div className="container mx-auto mt-8 px-4">
         <Tabs
           value={activeTab}
@@ -53,6 +86,12 @@ const AdminDashboard = () => {
               className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Users
+            </TabsTrigger>
+            <TabsTrigger
+              value="batches"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
+            >
+              Batches
             </TabsTrigger>
             <TabsTrigger
               value="courses"
@@ -85,14 +124,12 @@ const AdminDashboard = () => {
               Attendance
             </TabsTrigger>
           </TabsList>
-
           <TabsContent value="overview">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
               <StatCard title="Total Students" value={255} />
               <StatCard title="Total Staff Members" value={42} />
               <StatCard title="Total Courses" value={4} />
             </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
@@ -119,7 +156,6 @@ const AdminDashboard = () => {
               </Card>
             </div>
           </TabsContent>
-
           <TabsContent value="users">
             <Card>
               <CardHeader>
@@ -130,7 +166,16 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
+          <TabsContent value="batches">
+            <Card>
+              <CardHeader>
+                <CardTitle>Batch Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BatchTab />
+              </CardContent>
+            </Card>
+          </TabsContent>
           <TabsContent value="courses">
             <Card>
               <CardHeader>
@@ -141,16 +186,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="batches">
-  <Card>
-    <CardHeader>
-      <CardTitle>Batch Management</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <BatchTab />
-    </CardContent>
-  </Card>
-</TabsContent>
           <TabsContent value="subjects">
             <Card>
               <CardHeader>
@@ -161,7 +196,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="leaves">
             <Card>
               <CardHeader>
@@ -172,7 +206,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="attendance">
             <Card>
               <CardHeader>
@@ -185,7 +218,6 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-
       <UserDetailsDialog
         open={showUserDetails}
         onOpenChange={setShowUserDetails}

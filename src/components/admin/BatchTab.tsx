@@ -10,9 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MdAdd, MdDelete } from "react-icons/md"; // Importing icons
-
-const BatchesTab = () => {
+import { MdDelete } from "react-icons/md";
+const BatchTab = () => {
   const [batches, setBatches] = useState([
     {
       id: 1,
@@ -29,24 +28,20 @@ const BatchesTab = () => {
       currentSemester: 1,
     },
   ]);
-
   const [newBatch, setNewBatch] = useState({
     name: "",
     course: "",
     duration: "",
     currentSemester: "",
   });
-
   const handleAddBatch = (e: React.FormEvent) => {
     e.preventDefault();
     setBatches([...batches, { id: batches.length + 1, ...newBatch }]);
     setNewBatch({ name: "", course: "", duration: "", currentSemester: "" });
   };
-
   const handleDeleteBatch = (id: number) => {
     setBatches(batches.filter((batch) => batch.id !== id));
   };
-
   return (
     <Tabs defaultValue="add">
       <TabsList>
@@ -83,7 +78,6 @@ const BatchesTab = () => {
             }
           />
           <Button type="submit" className="flex items-center">
-            <MdAdd className="mr-2" />
             Add Batch
           </Button>
         </form>
@@ -110,7 +104,7 @@ const BatchesTab = () => {
                   <Button
                     variant="destructive"
                     onClick={() => handleDeleteBatch(batch.id)}
-                    style={{ backgroundColor: "black", color: "white" }} // Inline style for black background and white text
+                    style={{ backgroundColor: "black", color: "white" }}
                     className="flex items-center"
                   >
                     <MdDelete style={{ color: "white" }} className="mr-2" />{" "}
@@ -126,5 +120,4 @@ const BatchesTab = () => {
     </Tabs>
   );
 };
-
-export default BatchesTab;
+export default BatchTab;

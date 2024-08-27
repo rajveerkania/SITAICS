@@ -12,6 +12,7 @@ import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 import AddUserForm from "./AddUserForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { UserDetailsDialog } from "./UserDetailsDialog";
+import LoadingSkeleton from "../LoadingSkeleton";
 
 interface User {
   id: string;
@@ -96,7 +97,7 @@ const UsersTab = () => {
   );
 
   if (isLoading) {
-    return <div>Loading users...</div>;
+    return <LoadingSkeleton loadingText="users" />;
   }
 
   if (error) {
