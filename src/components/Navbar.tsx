@@ -4,7 +4,11 @@ import { NotificationDialog } from "./admin/AdminNotification";
 import { LogoutButton } from "./logoutButton";
 import { FaSignOutAlt } from "react-icons/fa";
 
-export function Navbar() {
+interface NavBarProps {
+  name?: string;
+}
+
+export function Navbar({ name }: NavBarProps) {
   const [dateTime, setDateTime] = useState("");
 
   useEffect(() => {
@@ -20,10 +24,8 @@ export function Navbar() {
       };
       setDateTime(now.toLocaleString("en-US", options));
     };
-
     updateTime();
     const interval = setInterval(updateTime, 60000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -32,7 +34,6 @@ export function Navbar() {
       <div className="container-fluid mx-auto flex flex-row justify-between items-center">
         <div className="flex items-center space-x-2">
           <div className="hidden sm:block">
-            {" "}
             <Image
               src="/sitaics.png"
               alt="SITAICS Logo"
@@ -42,7 +43,9 @@ export function Navbar() {
               priority
             />
           </div>
-          <span className="text-lg font-medium text-gray-900">Welcome</span>
+          <span className="text-lg font-medium text-gray-900">
+            Welcome, {name}
+          </span>
         </div>
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">{dateTime}</div>
