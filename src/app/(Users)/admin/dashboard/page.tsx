@@ -19,6 +19,7 @@ import CoursesTab from "@/components/admin/CoursesTab";
 import SubjectsTab from "@/components/admin/SubjectsTab";
 import LeavesTab from "@/components/admin/LeavesTab";
 import AttendanceTab from "@/components/admin/Attendance";
+import BatchTab from "@/components/admin/BatchTab"
 const studentData = [
   { course: "BTech", students: 120 },
   { course: "MTech CS", students: 25 },
@@ -58,6 +59,12 @@ const AdminDashboard = () => {
               className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
             >
               Courses
+            </TabsTrigger>
+            <TabsTrigger
+              value="batches"
+              className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
+            >
+               Batches
             </TabsTrigger>
             <TabsTrigger
               value="subjects"
@@ -134,7 +141,16 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
+          <TabsContent value="batches">
+  <Card>
+    <CardHeader>
+      <CardTitle>Batch Management</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <BatchTab />
+    </CardContent>
+  </Card>
+</TabsContent>
           <TabsContent value="subjects">
             <Card>
               <CardHeader>

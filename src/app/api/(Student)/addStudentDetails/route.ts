@@ -15,10 +15,8 @@ export async function POST(request: NextRequest) {
       pinCode,
       bloodGroup,
       dateOfBirth,
-      achievements,
-      contactNo,
-      results,
-    } = reqBody;
+       contactNo,
+     } = reqBody;
 
     const parsedDateOfBirth = new Date(dateOfBirth);
 
@@ -49,15 +47,13 @@ export async function POST(request: NextRequest) {
             batchId: batchRecord.batchId,
             address,
             bloodGroup,
-            // dob:parsedDateOfBirth,
+            dob:parsedDateOfBirth,
             city,
             state,
             gender,
             pinCode,
-            achievements,
             contactNo,
-            results,
-            isProfileCompleted: true,
+           isProfileCompleted: true,
           },
         }),
         prisma.batch.update({
