@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +14,7 @@ import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 import AddUserForm from "./AddUserForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { UserDetailsDialog } from "./UserDetailsDialog";
+import LoadingSkeleton from "../LoadingSkeleton";
 
 interface User {
   id: string;
@@ -28,7 +31,7 @@ const UsersTab = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("view");
-  const usersPerPage = 2;
+  const usersPerPage = 10;
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -96,7 +99,7 @@ const UsersTab = () => {
   );
 
   if (isLoading) {
-    return <div>Loading users...</div>;
+    return <LoadingSkeleton loadingText="users" />;
   }
 
   if (error) {
@@ -112,22 +115,22 @@ const UsersTab = () => {
             <TabsTrigger value="add">Add User</TabsTrigger>
           </div>
           {activeTab === "view" && (
-            <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <div className="flex items-center space-x-2 w-full sm:w-auto mt-4 ">
               <input
                 type="text"
                 placeholder="Search by username"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
-                  setCurrentPage(1); // Reset to page 1 on search
+                  setCurrentPage(1);
                 }}
-                className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all duration-300"
+                className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
               />
             </div>
           )}
         </TabsList>
         <TabsContent value="view">
-          <div className="w-full overflow-auto">
+          <div className="w-full overflow-auto pt-10">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -165,25 +168,27 @@ const UsersTab = () => {
                 )}
               </TableBody>
             </Table>
-            <div className="pagination mt-4 flex justify-center items-center space-x-4">
-              <Button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-                className="pagination-button"
-              >
-                Previous
-              </Button>
-              <span className="pagination-info">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-                className="pagination-button"
-              >
-                Next
-              </Button>
-            </div>
+            {currentUsers.length > 10 && (
+              <div className="pagination mt-4 flex justify-center items-center space-x-4">
+                <Button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  className="pagination-button"
+                >
+                  Previous
+                </Button>
+                <span className="pagination-info">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className="pagination-button"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         </TabsContent>
         <TabsContent value="add">
