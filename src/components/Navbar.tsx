@@ -3,6 +3,7 @@ import Image from "next/image";
 import { NotificationDialog } from "./admin/AdminNotification";
 import { LogoutButton } from "./logoutButton";
 import { FaSignOutAlt } from "react-icons/fa";
+import BlurIn from "./magicui/blur-in";
 
 interface NavBarProps {
   name?: string;
@@ -10,6 +11,7 @@ interface NavBarProps {
 
 export function Navbar({ name }: NavBarProps) {
   const [dateTime, setDateTime] = useState("");
+  const greeting = `Welcome ${name?.split(" ")[0]}`;
 
   useEffect(() => {
     const updateTime = () => {
@@ -33,7 +35,7 @@ export function Navbar({ name }: NavBarProps) {
     <nav className="bg-white shadow-md p-4 transition-all duration-300 hover:shadow-lg">
       <div className="container-fluid mx-auto flex flex-row justify-between items-center">
         <div className="flex items-center space-x-2">
-          <div className="hidden sm:block">
+          <div className="hidden sm:block pl-8">
             <Image
               src="/sitaics.png"
               alt="SITAICS Logo"
@@ -44,7 +46,7 @@ export function Navbar({ name }: NavBarProps) {
             />
           </div>
           <span className="text-lg font-medium text-gray-900">
-            Welcome, {name}
+            <BlurIn word={greeting} />
           </span>
         </div>
         <div className="flex items-center space-x-4">

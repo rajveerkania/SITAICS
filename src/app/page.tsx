@@ -93,25 +93,25 @@ export default function Login() {
 
   return (
     <section className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 relative">
-      <div className="bg-white shadow-2xl rounded-2xl p-8 max-w-md w-full transform transition-transform duration-300 ease-in-out ">
-        <div className="flex flex-col items-center justify-center mb-10 space-y-4 sm:space-y-0 sm:flex-row sm:justify-between">
+      <div className="bg-white shadow-2xl rounded-2xl p-6 sm:p-8 max-w-md w-full transform transition-transform duration-300 ease-in-out">
+        <div className="flex flex-col sm:flex-row items-center justify-center mb-6 sm:mb-10 space-y-4 sm:space-y-0">
           <Image
             src="/rru.png"
             alt="RRU Logo"
-            className="h-auto w-20 sm:w-24"
-            height={80}
-            width={80}
+            className="h-auto w-16 sm:w-20"
+            height={64}
+            width={64}
             priority
           />
-          <h1 className="text-4xl font-bold leading-tight text-black text-center">
+          <h1 className="text-3xl sm:text-4xl font-bold leading-tight text-black text-center mx-4">
             SITAICS
           </h1>
           <Image
             src="/sitaics.png"
             alt="SITAICS Logo"
-            className="h-auto w-20 sm:w-24"
-            width={80}
-            height={80}
+            className="h-auto w-16 sm:w-20"
+            width={64}
+            height={64}
             priority
           />
         </div>
