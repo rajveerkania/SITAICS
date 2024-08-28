@@ -84,6 +84,7 @@ model Subject {
 model Course {
   courseId       String           @id @default(uuid())
   courseName     String           @unique
+  isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   batches        Batch[]
@@ -99,6 +100,7 @@ model Batch {
   students        StudentDetails[]
   staffMembers    StaffDetails[]
   subjects        BatchSubject[]
+  isActive        Boolean          @default(true)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   course          Course           @relation(fields: [courseId], references: [courseId])
