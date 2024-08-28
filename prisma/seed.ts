@@ -3,95 +3,111 @@ import { PrismaClient, Role } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create a course
-  const course = await prisma.course.create({
-    data: {
-      courseName: "Computer Science",
-    },
-  });
-
-  // Create a batch
-  const batch = await prisma.batch.create({
-    data: {
-      batchName: "CS2023",
-      courseId: course.courseId,
-      batchDuration: 4,
-      currentSemester: 1,
-    },
-  });
-
-  // Create a subject
-  const subject = await prisma.subject.create({
-    data: {
-      subjectName: "Introduction to Programming",
-      subjectCode: "CS101",
-      semester: 1,
-      courseId: course.courseId,
-    },
-  });
-
-  // Create a batch subject relation
-  await prisma.batchSubject.create({
-    data: {
-      batchId: batch.batchId,
-      subjectId: subject.subjectId,
-      semester: 1,
-    },
-  });
-
-  // Create an admin user
-  const adminUser = await prisma.user.create({
-    data: {
-      email: "admin@example.com",
-      password: "adminpassword", // Remember to hash passwords in a real application
-      name: "Admin User",
+  const adminUser = await prisma.user.upsert({
+    where: { email: "rajveer@gmail.com" },
+    update: {},
+    create: {
+      email: "rajveer@gmail.com",
+      password: "$2a$10$IyNw/pvFmW/k4Mo1XwDtCeaTdSR79VnWelwRrJv6ZTPw8Q8kS/Fau",
+      name: "Rajveer Kania",
       role: Role.Admin,
-      username: "admin",
+      username: "rajveerkania",
     },
   });
 
-  // Create a student user
-  const studentUser = await prisma.user.create({
-    data: {
-      email: "student@example.com",
-      password: "studentpassword", // Remember to hash passwords in a real application
-      name: "Student User",
-      role: Role.Student,
-      username: "student",
-      studentDetails: {
-        create: {
-          email: "student@example.com",
-          username: "student",
-          name: "Student User",
-          enrollmentNumber: "CS2023001",
-          courseName: course.courseName,
-          batchName: batch.batchName,
-        },
+  const courses = [];
+  const batches = [];
+  const students = [];
+  const staffMembers = [];
+
+  for (let i = 1; i <= 5; i++) {
+    const course = await prisma.course.upsert({
+      where: { courseName: `Course ${i}` },
+      update: {},
+      create: {
+        courseName: `Course ${i}`,
       },
-    },
-  });
+    });
+    courses.push(course);
 
-  // Create a staff user
-  const staffUser = await prisma.user.create({
-    data: {
-      email: "staff@example.com",
-      password: "staffpassword", // Remember to hash passwords in a real application
-      name: "Staff User",
-      role: Role.Staff,
-      username: "staff",
-      staffDetails: {
-        create: {
-          email: "staff@example.com",
-          username: "staff",
-          name: "Staff User",
-          isBatchCoordinator: true,
-          batchId: batch.batchId,
-        },
+    const batch = await prisma.batch.upsert({
+      where: { batchName: `Batch ${i}` },
+      update: {
+        courseId: course.courseId,
+        batchDuration: 4,
+        currentSemester: 1,
       },
-    },
-  });
+      create: {
+        batchName: `Batch ${i}`,
+        courseId: course.courseId,
+        batchDuration: 4,
+        currentSemester: 1,
+      },
+    });
+    batches.push(batch);
 
-  console.log({ course, batch, subject, adminUser, studentUser, staffUser });
+    for (let j = 1; j <= 10; j++) {
+      const email = `student${i}${j}@example.com`;
+      const username = `student${i}${j}`;
+
+      const existingStudent = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!existingStudent) {
+        const student = await prisma.user.create({
+          data: {
+            email,
+            password: "$2a$10$randompassword",
+            name: `Student ${i}${j}`,
+            role: Role.Student,
+            username,
+            studentDetails: {
+              create: {
+                email,
+                username,
+                name: `Student ${i}${j}`,
+                enrollmentNumber: `CS2023${i}${j}`,
+                courseName: course.courseName,
+                batchName: batch.batchName,
+              },
+            },
+          },
+        });
+        students.push(student);
+      }
+    }
+
+    const staffEmail = `staff${i}@example.com`;
+
+    const existingStaff = await prisma.user.findUnique({
+      where: { email: staffEmail },
+    });
+
+    if (!existingStaff) {
+      const staffUser = await prisma.user.create({
+        data: {
+          email: staffEmail,
+          password: "$2a$10$randompassword",
+          name: `Staff Member ${i}`,
+          role: Role.Staff,
+          username: `staff${i}`,
+          staffDetails: {
+            create: {
+              email: staffEmail,
+              username: `staff${i}`,
+              name: `Staff Member ${i}`,
+              isBatchCoordinator: true,
+              batchId: batch.batchId,
+            },
+          },
+        },
+      });
+      staffMembers.push(staffUser);
+    }
+  }
+
+  console.log({ adminUser, courses, batches, students, staffMembers });
 }
 
 main()
