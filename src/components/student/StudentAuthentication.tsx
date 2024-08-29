@@ -2,8 +2,27 @@ import React, { useState, useEffect } from "react";
 
 interface AuthenticationProps {
   setIsAuthenticated: (value: boolean) => void;
-  setStudentInfo: (info: any) => void;
+  setStudentInfo: (info: StudentInfo) => void;
   handleLogout: () => void;
+}
+
+interface StudentInfo {
+  name: string;
+  fatherName: string;
+  motherName: string;
+  email: string;
+  enrollmentNumber: string;
+  courseName: string;
+  semester: string;
+  batchName: string;
+  dateOfBirth: string;
+  gender: string;
+  bloodGroup: string;
+  contactNo: string;
+  address: string;
+  city: string;
+  state: string;
+  pinCode: string;
 }
 
 const StudentAuthentication: React.FC<AuthenticationProps> = ({
@@ -11,49 +30,34 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
   setStudentInfo,
   handleLogout,
 }) => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [isProfileIncomplete, setIsProfileIncomplete] = useState<boolean>(false);
 
-  const [studentFormData, setStudentFormData] = useState({
+  const [studentFormData, setStudentFormData] = useState<StudentInfo>({
     name: "",
     fatherName: "",
     motherName: "",
     email: "",
-    enrollmentNo: "",
-    course: "",
+    enrollmentNumber: "",
+    courseName: "",
     semester: "",
-    batchNo: "",
-    dob: "",
+    batchName: "",
+    dateOfBirth: "",
     gender: "",
-    mobileNo: "",
+    bloodGroup: "",
+    contactNo: "",
     address: "",
     city: "",
     state: "",
     pinCode: "",
   });
 
-  const [errors, setErrors] = useState({
-    name: "",
-    fatherName: "",
-    motherName: "",
-    email: "",
-    enrollmentNo: "",
-    course: "",
-    semester: "",
-    batchNo: "",
-    dob: "",
-    gender: "",
-    mobileNo: "",
-    address: "",
-    city: "",
-    state: "",
-    pinCode: "",
-  });
+  const [errors, setErrors] = useState<Partial<StudentInfo>>({});
 
   useEffect(() => {
     const checkStudentData = async () => {
       const response = await apicalltocheckstudentsdata();
-      if (response.dataExists) {
+      if (response.dataExists && response.data) {
         setStudentInfo(response.data);
         setIsAuthenticated(true);
       } else {
@@ -61,7 +65,7 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
       }
     };
     checkStudentData();
-  }, []);
+  }, [setIsAuthenticated, setStudentInfo]);
 
   const handleStudentInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -80,15 +84,15 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
           ? ""
           : "Invalid email address";
         break;
-      case "dob":
+      case "dateOfBirth":
         errorMessage = /^\d{4}-\d{2}-\d{2}$/.test(value)
           ? ""
           : "Date of Birth must be in YYYY-MM-DD format";
         break;
-      case "mobileNo":
+      case "contactNo":
         errorMessage = /^\d{10}$/.test(value)
           ? ""
-          : "Mobile number must be 10 digits";
+          : "Contact Number must be 10 digits";
         break;
       case "pinCode":
         errorMessage = /^\d{6}$/.test(value)
@@ -105,7 +109,7 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
     }));
   };
 
-  const validateStep = () => {
+  const validateStep = (): boolean => {
     let stepIsValid = true;
     let stepErrors = { ...errors };
 
@@ -129,12 +133,12 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
           stepErrors.email = errors.email || "Email is required";
           stepIsValid = false;
         }
-        if (!studentFormData.enrollmentNo) {
-          stepErrors.enrollmentNo = "Enrollment Number is required";
+        if (!studentFormData.enrollmentNumber) {
+          stepErrors.enrollmentNumber = "Enrollment Number is required";
           stepIsValid = false;
         }
-        if (!studentFormData.course) {
-          stepErrors.course = "Course is required";
+        if (!studentFormData.courseName) {
+          stepErrors.courseName = "Course is required";
           stepIsValid = false;
         }
         break;
@@ -143,12 +147,12 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
           stepErrors.semester = "Semester is required";
           stepIsValid = false;
         }
-        if (!studentFormData.batchNo) {
-          stepErrors.batchNo = "Batch Year is required";
+        if (!studentFormData.batchName) {
+          stepErrors.batchName = "Batch Year is required";
           stepIsValid = false;
         }
-        if (errors.dob || !studentFormData.dob) {
-          stepErrors.dob = errors.dob || "Date of Birth is required";
+        if (errors.dateOfBirth || !studentFormData.dateOfBirth) {
+          stepErrors.dateOfBirth = errors.dateOfBirth || "Date of Birth is required";
           stepIsValid = false;
         }
         break;
@@ -157,8 +161,8 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
           stepErrors.gender = "Gender is required";
           stepIsValid = false;
         }
-        if (errors.mobileNo || !studentFormData.mobileNo) {
-          stepErrors.mobileNo = errors.mobileNo || "Mobile Number is required";
+        if (errors.contactNo || !studentFormData.contactNo) {
+          stepErrors.contactNo = errors.contactNo || "Contact Number is required";
           stepIsValid = false;
         }
         break;
@@ -271,73 +275,69 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
               {errors.email && <p className="text-red-500">{errors.email}</p>}
               <input
                 type="text"
-                name="enrollmentNo"
+                name="enrollmentNumber"
                 placeholder="Enrollment Number"
-                value={studentFormData.enrollmentNo}
+                value={studentFormData.enrollmentNumber}
                 onChange={handleStudentInputChange}
                 className="w-full p-2 border rounded"
                 required
               />
-              {errors.enrollmentNo && (
-                <p className="text-red-500">{errors.enrollmentNo}</p>
+              {errors.enrollmentNumber && (
+                <p className="text-red-500">{errors.enrollmentNumber}</p>
               )}
               <select
-                name="course"
-                value={studentFormData.course}
+                name="courseName"
+                value={studentFormData.courseName}
                 onChange={handleStudentInputChange}
                 className="w-full p-2 border rounded"
                 required
               >
                 <option value="">Select Course</option>
-               
                 <option value="BTech">BTech</option>
                 <option value="MTech">MTech</option>
                 <option value="MTech AI/ML">MTech AI/ML</option>
                 <option value="MSCDF">MSCDF</option>
               </select>
-              {errors.course && <p className="text-red-500">{errors.course}</p>}
+              {errors.courseName && <p className="text-red-500">{errors.courseName}</p>}
             </>
           )}
           {currentStep === 3 && (
             <>
               <select
-              name="semester"
-              value={studentFormData.semester}
-              onChange={handleStudentInputChange}
-              className="w-full p-2 border rounded"
-              required
+                name="semester"
+                value={studentFormData.semester}
+                onChange={handleStudentInputChange}
+                className="w-full p-2 border rounded"
+                required
               >
-  <option value="">Select Semester</option>
-  {Array.from({ length: 8 }, (_, i) => (
-    <option key={i + 1} value={i + 1}>
-      Semester {i + 1}
-    </option>
-  ))}
-</select>
-
-              {errors.semester && (
-                <p className="text-red-500">{errors.semester}</p>
-              )}
+                <option value="">Select Semester</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                  <option key={sem} value={sem}>
+                    Semester {sem}
+                  </option>
+                ))}
+              </select>
+              {errors.semester && <p className="text-red-500">{errors.semester}</p>}
               <input
                 type="text"
-                name="batchNo"
+                name="batchName"
                 placeholder="Batch Year"
-                value={studentFormData.batchNo}
+                value={studentFormData.batchName}
                 onChange={handleStudentInputChange}
                 className="w-full p-2 border rounded"
                 required
               />
-              {errors.batchNo && <p className="text-red-500">{errors.batchNo}</p>}
+              {errors.batchName && <p className="text-red-500">{errors.batchName}</p>}
               <input
-                type="text"
-                name="dob"
-                placeholder="Date of Birth (YYYY-MM-DD)"
-                value={studentFormData.dob}
+                type="date"
+                name="dateOfBirth"
+                placeholder="Date of Birth"
+                value={studentFormData.dateOfBirth}
                 onChange={handleStudentInputChange}
                 className="w-full p-2 border rounded"
                 required
               />
-              {errors.dob && <p className="text-red-500">{errors.dob}</p>}
+              {errors.dateOfBirth && <p className="text-red-500">{errors.dateOfBirth}</p>}
             </>
           )}
           {currentStep === 4 && (
@@ -352,21 +352,18 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
                 <option value="">Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
-                <option value="Other">Other</option>
               </select>
               {errors.gender && <p className="text-red-500">{errors.gender}</p>}
               <input
                 type="text"
-                name="mobileNo"
-                placeholder="Mobile Number"
-                value={studentFormData.mobileNo}
+                name="contactNo"
+                placeholder="Contact Number"
+                value={studentFormData.contactNo}
                 onChange={handleStudentInputChange}
                 className="w-full p-2 border rounded"
                 required
               />
-              {errors.mobileNo && (
-                <p className="text-red-500">{errors.mobileNo}</p>
-              )}
+              {errors.contactNo && <p className="text-red-500">{errors.contactNo}</p>}
             </>
           )}
           {currentStep === 5 && (
@@ -409,9 +406,7 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
                 className="w-full p-2 border rounded"
                 required
               />
-              {errors.pinCode && (
-                <p className="text-red-500">{errors.pinCode}</p>
-              )}
+              {errors.pinCode && <p className="text-red-500">{errors.pinCode}</p>}
             </>
           )}
 
@@ -420,23 +415,24 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
               <button
                 type="button"
                 onClick={previousStep}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"
+                className="px-4 py-2 bg-gray-500 text-white rounded"
               >
                 Previous
               </button>
             )}
-            {currentStep < 5 ? (
+            {currentStep < 5 && (
               <button
                 type="button"
                 onClick={nextStep}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                className="px-4 py-2 bg-blue-500 text-white rounded"
               >
                 Next
               </button>
-            ) : (
+            )}
+            {currentStep === 5 && (
               <button
                 type="submit"
-                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+                className="px-4 py-2 bg-green-500 text-white rounded"
               >
                 Submit
               </button>
@@ -449,11 +445,15 @@ const StudentAuthentication: React.FC<AuthenticationProps> = ({
 };
 
 const apicalltocheckstudentsdata = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return {
-    dataExists: false, 
-    data: {}, 
-  };
+  // Simulated API call
+  return new Promise<{ dataExists: boolean; data?: StudentInfo }>((resolve) => {
+    setTimeout(() => {
+      resolve({
+        dataExists: false, // Change this to true to simulate existing data
+        data: undefined, // or provide a valid StudentInfo object for testing
+      });
+    }, 1000);
+  });
 };
 
 export default StudentAuthentication;
