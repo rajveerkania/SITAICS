@@ -1,25 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function DELETE(req: Request) {
+export async function PUT(request:NextRequest) {
   try {
-    const { courseId } = await req.json();
+    const { courseId } = await request.json();
 
-    if (!courseId) {
-      return NextResponse.json({ error: "Course ID is required" }, { status: 400 });
-    }
-
-    const deletedCourse = await prisma.course.delete({
+    const updatedCourse = await prisma.course.update({
       where: { courseId },
+      data: { isActive: false },  // Mark course as inactive instead of deleting
     });
 
-    if (deletedCourse) {
-      return NextResponse.json({ success: true, message: "Course deleted successfully" }, { status: 200 });
-    } else {
-      return NextResponse.json({ error: "Course not found" }, { status: 404 });
-    }
+    return NextResponse.json(updatedCourse, { status: 200 });
   } catch (error) {
-    console.error("Error deleting course:", error);
-    return NextResponse.json({ error: "Failed to delete course" }, { status: 500 });
+    console.error('Error deleting course:', error);
+    return NextResponse.json({ error: 'Failed to delete course' }, { status: 500 });
   }
 }

@@ -44,8 +44,9 @@ const AdminDashboard = () => {
   const tabs = [
     "Overview",
     "Users",
-    "Batches",
     "Courses",
+    "Batches",
+    
     "Subjects",
     "Leaves",
     "Attendance",
@@ -197,16 +198,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="batches">
-            <Card>
-              <CardHeader>
-                <CardTitle>Batch Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BatchTab />
-              </CardContent>
-            </Card>
-          </TabsContent>
           <TabsContent value="courses">
             <Card>
               <CardHeader>
@@ -217,6 +208,17 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          <TabsContent value="batches">
+            <Card>
+              <CardHeader>
+                <CardTitle>Batch Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BatchTab />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="subjects">
             <Card>
               <CardHeader>

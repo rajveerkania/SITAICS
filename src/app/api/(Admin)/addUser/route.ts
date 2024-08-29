@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  if (userRole !== "Admin") {
-    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
-  }
+  // if (userRole !== "Admin") {
+  //   return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+  // }
 
   try {
     const reqBody = await request.json();
