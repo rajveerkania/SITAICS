@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
 export async function PUT(request: NextRequest) {

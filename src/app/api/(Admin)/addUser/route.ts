@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcryptjs from "bcryptjs";
-import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
-import { GetServerSideProps } from "next";
 
 export async function POST(request: NextRequest) {
   const decodedUser = verifyToken();

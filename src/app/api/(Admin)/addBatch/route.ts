@@ -19,10 +19,8 @@ export async function POST(req: Request) {
       currentSemster,
     } = body;
 
-    // Check for typo in currentSemester
     const actualCurrentSemester = currentSemester || currentSemster;
 
-    // Validate input
     const missingFields = [];
     if (!batchName) missingFields.push("batchName");
     if (!courseName) missingFields.push("courseName");
@@ -36,7 +34,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Convert batchDuration to number
     const durationInYears = parseInt(batchDuration);
     if (isNaN(durationInYears)) {
       return NextResponse.json(
@@ -45,13 +42,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Convert currentSemester to number
     const semester = parseInt(actualCurrentSemester);
     if (isNaN(semester)) {
       return NextResponse.json({ error: "Invalid semester" }, { status: 400 });
     }
 
-    // Check if course exists
     const course = await prisma.course.findUnique({
       where: { courseName },
     });
@@ -60,7 +55,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
-    // Check if batch already exists
     const existingBatch = await prisma.batch.findFirst({
       where: { batchName, courseId: course.courseId },
     });
