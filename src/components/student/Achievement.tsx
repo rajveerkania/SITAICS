@@ -37,9 +37,7 @@ const Achievement: React.FC = () => {
     if (editingId !== null) {
       setAchievements(
         achievements.map((ach) =>
-          ach.id === editingId
-            ? { ...ach, title, description, date, category }
-            : ach
+          ach.id === editingId ? { ...ach, title, description, date, category } : ach
         )
       );
       setEditingId(null);
@@ -76,26 +74,31 @@ const Achievement: React.FC = () => {
   };
 
   const filteredAchievements = achievements
-    .filter((ach) =>
-      ach.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ach.description.toLowerCase().includes(searchTerm.toLowerCase())
+    .filter(
+      (ach) =>
+        ach.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ach.description.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .filter((ach) => filterCategory === "All" || ach.category === filterCategory);
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-4">Achievements</h2>
-      
+    <div className="bg-white shadow-md rounded-lg p-6 md:p-8 max-w-6xl mx-auto">
+      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">Achievements</h2>
+
       {/* Tab Navigation */}
-      <div className="flex mb-4">
+      <div className="flex flex-col md:flex-row mb-4 border-b border-gray-300">
         <button
-          className={`p-2 flex-1 ${activeTab === "view" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"} rounded-tl-lg`}
+          className={`p-2 flex-1 ${
+            activeTab === "view" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+          } md:rounded-tl-lg`}
           onClick={() => setActiveTab("view")}
         >
           View Achievements
         </button>
         <button
-          className={`p-2 flex-1 ${activeTab === "add" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"} rounded-tr-lg`}
+          className={`p-2 flex-1 ${
+            activeTab === "add" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+          } md:rounded-tr-lg`}
           onClick={() => setActiveTab("add")}
         >
           Add Achievement
@@ -105,18 +108,18 @@ const Achievement: React.FC = () => {
       {activeTab === "view" && (
         <div>
           {/* Top Bar with Search and Filter */}
-          <div className="flex justify-between items-center mb-4 space-x-4">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 md:space-x-4">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search achievements..."
-              className="p-2 border rounded flex-1"
+              className="p-2 border rounded w-full md:w-1/2 lg:w-1/3"
             />
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="p-2 border rounded"
+              className="p-2 border rounded w-full md:w-1/4 lg:w-1/5"
             >
               <option value="All">All Categories</option>
               {categories.map((cat) => (
@@ -127,24 +130,25 @@ const Achievement: React.FC = () => {
             </select>
           </div>
 
+          {/* Achievement Cards */}
           <div className="space-y-4">
             {filteredAchievements.map((achievement) => (
-              <div key={achievement.id} className="border p-4 rounded">
+              <div key={achievement.id} className="border p-4 rounded shadow-md">
                 <h3 className="text-xl font-semibold">{achievement.title}</h3>
                 <p className="text-gray-600">{achievement.description}</p>
                 <p className="text-sm text-gray-500">
                   Date: {achievement.date} | Category: {achievement.category}
                 </p>
-                <div className="mt-2 space-x-2">
+                <div className="mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                   <button
                     onClick={() => handleEdit(achievement.id)}
-                    className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
+                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-full sm:w-auto"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(achievement.id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full sm:w-auto"
                   >
                     Delete
                   </button>

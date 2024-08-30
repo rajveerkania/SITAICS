@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcryptjs from "bcryptjs";
-import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
-  const cookieStore = cookies();
-  const token = cookieStore.get("token")?.value;
-  let userRole = null;
-
-  if (token) {
-    const decodedToken = verifyToken(token);
-    if (decodedToken && typeof decodedToken === "object") {
-      userRole = decodedToken.role;
-    }
-  }
+  const decodedUser = verifyToken();
+  const userRole = decodedUser?.role;
 
   if (userRole !== "Admin") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
@@ -81,6 +72,17 @@ export async function POST(request: NextRequest) {
 
     if (role === "Student") {
       await prisma.studentDetails.create({
+        data: {
+          id: newUser.id,
+          email: newUser.email,
+          username: newUser.username,
+          name: newUser.name,
+        },
+      });
+    }
+
+    if (role === "Staff") {
+      await prisma.staffDetails.create({
         data: {
           id: newUser.id,
           email: newUser.email,

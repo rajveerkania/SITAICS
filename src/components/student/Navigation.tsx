@@ -6,7 +6,14 @@ interface NavigationProps {
 }
 
 const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
-  const tabs = ["Dashboard", "Timetable", "Exam", "Achievement", "Leave", "Feedback"];
+  const tabs = [
+    "Dashboard",
+    "Timetable",
+    "Exam",
+    "Achievement",
+    "Leave",
+    "Feedback",
+  ];
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {

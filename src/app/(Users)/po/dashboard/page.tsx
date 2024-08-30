@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Image from "next/image";
-import { LogoutButton } from "@/components/LogoutButton";
+import { LogoutButton } from "@/components/logoutButton";
 
 const PlacementOfficerDashboard: React.FC = () => {
   const [officerInfo] = useState({
@@ -37,17 +37,26 @@ const PlacementOfficerDashboard: React.FC = () => {
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
     stateSetter: React.Dispatch<React.SetStateAction<any>>
   ) => {
     const { name, value } = e.target;
-    stateSetter((prev:any) => ({ ...prev, [name]: value }));
+    stateSetter((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent, action: string) => {
     e.preventDefault();
-    console.log(`Submitting ${action}:`, { jobPosting, interviewSchedule }[action]);
-    alert(`${action.charAt(0).toUpperCase() + action.slice(1)} submitted successfully!`);
+    console.log(
+      `Submitting ${action}:`,
+      { jobPosting, interviewSchedule }[action]
+    );
+    alert(
+      `${
+        action.charAt(0).toUpperCase() + action.slice(1)
+      } submitted successfully!`
+    );
   };
 
   const renderDashboardContent = () => (
@@ -64,7 +73,7 @@ const PlacementOfficerDashboard: React.FC = () => {
         <h3 className="font-bold text-lg">Scheduled Interviews</h3>
         <p className="text-2xl">3</p>
       </div>
-      <LogoutButton/>
+      <LogoutButton />
     </div>
   );
 
@@ -79,10 +88,14 @@ const PlacementOfficerDashboard: React.FC = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <Image src="/logo.png" alt="University" width={50} height={50} />
-            <h1 className="ml-2 text-xl font-bold text-gray-700">TIPO Dashboard</h1>
+            <h1 className="ml-2 text-xl font-bold text-gray-700">
+              TIPO Dashboard
+            </h1>
           </div>
           <div className="flex items-center">
-            <span className="mr-2 text-gray-700">Welcome {officerInfo.name}</span>
+            <span className="mr-2 text-gray-700">
+              Welcome {officerInfo.name}
+            </span>
             <Image
               src="/profile.png"
               alt="Profile"
@@ -97,22 +110,26 @@ const PlacementOfficerDashboard: React.FC = () => {
       <div className="container mx-auto mt-8 px-4">
         <nav className="bg-gray-800 text-white mb-8">
           <ul className="flex flex-wrap">
-            {["Dashboard", "Job Postings", "Interviews", "Companies", "Reports"].map(
-              (item) => (
-                <li key={item}>
-                  <button
-                    onClick={() => setActiveTab(item.toLowerCase())}
-                    className={`px-4 py-2 transition-all duration-300 ${
-                      activeTab === item.toLowerCase()
-                        ? "bg-gray-700"
-                        : "hover:bg-gray-600"
-                    }`}
-                  >
-                    {item}
-                  </button>
-                </li>
-              )
-            )}
+            {[
+              "Dashboard",
+              "Job Postings",
+              "Interviews",
+              "Companies",
+              "Reports",
+            ].map((item) => (
+              <li key={item}>
+                <button
+                  onClick={() => setActiveTab(item.toLowerCase())}
+                  className={`px-4 py-2 transition-all duration-300 ${
+                    activeTab === item.toLowerCase()
+                      ? "bg-gray-700"
+                      : "hover:bg-gray-600"
+                  }`}
+                >
+                  {item}
+                </button>
+              </li>
+            ))}
           </ul>
         </nav>
 
@@ -122,7 +139,10 @@ const PlacementOfficerDashboard: React.FC = () => {
           {activeTab === "job postings" && (
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-2xl font-bold mb-4">Create Job Posting</h2>
-              <form onSubmit={(e) => handleSubmit(e, "jobPosting")} className="space-y-4">
+              <form
+                onSubmit={(e) => handleSubmit(e, "jobPosting")}
+                className="space-y-4"
+              >
                 <input
                   type="text"
                   name="company"
@@ -242,7 +262,7 @@ const PlacementOfficerDashboard: React.FC = () => {
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-2xl font-bold mb-4">Generate Reports</h2>
               {/* Implement Report generation for placements, internships, etc. */}
-             
+
               <form
                 onSubmit={(e) => {
                   e.preventDefault();

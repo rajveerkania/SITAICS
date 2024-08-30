@@ -35,7 +35,7 @@ const AddUserForm = ({
       const data = await response.json();
       if (data.success) {
         alert("User added successfully!");
-        onAddUserSuccess(); // Trigger a refetch in the parent component
+        onAddUserSuccess();
         setUsername("");
         setName("");
         setEmail("");

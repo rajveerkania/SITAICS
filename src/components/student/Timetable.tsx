@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 
 interface TimetableRow {
@@ -10,29 +11,11 @@ interface TimetableRow {
   saturday: string;
 }
 
-const Timetable: React.FC = () => {
-  const timetableData: TimetableRow[] = [
-    {
-      time: "09:30 AM to 10:30 AM",
-      monday: "11010503DS02 (GMP)",
-      tuesday: "Self study/Library (Skd)",
-      wednesday: "00019303AE01 (RRP)",
-      thursday: "Self study/Library (Kpp)",
-      friday: "",
-      saturday: "03010503SE01 (SAS)",
-    },
-    {
-      time: "10:30 AM to 11:30 AM",
-      monday: "Self study/Library (Kpp)",
-      tuesday: "11010503DS02 (GMP)",
-      wednesday: "11010503DS02 (GMP)",
-      thursday: "11010503DS03 (SAS)",
-      friday: "11010503DS04 (PPK)",
-      saturday: "MOOC Course (Skd)",
-    },
-    // Add more timetable rows as needed
-  ];
+interface TimetableProps {
+  timetableData: TimetableRow[];
+}
 
+const Timetable: React.FC<TimetableProps> = ({ timetableData }) => {
   return (
     <div className="bg-white shadow-md rounded-lg p-6">
       <h2 className="text-2xl font-bold mb-4">Student Timetable</h2>
