@@ -118,7 +118,7 @@ const UsersTab = () => {
             <div className="flex items-center space-x-2 w-full sm:w-auto mt-4 ">
               <input
                 type="text"
-                placeholder="Search by username"
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -168,7 +168,8 @@ const UsersTab = () => {
                 )}
               </TableBody>
             </Table>
-            {currentUsers.length > 10 && (
+
+            {filteredUsers.length > usersPerPage && (
               <div className="pagination mt-4 flex justify-center items-center space-x-4">
                 <Button
                   disabled={currentPage === 1}

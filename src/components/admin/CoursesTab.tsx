@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -12,7 +12,6 @@ import { FaTrashAlt } from "react-icons/fa";
 import AddCourseForm from "./AddCourseForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import LoadingSkeleton from "../LoadingSkeleton";
-import { toast } from "react-hot-toast";
 
 interface Course {
   courseId: string;
@@ -34,9 +33,6 @@ const CoursesTab = () => {
     setError(null);
     try {
       const response = await fetch("/api/fetchCourses");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
       const data = await response.json();
       if (Array.isArray(data.courses)) {
         setCourses(data.courses);
@@ -65,26 +61,22 @@ const CoursesTab = () => {
         body: JSON.stringify({ courseId }),
       });
       if (response.ok) {
-        setCourses(courses.filter(course => course.courseId !== courseId));
-        toast.success("Course deleted successfully");
-      } else {
-        const data = await response.json();
-        toast.error(data.error || "An error occurred while deleting the course");
+        setCourses(courses.filter((course) => course.courseId !== courseId));
       }
     } catch (error) {
       console.error("Error deleting course:", error);
-      toast.error("An error occurred while deleting the course");
     }
   };
 
   const handleAddCourseSuccess = (newCourse: Course) => {
     setCourses((prevCourses) => [...prevCourses, newCourse]);
-    toast.success("Course added successfully");
     setActiveTab("view");
   };
 
-  const filteredCourses = courses.filter((course) =>
-    course.courseName.toLowerCase().includes(searchQuery.toLowerCase()) && course.isActive
+  const filteredCourses = courses.filter(
+    (course) =>
+      course.courseName.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      course.isActive
   );
 
   const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
@@ -141,7 +133,9 @@ const CoursesTab = () => {
                       <TableCell>{course.courseName}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <Button onClick={() => handleDeleteCourse(course.courseId)}>
+                          <Button
+                            onClick={() => handleDeleteCourse(course.courseId)}
+                          >
                             <FaTrashAlt className="h-4 w-4" />
                           </Button>
                         </div>
@@ -157,25 +151,27 @@ const CoursesTab = () => {
                 )}
               </TableBody>
             </Table>
-            <div className="pagination mt-4 flex justify-center items-center space-x-4">
-              <Button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-                className="pagination-button"
-              >
-                Previous
-              </Button>
-              <span className="pagination-info">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage(currentPage + 1)}
-                className="pagination-button"
-              >
-                Next
-              </Button>
-            </div>
+            {filteredCourses.length > coursesPerPage && (
+              <div className="pagination mt-4 flex justify-center items-center space-x-4">
+                <Button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  className="pagination-button"
+                >
+                  Previous
+                </Button>
+                <span className="pagination-info">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className="pagination-button"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         </TabsContent>
         <TabsContent value="add">

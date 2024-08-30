@@ -8,6 +8,7 @@ interface StatCardProps {
 }
 
 export const StatCard: React.FC<StatCardProps> = ({ title, value }) => (
+  
   <Card>
     <CardHeader>
       <CardTitle>{title}</CardTitle>

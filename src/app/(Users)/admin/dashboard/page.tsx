@@ -6,7 +6,6 @@ import {
   Bar,
   ResponsiveContainer,
   Tooltip,
-  LabelList,
   CartesianGrid,
   Legend,
   XAxis,
@@ -27,12 +26,17 @@ import BatchTab from "@/components/admin/BatchTab";
 import { NextResponse } from "next/server";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 
-const studentData = [
-  { course: "BTech", students: 120 },
-  { course: "MTech CS", students: 25 },
-  { course: "MTech AI/ML", students: 20 },
-  { course: "MSCDF", students: 30 },
-];
+interface CourseData {
+  course: string;
+  students: number;
+}
+
+interface Stats {
+  studentCount: number;
+  staffCount: number;
+  totalCoursesCount: number;
+  formattedStudentData: CourseData[];
+}
 
 const AdminDashboard = () => {
   const [showUserDetails, setShowUserDetails] = useState(false);
@@ -40,6 +44,7 @@ const AdminDashboard = () => {
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [overviewStats, setOverviewStats] = useState<Stats | null>(null);
 
   const tabs = [
     "Overview",
@@ -56,6 +61,9 @@ const AdminDashboard = () => {
     const fetchUserDetails = async () => {
       try {
         const response = await fetch(`/api/fetchUserDetails`);
+        const overviewStats = await fetch(`/api/overviewStats`);
+        const stats = await overviewStats.json();
+        setOverviewStats(stats);
         const data = await response.json();
         setUserData(data.user);
       } catch (error) {
@@ -67,7 +75,6 @@ const AdminDashboard = () => {
         setLoading(false);
       }
     };
-
     fetchUserDetails();
   }, []);
 
@@ -108,7 +115,9 @@ const AdminDashboard = () => {
             </svg>
           </button>
         </div>
-        {/* Small device mate view */}
+
+        {/* Mobile view */}
+
         <div
           className={`${
             isMobileMenuOpen ? "block" : "hidden"
@@ -154,9 +163,18 @@ const AdminDashboard = () => {
 
           <TabsContent value="overview">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-              <StatCard title="Total Students" value={255} />
-              <StatCard title="Total Staff Members" value={42} />
-              <StatCard title="Total Courses" value={4} />
+              <StatCard
+                title="Total Students"
+                value={overviewStats?.studentCount || ""}
+              />
+              <StatCard
+                title="Total Staff Members"
+                value={overviewStats?.staffCount || ""}
+              />
+              <StatCard
+                title="Total Courses"
+                value={overviewStats?.totalCoursesCount || ""}
+              />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card>
@@ -166,7 +184,11 @@ const AdminDashboard = () => {
                 <CardContent>
                   <div className="w-full h-[300px] sm:h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart width={500} height={300} data={studentData}>
+                      <BarChart
+                        width={500}
+                        height={300}
+                        data={overviewStats?.formattedStudentData}
+                      >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="course" />
                         <YAxis />
