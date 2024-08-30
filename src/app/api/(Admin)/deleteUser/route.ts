@@ -16,6 +16,32 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Bad Request" }, { status: 400 });
     }
 
+    const userRole = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        role: true,
+      },
+    });
+
+    switch (userRole?.role) {
+      case "Student":
+        await prisma.studentDetails.update({
+          where: { id },
+          data: { isActive: false },
+        });
+        break;
+      case "Staff":
+        await prisma.staffDetails.update({
+          where: { id },
+          data: { isActive: false },
+        });
+      default:
+        return NextResponse.json(
+          { message: "Role undefined" },
+          { status: 400 }
+        );
+    }
+
     await prisma.user.update({
       where: { id },
       data: { isActive: false },

@@ -106,13 +106,13 @@ const CoursesTab = () => {
             <div className="flex items-center space-x-2 w-full sm:w-auto">
               <input
                 type="text"
-                placeholder="Search by course name"
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all duration-300"
+                className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
               />
             </div>
           )}
