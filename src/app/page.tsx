@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Eye, EyeOff } from "lucide-react";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 export default function Login() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function Login() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [skeleton, setSkeleton] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -64,25 +66,27 @@ export default function Login() {
         body: JSON.stringify(authState),
       });
 
+      if (res.ok) {
+        setSkeleton(true);
+      }
+
       const data = await res.json();
       if (!data.success) {
         setErrors({ emailOrUsername: "Incorrect Details" });
         return;
       }
 
-      setTimeout(() => {
-        switch (data.role) {
-          case "Admin":
-            router.push("/admin/dashboard");
-            break;
-          case "Staff":
-            router.push("/staff/dashboard");
-            break;
-          default:
-            router.push("/student/dashboard");
-            break;
-        }
-      }, 1500);
+      switch (data.role) {
+        case "Admin":
+          router.push("/admin/dashboard");
+          break;
+        case "Staff":
+          router.push("/staff/dashboard");
+          break;
+        default:
+          router.push("/student/dashboard");
+          break;
+      }
     } catch (error) {
       console.error("An error occurred during login:", error);
       setErrors({ emailOrUsername: "An unexpected error occurred." });
@@ -91,7 +95,9 @@ export default function Login() {
     }
   };
 
-  return (
+  return skeleton ? (
+    <LoadingSkeleton loadingText="Dashboard" />
+  ) : (
     <section className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 relative">
       <div className="bg-white shadow-2xl rounded-2xl p-6 sm:p-8 max-w-md w-full transform transition-transform duration-300 ease-in-out">
         <div className="flex flex-col sm:flex-row items-center justify-center mb-6 sm:mb-10 space-y-4 sm:space-y-0">
