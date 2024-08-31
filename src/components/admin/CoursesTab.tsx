@@ -3,21 +3,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MdAdd, MdDelete } from 'react-icons/md'; // Importing icons
+import { MdAdd, MdDelete } from 'react-icons/md'; 
 
 const CoursesTab = () => {
   const [courses, setCourses] = useState([
-    { id: 1, name: 'BTech', duration: '4 years' },
-    { id: 2, name: 'MTech CS', duration: '2 years' },
-    { id: 3, name: 'MTech AI/ML', duration: '2 years' },
-    { id: 4, name: 'MSCDF', duration: '2 years' },
+    { id: 1, name: 'BTech' },
+    { id: 2, name: 'MTech' },
+    { id: 3, name: 'MTech AI/ML' },
+    { id: 4, name: 'MSCDF' },
   ]);
-  const [newCourse, setNewCourse] = useState({ name: '', duration: '' });
+  const [newCourse, setNewCourse] = useState({ name: '' });
 
   const handleAddCourse = (e: React.FormEvent) => {
     e.preventDefault();
+    if (newCourse.name.trim() === '') return; 
     setCourses([...courses, { id: courses.length + 1, ...newCourse }]);
-    setNewCourse({ name: '', duration: '' });
+    setNewCourse({ name: '' });
   };
 
   const handleDeleteCourse = (id: number) => {
@@ -37,11 +38,6 @@ const CoursesTab = () => {
             value={newCourse.name}
             onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
           />
-          <Input
-            placeholder="Duration"
-            value={newCourse.duration}
-            onChange={(e) => setNewCourse({ ...newCourse, duration: e.target.value })}
-          />
           <Button type="submit" className="flex items-center">
             <MdAdd className="mr-2" />
             Add Course
@@ -52,8 +48,7 @@ const CoursesTab = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Duration</TableHead>
+              <TableHead>Course Name</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -61,11 +56,10 @@ const CoursesTab = () => {
             {courses.map((course) => (
               <TableRow key={course.id}>
                 <TableCell>{course.name}</TableCell>
-                <TableCell>{course.duration}</TableCell>
                 <TableCell>
-                  <Button 
-                    variant="destructive" 
-                    onClick={() => handleDeleteCourse(course.id)} 
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDeleteCourse(course.id)}
                     style={{ backgroundColor: 'black', color: 'white' }} // Inline style for black background and white text
                     className="flex items-center"
                   >

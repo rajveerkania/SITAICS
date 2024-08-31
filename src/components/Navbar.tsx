@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { NotificationDialog } from "./admin/AdminNotification";
-import { LogoutButton } from "./logoutbutton";
+import { LogoutButton } from "./logoutButton";
 import { FaSignOutAlt } from "react-icons/fa";
+import BlurIn from "./magicui/blur-in";
 
-export function Navbar() {
+interface NavBarProps {
+  name?: string;
+}
+
+export function Navbar({ name }: NavBarProps) {
   const [dateTime, setDateTime] = useState("");
+  const greeting = `Welcome ${name?.split(" ")[0]}`;
 
   useEffect(() => {
     const updateTime = () => {
@@ -20,18 +26,16 @@ export function Navbar() {
       };
       setDateTime(now.toLocaleString("en-US", options));
     };
-
-    updateTime(); // Update immediately on component mount
-    const interval = setInterval(updateTime, 60000); // Update every minute
-
-    return () => clearInterval(interval); // Cleanup the interval on unmount
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <nav className="bg-white shadow-md p-4 transition-all duration-300 hover:shadow-lg">
       <div className="container-fluid mx-auto flex flex-row justify-between items-center">
         <div className="flex items-center space-x-2">
-          <div className="hidden sm:block"> {/* Hide the logo on mobile view */}
+          <div className="hidden sm:block pl-8">
             <Image
               src="/sitaics.png"
               alt="SITAICS Logo"
@@ -41,12 +45,12 @@ export function Navbar() {
               priority
             />
           </div>
-          <span className="text-lg font-medium text-gray-900">Welcome.!</span>
+          <span className="text-lg font-medium text-gray-900">
+            <BlurIn word={greeting} />
+          </span>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="hidden lg:block text-gray-600">
-            {dateTime}
-          </div>
+          <div className="hidden lg:block text-gray-600">{dateTime}</div>
           <NotificationDialog />
           <div className="hidden sm:block">
             <LogoutButton />

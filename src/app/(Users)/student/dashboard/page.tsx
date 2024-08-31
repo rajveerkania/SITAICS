@@ -1,118 +1,70 @@
 "use client";
-import React, { useState } from "react";
-import StudentAuthentication from "@/components/student/StudentAuthentication";
+import React, { useEffect, useState } from "react";
+
 import { Navbar } from "@/components/Navbar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Dashboard from "@/components/student/Dashbord";
+import Navigation from "@/components/student/Navigation";
+import Dashboard from "@/components/student/Dashboard";
 import Timetable from "@/components/student/Timetable";
 import ExamResults from "@/components/student/ExamResults";
 import LeaveManagement from "@/components/student/LeaveManagement";
 import Achievement from "@/components/student/Achievement";
 import Feedback from "@/components/student/Feedback";
-
-type StudentInfo = any ;
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import AddStudentDetails from "@/components/student/AddStudentDetails";
 
 const Page: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [studentInfo, setStudentInfo] = useState<StudentInfo>({
-    name: "",
-    fatherName: "",
-    motherName: "",
-    email: "",
-    enrollmentNo: "",
-    course: "",
-    semester: "",
-    batchNo: "",
-    dob: "",
-    gender: "",
-    mobileNo: "",
-    address: "",
-    city: "",
-    state: "",
-    pinCode: "",
-  });
+  const [userInfo, setUserInfo] = useState<any>({});
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [loading, setLoading] = useState(true);
+  const [showAddStudentDetails, setShowAddStudentDetails] = useState(false);
 
-  if (!isAuthenticated) {
-    return (
-      <StudentAuthentication
-        setIsAuthenticated={setIsAuthenticated}
-        setStudentInfo={(info: StudentInfo) => setStudentInfo(info)}
-        handleLogout={() => {
-          setIsAuthenticated(false);
-          setStudentInfo({
-            name: "",
-            fatherName: "",
-            motherName: "",
-            email: "",
-            enrollmentNo: "",
-            course: "",
-            semester: "",
-            batchNo: "",
-            dob: "",
-            gender: "",
-            mobileNo: "",
-            address: "",
-            city: "",
-            state: "",
-            pinCode: "",
-          });
-        }}
-      />
-    );
+  const fetchUserDetails = async () => {
+    try {
+      const response = await fetch(`/api/fetchUserDetails`);
+      const data = await response.json();
+      if (data.user.isProfileCompleted) {
+        setUserInfo(data.user);
+      } else {
+        setUserInfo({ id: data.user.id });
+        setShowAddStudentDetails(true);
+      }
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
+
+  if (loading) {
+    return <LoadingSkeleton loadingText="Dashboard" />;
   }
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar />
-      <div className="container mx-auto mt-8 px-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex flex-wrap justify-start gap-2 mb-8">
-            <TabsTrigger value="dashboard" className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center">
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="timetable" className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center">
-              Timetable
-            </TabsTrigger>
-            <TabsTrigger value="exam" className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center">
-              Exam Results
-            </TabsTrigger>
-            <TabsTrigger value="leave" className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center">
-              Leave Management
-            </TabsTrigger>
-            <TabsTrigger value="achievement" className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center">
-              Achievements
-            </TabsTrigger>
-            <TabsTrigger value="feedback" className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center">
-              Feedback
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="dashboard">
-            <Dashboard studentInfo={studentInfo} />
-          </TabsContent>
-
-          <TabsContent value="timetable">
-            <Timetable timetableData={[]} />
-          </TabsContent>
-
-          <TabsContent value="exam">
-            <ExamResults />
-          </TabsContent>
-
-          <TabsContent value="leave">
-            <LeaveManagement />
-          </TabsContent>
-
-          <TabsContent value="achievement">
-            <Achievement />
-          </TabsContent>
-
-          <TabsContent value="feedback">
-            <Feedback />
-          </TabsContent>
-        </Tabs>
-      </div>
+      {showAddStudentDetails ? (
+        <AddStudentDetails
+          id={userInfo.id}
+          setShowAddStudentDetails={setShowAddStudentDetails}
+          fetchUserDetails={fetchUserDetails}
+        />
+      ) : (
+        <>
+          <Navbar name={userInfo.name} />
+          <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
+          <main className="container mx-auto mt-8 px-4">
+            {activeTab === "dashboard" && <Dashboard studentInfo={userInfo} />}
+            {activeTab === "timetable" && <Timetable timetableData={[]} />}
+            {activeTab === "exam" && <ExamResults />}
+            {activeTab === "leave" && <LeaveManagement />}
+            {activeTab === "achievement" && <Achievement />}
+            {activeTab === "feedback" && <Feedback />}
+          </main>
+        </>
+      )}
     </div>
   );
 };
