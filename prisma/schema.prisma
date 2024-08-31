@@ -90,7 +90,6 @@ model Course {
   batches        Batch[]
   StudentDetails StudentDetails[]
 }
-
 model Batch {
   batchId         String           @id @default(uuid())
   batchName       String           @unique

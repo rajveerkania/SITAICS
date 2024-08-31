@@ -11,7 +11,8 @@ interface NavBarProps {
 
 export function Navbar({ name }: NavBarProps) {
   const [dateTime, setDateTime] = useState("");
-  const greeting = `Welcome ${name?.split(" ")[0]}`;
+  const greeting = `Welcome, ${name}`;
+  const shortGreeting = `Welcome, ${name?.split(" ")[0]}`;
 
   useEffect(() => {
     const updateTime = () => {
@@ -39,14 +40,17 @@ export function Navbar({ name }: NavBarProps) {
             <Image
               src="/sitaics.png"
               alt="SITAICS Logo"
-              width={50}
-              height={50}
-              style={{ width: "auto", height: "auto" }}
+              width={90}
+              height={90}
               priority
             />
           </div>
-          <span className="text-lg font-medium text-gray-900">
-            <BlurIn word={greeting} />
+          <span className="text-xl font-medium text-gray-900">
+            <BlurIn
+              word={
+                name ? (window.innerWidth < 640 ? shortGreeting : greeting) : ""
+              }
+            />
           </span>
         </div>
         <div className="flex items-center space-x-4">
