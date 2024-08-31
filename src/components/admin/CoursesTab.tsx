@@ -54,13 +54,14 @@ const CoursesTab = () => {
   const handleDeleteCourse = async (courseId: string) => {
     try {
       const response = await fetch("/api/deleteCourse", {
-        method: "DELETE",
+        method: "PUT", // Use PUT method to update course status
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ courseId }),
       });
       if (response.ok) {
+        // Filter out the deleted course from the state
         setCourses(courses.filter((course) => course.courseId !== courseId));
       }
     } catch (error) {
@@ -106,13 +107,13 @@ const CoursesTab = () => {
             <div className="flex items-center space-x-2 w-full sm:w-auto">
               <input
                 type="text"
-                placeholder="Search by course name"
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all duration-300"
+                className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
               />
             </div>
           )}

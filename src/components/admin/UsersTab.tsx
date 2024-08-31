@@ -114,8 +114,11 @@ const UsersTab = () => {
             <TabsTrigger value="view">View Users</TabsTrigger>
             <TabsTrigger value="add">Add User</TabsTrigger>
           </div>
-          {activeTab === "view" && (
-            <div className="flex items-center space-x-2 w-full sm:w-auto mt-4 ">
+          
+        </TabsList>
+        <TabsContent value="view">
+          <div className="w-full overflow-auto pt-10">
+          <div className="flex items-center space-x-2 w-full sm:w-auto mt-4 ">
               <input
                 type="text"
                 placeholder="Search"
@@ -127,10 +130,6 @@ const UsersTab = () => {
                 className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
               />
             </div>
-          )}
-        </TabsList>
-        <TabsContent value="view">
-          <div className="w-full overflow-auto pt-10">
             <Table>
               <TableHeader>
                 <TableRow>

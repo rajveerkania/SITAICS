@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Bar } from "react-chartjs-2";
 import {
-  BarChart,
-  Bar,
-  ResponsiveContainer,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
   Tooltip,
-  CartesianGrid,
   Legend,
-  XAxis,
-  YAxis,
-} from "recharts";
+} from "chart.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatCard } from "@/components/StatCard";
@@ -25,6 +25,15 @@ import AttendanceTab from "@/components/admin/Attendance";
 import BatchTab from "@/components/admin/BatchTab";
 import { NextResponse } from "next/server";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface CourseData {
   course: string;
@@ -89,6 +98,47 @@ const AdminDashboard = () => {
       </div>
     );
   }
+
+  const chartData = {
+    labels:
+      overviewStats?.formattedStudentData.map((item) => item.course) || [],
+    datasets: [
+      {
+        label: "Number of Students",
+        data:
+          overviewStats?.formattedStudentData.map((item) => item.students) ||
+          [],
+        backgroundColor: "",
+        borderColor: "",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: "Number of Students",
+        },
+      },
+      x: {
+        title: {
+          display: true,
+          text: "Courses",
+        },
+      },
+    },
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -183,20 +233,7 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="w-full h-[300px] sm:h-[400px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        width={500}
-                        height={300}
-                        data={overviewStats?.formattedStudentData}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="course" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="students" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <Bar data={chartData} options={chartOptions} />
                   </div>
                 </CardContent>
               </Card>
