@@ -9,6 +9,11 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
+import ImportButton from "@/components/ImportButton";
+
+interface CSVData {
+  [key: string]: string;
+}
 
 const AddUserForm = ({
   onAddUserSuccess,
@@ -21,6 +26,33 @@ const AddUserForm = ({
   const [role, setRole] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [csvData, setCSVData] = useState<CSVData[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFileUpload = async (file: File) => {
+    setError(null);
+    try {
+      const text = await file.text();
+      const result = parseCSV(text);
+      setCSVData(result);
+    } catch (err) {
+      setError("Error parsing CSV file. Please make sure it's a valid CSV.");
+      console.error(err);
+    }
+  };
+
+  const parseCSV = (text: string): CSVData[] => {
+    const lines = text.split("\n");
+    const headers = lines[0].split(",").map((header) => header.trim());
+
+    return lines.slice(1).map((line) => {
+      const values = line.split(",").map((value) => value.trim());
+      return headers.reduce((obj, header, index) => {
+        obj[header] = values[index] || "";
+        return obj;
+      }, {} as CSVData);
+    });
+  };
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +132,14 @@ const AddUserForm = ({
         </button>
       </div>
       <Button type="submit">Add User</Button>
+      <div className="ml-auto">
+        <ImportButton
+          onFileUpload={handleFileUpload}
+          type="button"
+          fileCategory="importUsers"
+        />
+        {error && error}
+      </div>
     </form>
   );
 };
