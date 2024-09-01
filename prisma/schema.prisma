@@ -31,6 +31,7 @@ model StudentDetails {
   enrollmentNumber   String?   @unique
   courseName         String?
   batchName          String?
+ 
   dateOfBirth        DateTime?
   gender             String?
   bloodGroup         String?

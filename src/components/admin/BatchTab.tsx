@@ -6,6 +6,7 @@ import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import AddBatchForm from "./AddBatchForm";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Batch {
   batchId: string;
@@ -19,6 +20,7 @@ interface Batch {
 const BatchTab = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [activeTab, setActiveTab] = useState("add");
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchBatches();
@@ -30,30 +32,84 @@ const BatchTab = () => {
       setBatches(response.data);
     } catch (error) {
       console.error("Error fetching batches:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch batches. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleUpdateSemester = async (batchId: string, newSemester: number) => {
-    try {
-      await axios.put(`/api/UpdateBatchSemester/${batchId}`, { currentSemester: newSemester });
-      fetchBatches();
-    } catch (error) {
-      console.error("Error updating semester:", error);
+    console.log(`Attempting to update batch ${batchId} to semester ${newSemester}`);
+    if (confirm(`Are you sure you want to update the semester to ${newSemester} for all students in this batch?`)) {
+      try {
+        console.log(`Sending PUT request to /api/UpdateBatchSemester/${batchId}`);
+        const response = await axios.put(`/api/UpdateBatchSemester/${batchId}`, { currentSemester: newSemester });
+        console.log("Update response:", response.data);
+        
+        if (response.data.success) {
+          setBatches(batches.map(batch => 
+            batch.batchId === batchId ? { ...batch, currentSemester: newSemester } : batch
+          ));
+          
+          toast({
+            title: "Success",
+            description: `Semester updated to ${newSemester} for all students in the batch.`,
+          });
+        } else {
+          throw new Error(response.data.message);
+        }
+      } catch (error: any) {
+        console.error("Error updating semester:", error);
+        console.error("Error response:", error.response?.data);
+        console.error("Error status:", error.response?.status);
+        toast({
+          title: "Error",
+          description: error.response?.data?.message || error.message || "Failed to update semester. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleViewBatchDetails = async (batchName: string) => {
     try {
       const response = await axios.get(`/api/students?batchName=${batchName}`);
-      // Handle the student details as needed, e.g., open a modal or navigate to a new page
       console.log("Student details:", response.data);
+      // You might want to open a modal or navigate to a new page to display this data
     } catch (error) {
       console.error("Error fetching student details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch student details. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleBatchAdded = () => {
     fetchBatches();
+  };
+
+  const handleDeleteBatch = async (batchId: string) => {
+    if (confirm("Are you sure you want to delete this batch? This action cannot be undone.")) {
+      try {
+        await axios.delete(`/api/deleteBatch/${batchId}`);
+        setBatches(batches.filter(batch => batch.batchId !== batchId));
+        toast({
+          title: "Success",
+          description: "Batch deleted successfully.",
+        });
+      } catch (error) {
+        console.error("Error deleting batch:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete batch. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   return (
@@ -91,14 +147,19 @@ const BatchTab = () => {
                   <Input
                     type="number"
                     value={batch.currentSemester}
-                    onChange={(e) => handleUpdateSemester(batch.batchId, parseInt(e.target.value))}
+                    onChange={(e) => {
+                      const newSemester = parseInt(e.target.value);
+                      if (!isNaN(newSemester) && newSemester > 0) {
+                        handleUpdateSemester(batch.batchId, newSemester);
+                      }
+                    }}
                   />
                 </TableCell>
                 <TableCell>{batch.studentCount}</TableCell>
                 <TableCell>
                   <Button
                     variant="destructive"
-                    onClick={() => {/* Implement delete functionality */}}
+                    onClick={() => handleDeleteBatch(batch.batchId)}
                     style={{ backgroundColor: "black", color: "white" }}
                     className="flex items-center"
                   >
