@@ -13,20 +13,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
-  const token = cookieStore.get("token")?.value;
+  const userRole = verifyToken();
 
-  if (!token) {
-    return <p>Access Denied</p>;
-  }
-
-  const decodedToken = verifyToken(token);
-
-  if (
-    !decodedToken ||
-    typeof decodedToken !== "object" ||
-    decodedToken.role !== "Student"
-  ) {
+  if (!userRole?.role || userRole?.role !== "Student") {
     return <AccessDenied />;
   }
 

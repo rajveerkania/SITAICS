@@ -1,8 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import Head from "next/head";
 import Image from "next/image";
-import { LogoutButton } from "@/components/logoutButton";
 
 interface FacultyInfo {
   name: string;
@@ -416,11 +414,6 @@ const FacultyDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Head>
-        <title>SITAICS Faculty Portal</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
       <header className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
@@ -479,7 +472,6 @@ const FacultyDashboard: React.FC = () => {
           {activeTab === "attendance" && renderAttendanceForm()}
           {activeTab === "timetable" && renderTimetableUploadForm()}
         </main>
-        <LogoutButton />
       </div>
     </div>
   );

@@ -141,7 +141,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar name={userData?.name} />
+      <Navbar name={userData?.name} role={userData?.role} />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button

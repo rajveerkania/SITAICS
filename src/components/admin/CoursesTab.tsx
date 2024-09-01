@@ -102,7 +102,9 @@ const CoursesTab = () => {
             <TabsTrigger value="view">View Courses</TabsTrigger>
             <TabsTrigger value="add">Add Course</TabsTrigger>
           </div>
-          {activeTab === "view" && (
+        </TabsList>
+        <TabsContent value="view">
+          <div className="w-full overflow-auto">
             <div className="flex items-center space-x-2 w-full sm:w-auto">
               <input
                 type="text"
@@ -115,10 +117,6 @@ const CoursesTab = () => {
                 className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
               />
             </div>
-          )}
-        </TabsList>
-        <TabsContent value="view">
-          <div className="w-full overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>

@@ -114,63 +114,63 @@ const UsersTab = () => {
             <TabsTrigger value="view">View Users</TabsTrigger>
             <TabsTrigger value="add">Add User</TabsTrigger>
           </div>
-          {activeTab === "view" && (
-            <div className="flex items-center space-x-2 w-full sm:w-auto mt-4 ">
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
-              />
-            </div>
-          )}
         </TabsList>
         <TabsContent value="view">
-          <div className="w-full overflow-auto pt-10">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {currentUsers.length > 0 ? (
-                  currentUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>{user.name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.role}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button onClick={() => setShowUserDetails(true)}>
-                            <FaRegEdit className="h-4 w-4" />
-                          </Button>
-                          <Button onClick={() => handleDeleteUser(user.id)}>
-                            <FaTrashAlt className="h-4 w-4" />
-                          </Button>
-                        </div>
+          <div className="w-full overflow-auto">
+            <div className="overflow-x-auto">
+              <div className="w-full sm:w-auto mt-1 flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="flex-col-reverse sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
+                />
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {currentUsers.length > 0 ? (
+                    currentUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>{user.name}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.role}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Button onClick={() => setShowUserDetails(true)}>
+                              <FaRegEdit className="h-4 w-4" />
+                            </Button>
+                            <Button onClick={() => handleDeleteUser(user.id)}>
+                              <FaTrashAlt className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center">
+                        No users found
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center">
-                      No users found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
 
             {filteredUsers.length > usersPerPage && (
-              <div className="pagination mt-4 flex justify-center items-center space-x-4">
+              <div className="pagination mt-4 flex justify-center items-center space-x-4 mb-">
                 <Button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(currentPage - 1)}

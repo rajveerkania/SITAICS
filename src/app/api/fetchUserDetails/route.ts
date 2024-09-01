@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       role = null;
 
     if (token) {
-      const decodedToken = verifyToken(token);
+      const decodedToken = verifyToken();
       if (decodedToken && typeof decodedToken === "object") {
         id = decodedToken.id;
         role = decodedToken.role;
@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
               name: true,
               email: true,
               username: true,
+              role: true,
             },
           });
           return NextResponse.json({ user }, { status: 200 });
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
               isProfileCompleted: true,
             },
           });
-          return NextResponse.json({ user }, { status: 200 });
+          return NextResponse.json({ user, role: "Student" }, { status: 200 });
         } catch (error) {
           return NextResponse.json({ error }, { status: 500 });
         }
@@ -89,7 +90,7 @@ export async function GET(request: NextRequest) {
               achievements: true,
             },
           });
-          return NextResponse.json({ user }, { status: 200 });
+          return NextResponse.json({ user, role: "Staff" }, { status: 200 });
         } catch (error) {
           return NextResponse.json(
             { message: "Error while fetching user data!" },

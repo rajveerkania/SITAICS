@@ -22,7 +22,6 @@ export function LogoutButton() {
       }
 
       const data = await response.json();
-      console.log(data.message);
 
       window.location.href = "/";
     } catch (err) {
