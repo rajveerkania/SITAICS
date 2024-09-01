@@ -35,7 +35,10 @@ export async function GET(request: NextRequest) {
               role: true,
             },
           });
-          return NextResponse.json({ user }, { status: 200 });
+          return NextResponse.json(
+            { message: "User details fetched successfully", user },
+            { status: 200 }
+          );
         } catch (error) {
           return NextResponse.json(
             { message: "Error while fetching user data!" },

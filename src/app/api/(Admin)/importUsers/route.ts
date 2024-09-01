@@ -40,10 +40,9 @@ export async function POST(request: NextRequest) {
       Readable.from(Buffer.from(buffer))
         .pipe(csv())
         .on("data", (data) => {
-          // Fix for BOM issue
           const normalizedData = Object.fromEntries(
             Object.entries(data).map(([key, value]) => [
-              key.replace(/^\uFEFF/, ""), // Remove BOM from the key
+              key.replace(/^\uFEFF/, ""),
               value,
             ])
           );

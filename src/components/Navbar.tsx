@@ -35,7 +35,6 @@ export function Navbar({ name, role }: NavBarProps) {
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
-    console.log(role);
   };
 
   const handleLogout = async () => {
@@ -92,17 +91,11 @@ export function Navbar({ name, role }: NavBarProps) {
             </div>
             {dropdownOpen && (
               <ul className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg ">
-                <li
-                  className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg"
-                  onClick={() => console.log("My Profile clicked")}
-                >
+                <li className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg">
                   My Profile
                 </li>
                 {role !== "Student" && (
-                  <li
-                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer"
-                    onClick={() => console.log("Send Notification clicked")}
-                  >
+                  <li className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer">
                     Send Notification
                   </li>
                 )}
