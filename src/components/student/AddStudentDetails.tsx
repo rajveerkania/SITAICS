@@ -1,10 +1,14 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface AddStudentDetailsProps {
   id: string;
   setShowAddStudentDetails: (value: boolean) => void;
   fetchUserDetails: () => void;
+}
+
+interface Course {
+  courseName: string;
 }
 
 const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
@@ -13,6 +17,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   fetchUserDetails,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [courses, setCourses] = useState<Course[]>([]);
 
   const [studentFormData, setStudentFormData] = useState({
     id: id,
@@ -50,6 +55,30 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
     state: "",
     pinCode: "",
   });
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch('/api/fetchCourses', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data.courses);
+        } else {
+          console.error("Failed to fetch courses");
+        }
+      } catch (error) {
+        console.error("An error occurred while fetching courses:", error);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const handleStudentInputChange = (
     e: React.ChangeEvent<
@@ -185,9 +214,11 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
                 required
               >
                 <option value="">Select Course</option>
-                <option value="B.Tech CS&E (CS)">BTech</option>
-                <option value="MTech">MTech</option>
-                <option value="MTech AI/ML">MTech AI/ML</option>
+                {courses.map((course, index) => (
+                  <option key={index} value={course.courseName}>
+                    {course.courseName}
+                  </option>
+                ))}
               </select>
               {errors.courseName && (
                 <p className="text-red-500">{errors.courseName}</p>

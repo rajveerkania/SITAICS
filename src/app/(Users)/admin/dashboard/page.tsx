@@ -23,7 +23,6 @@ import SubjectsTab from "@/components/admin/SubjectsTab";
 import LeavesTab from "@/components/admin/LeavesTab";
 import AttendanceTab from "@/components/admin/Attendance";
 import BatchTab from "@/components/admin/BatchTab";
-import { NextResponse } from "next/server";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 ChartJS.register(
@@ -60,7 +59,6 @@ const AdminDashboard = () => {
     "Users",
     "Courses",
     "Batches",
-    
     "Subjects",
     "Leaves",
     "Attendance",
@@ -76,10 +74,7 @@ const AdminDashboard = () => {
         const data = await response.json();
         setUserData(data.user);
       } catch (error) {
-        return NextResponse.json(
-          { message: "Error while fetching user details" },
-          { status: 500 }
-        );
+        console.error("Error while fetching user details", error);
       } finally {
         setLoading(false);
       }
@@ -108,8 +103,8 @@ const AdminDashboard = () => {
         data:
           overviewStats?.formattedStudentData.map((item) => item.students) ||
           [],
-        backgroundColor: "",
-        borderColor: "",
+        backgroundColor: "rgba(54, 162, 235, 0.6)",
+        borderColor: "rgba(54, 162, 235, 1)",
         borderWidth: 1,
       },
     ],
@@ -144,6 +139,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-100">
       <Navbar name={userData?.name} />
       <div className="container mx-auto mt-8 px-4">
+        {/* Mobile Menu Button */}
         <div className="lg:hidden mb-4">
           <button
             className="p-2 rounded-md bg-gray-200 hover:bg-gray-300"
@@ -166,25 +162,44 @@ const AdminDashboard = () => {
           </button>
         </div>
 
-        {/* Mobile view */}
-
+        {/* Mobile Menu */}
         <div
           className={`${
-            isMobileMenuOpen ? "block" : "hidden"
-          } lg:hidden bg-white rounded-md shadow-md mb-4`}
+            isMobileMenuOpen ? "flex" : "hidden"
+          } lg:hidden flex-col bg-gray-800 absolute top-0 left-0 w-full h-full p-4 z-10 transition-all duration-300 ease-in-out`}
         >
-          <ul className="py-2">
+          <button
+            className="self-end p-2 rounded-md hover:bg-gray-700"
+            onClick={toggleMobileMenu}
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          <ul className="mt-6 space-y-4">
             {tabs.map((tab) => (
-              <li key={tab} className="px-4 py-2">
+              <li key={tab} className="w-full">
                 <button
-                  className={`w-full text-left ${
+                  className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105 ${
                     activeTab === tab.toLowerCase()
-                      ? "font-bold text-black"
-                      : "text-gray-700 hover:text--600"
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                   }`}
                   onClick={() => {
                     setActiveTab(tab.toLowerCase());
-                    toggleMobileMenu();
+                    toggleMobileMenu(); // Close menu after selection
                   }}
                 >
                   {tab}
@@ -193,6 +208,7 @@ const AdminDashboard = () => {
             ))}
           </ul>
         </div>
+
         {/* Desktop Tabs */}
         <Tabs
           value={activeTab}
@@ -211,6 +227,7 @@ const AdminDashboard = () => {
             ))}
           </TabsList>
 
+          {/* Overview Tab Content */}
           <TabsContent value="overview">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
               <StatCard
@@ -247,6 +264,7 @@ const AdminDashboard = () => {
               </Card>
             </div>
           </TabsContent>
+
           <TabsContent value="users">
             <Card>
               <CardHeader>
@@ -277,7 +295,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="subjects">
             <Card>
               <CardHeader>
@@ -310,9 +327,11 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
       <UserDetailsDialog
         open={showUserDetails}
         onOpenChange={setShowUserDetails}
+        userId={""}
       />
     </div>
   );

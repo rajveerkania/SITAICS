@@ -1,18 +1,55 @@
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MdAdd, MdDelete } from 'react-icons/md'; 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { FaTrashAlt } from "react-icons/fa";
+import AddCourseForm from "./AddCourseForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import LoadingSkeleton from "../LoadingSkeleton";
+
+interface Course {
+  courseId: string;
+  courseName: string;
+  isActive: boolean;
+}
 
 const CoursesTab = () => {
-  const [courses, setCourses] = useState([
-    { id: 1, name: 'BTech' },
-    { id: 2, name: 'MTech' },
-    { id: 3, name: 'MTech AI/ML' },
-    { id: 4, name: 'MSCDF' },
-  ]);
-  const [newCourse, setNewCourse] = useState({ name: '' });
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("view");
+  const coursesPerPage = 5;
+
+  const fetchCourses = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/fetchCourses");
+      const data = await response.json();
+      if (Array.isArray(data.courses)) {
+        setCourses(data.courses);
+      } else {
+        throw new Error("Failed to fetch courses or invalid data structure");
+      }
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      setError("Failed to load courses. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
   const handleDeleteCourse = async (courseId: string) => {
     try {
@@ -37,9 +74,26 @@ const CoursesTab = () => {
     setActiveTab("view");
   };
 
-  const handleDeleteCourse = (id: number) => {
-    setCourses(courses.filter(course => course.id !== id));
-  };
+  const filteredCourses = courses.filter(
+    (course) =>
+      course.courseName.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      course.isActive
+  );
+
+  const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
+
+  const currentCourses = filteredCourses.slice(
+    (currentPage - 1) * coursesPerPage,
+    currentPage * coursesPerPage
+  );
+
+  if (isLoading) {
+    return <LoadingSkeleton loadingText="courses" />;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div>
@@ -129,4 +183,4 @@ const CoursesTab = () => {
   );
 };
 
-export default CoursesTab;
+export default CoursesTab;

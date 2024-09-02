@@ -17,7 +17,7 @@ export function LogoutButton() {
         },
       });
 
-      if (!response.ok) {
+      if (!response.ok) { 
         throw new Error("Logout failed");
       }
 

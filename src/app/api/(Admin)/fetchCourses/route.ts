@@ -6,9 +6,9 @@ export async function GET() {
   const decodedUser = verifyToken();
   const userRole = decodedUser?.role;
 
-  if (userRole !== "Admin") {
-    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
-  }
+  // if (userRole !== "Admin") {
+  //   return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+  // }
 
   try {
     const courses = await prisma.course.findMany();
