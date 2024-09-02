@@ -10,7 +10,10 @@ export async function POST(request: NextRequest) {
   const userRole = decodedUser?.role;
 
   if (userRole !== "Admin") {
-    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+    return NextResponse.json(
+      { message: "Access Denied!", success: false },
+      { status: 403 }
+    );
   }
 
   try {
@@ -19,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { success: false, error: "No file uploaded" },
+        { success: false, message: "No file uploaded" },
         { status: 400 }
       );
     }
@@ -52,22 +55,16 @@ export async function POST(request: NextRequest) {
         .on("error", (error) => reject(error));
     });
 
-    console.log("Parsed CSV results:", JSON.stringify(results, null, 2));
-
     const validRoles = ["Admin", "Staff", "PO", "Student"];
-    const createdUsers: any[] = [];
-    const errors: any[] = [];
+    const addedUsers: string[] = [];
+    const failedUsers: { email: string; reason: string }[] = [];
 
     await prisma.$transaction(async (prisma) => {
       for (const user of results) {
         try {
-          console.log("Printing individual user", user);
-          console.log("Processing user:", user.email);
-
           if (!validRoles.includes(user.role)) {
-            throw new Error(
-              `Invalid role for user ${user.email}: ${user.role}`
-            );
+            failedUsers.push({ email: user.email, reason: "Undefined Role" });
+            continue;
           }
 
           const inactiveUser = await prisma.user.findFirst({
@@ -80,7 +77,11 @@ export async function POST(request: NextRequest) {
           });
 
           if (inactiveUser) {
-            throw new Error(`Inactive user found with email: ${user.email}`);
+            failedUsers.push({
+              email: user.email,
+              reason: "Inactive user found",
+            });
+            continue;
           }
 
           const existingUser = await prisma.user.findFirst({
@@ -93,7 +94,11 @@ export async function POST(request: NextRequest) {
           });
 
           if (existingUser) {
-            throw new Error(`User already exists with email: ${user.email}`);
+            failedUsers.push({
+              email: user.email,
+              reason: "User already exists",
+            });
+            continue;
           }
 
           const hashedPassword = await bcryptjs.hash(user.password, 10);
@@ -109,23 +114,54 @@ export async function POST(request: NextRequest) {
             },
           });
 
-          createdUsers.push(createdUser);
+          if (user.role === "Student") {
+            await prisma.studentDetails.create({
+              data: {
+                id: createdUser.id,
+                email: createdUser.email,
+                username: createdUser.username,
+                name: createdUser.name,
+              },
+            });
+          }
+
+          if (user.role === "Staff") {
+            await prisma.staffDetails.create({
+              data: {
+                id: createdUser.id,
+                email: createdUser.email,
+                username: createdUser.username,
+                name: createdUser.name,
+              },
+            });
+          }
+          addedUsers.push(user.email);
+          console.log("Added user: ", user.name);
         } catch (error: any) {
-          console.error(`Error processing user ${user.email}:`, error.message);
-          errors.push({ email: user.email, error: error.message });
+          failedUsers.push({ email: user.email, reason: error.message });
         }
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      createdUsers,
-      errors,
-    });
-  } catch (error) {
-    console.error("Error in file processing:", error);
+    const totalUsers = results.length;
+    const addedUsersLen = addedUsers.length;
+    const failedUsersLen = failedUsers.length;
+    console.log(`Total users processed: ${results.length}`);
+    console.log(`Users added successfully: ${addedUsers.length}`);
+    console.log(`Failed users: ${failedUsers.length}`);
+
     return NextResponse.json(
-      { success: false, error: "Internal Server Error" },
+      {
+        success: true,
+        addedUsersLen,
+        failedUsersLen,
+        totalProcessed: results.length,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: "An unexpected error occurred" },
       { status: 500 }
     );
   }

@@ -15,7 +15,6 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value || "";
 
   console.log(`Accessing path: ${pathname}`);
-  console.log(`Token: ${token}`);
 
   const protectedPaths = Object.values(protectedRoutes).flat();
   const isPublicPath = pathname === "/";

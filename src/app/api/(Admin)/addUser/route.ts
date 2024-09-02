@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     if (!validRoles.includes(role)) {
       return NextResponse.json(
         {
-          error:
+          message:
             "Invalid Role! Please choose from the following: Admin, Staff, PO, Student",
         },
         { status: 400 }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     if (inactiveUser) {
       return NextResponse.json(
-        { error: "An inactive user with the same email or username exists!" },
+        { message: "An inactive user with the same email or username exists!" },
         { status: 403 }
       );
     }
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists!" },
+        { message: "User with same email/username exists" },
         { status: 400 }
       );
     }

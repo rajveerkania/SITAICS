@@ -10,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import ImportButton from "@/components/ImportButton";
+import { toast } from "sonner";
+import AccessDenied from "../accessDenied";
 
 interface CSVData {
   [key: string]: string;
@@ -27,17 +29,14 @@ const AddUserForm = ({
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [csvData, setCSVData] = useState<CSVData[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   const handleFileUpload = async (file: File) => {
-    setError(null);
     try {
       const text = await file.text();
       const result = parseCSV(text);
       setCSVData(result);
-    } catch (err) {
-      setError("Error parsing CSV file. Please make sure it's a valid CSV.");
-      console.error(err);
+    } catch (error: any) {
+      toast.error(error);
     }
   };
 
@@ -65,20 +64,23 @@ const AddUserForm = ({
         body: JSON.stringify({ username, name, email, password, role }),
       });
       const data = await response.json();
+      if (response.status !== 200 && response.status !== 403) {
+        toast.error(data.message);
+      }
+      if (response.status === 403) {
+        return <AccessDenied />;
+      }
       if (data.success) {
-        alert("User added successfully!");
+        toast.success("User added successfully");
         onAddUserSuccess();
         setUsername("");
         setName("");
         setEmail("");
         setRole("");
         setPassword("");
-      } else {
-        alert(data.error);
       }
     } catch (error) {
-      console.error("Error adding user:", error);
-      alert("An error occurred while adding the user");
+      toast.error("An unexpected error occurred");
     }
   };
 
@@ -131,14 +133,15 @@ const AddUserForm = ({
           )}
         </button>
       </div>
-      <Button type="submit">Add User</Button>
-      <div className="ml-auto">
+
+      <div className="flex justify-between pt-5">
+        <Button type="submit">Add User</Button>
         <ImportButton
-          onFileUpload={handleFileUpload}
           type="button"
+          onFileUpload={handleFileUpload}
           fileCategory="importUsers"
+          buttonText="Import CSV"
         />
-        {error && error}
       </div>
     </form>
   );

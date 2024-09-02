@@ -15,6 +15,8 @@ import AddUserForm from "./AddUserForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { UserDetailsDialog } from "./UserDetailsDialog";
 import LoadingSkeleton from "../LoadingSkeleton";
+import AccessDenied from "../accessDenied";
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -38,19 +40,21 @@ const UsersTab = () => {
     setError(null);
     try {
       const response = await fetch("/api/fetchUsers");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
       const data = await response.json();
+      if (response.status !== 200 && response.status !== 403) {
+        toast.error(data.message);
+      }
+      if (response.status === 403) {
+        return <AccessDenied />;
+      }
+
       if (data.success && Array.isArray(data.users)) {
         setUsers(data.users);
       } else {
-        throw new Error(
-          data.error || "Failed to fetch users or invalid data structure"
-        );
+        toast.error("An unexpected error occurred");
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
+      toast.error("An unexpected error occurred");
       setError("Failed to load users. Please try again later.");
     } finally {
       setIsLoading(false);
@@ -71,11 +75,15 @@ const UsersTab = () => {
         body: JSON.stringify({ id }),
       });
       const data = await response.json();
+      if (response.status != 200 && response.status !== 403) {
+        toast.error(data.message);
+      }
+      if (response.status === 403) {
+        return <AccessDenied />;
+      }
       if (data.success) {
         setUsers(users.filter((user) => user.id !== id));
-        alert("User deleted successfully");
-      } else {
-        alert(data.error || "An error occurred");
+        toast.success(data.message);
       }
     } catch (error) {
       console.error("Error deleting user:", error);

@@ -1,6 +1,8 @@
 import React, { useRef, useState, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
+import { toast } from "sonner";
+import AccessDenied from "./accessDenied";
 
 interface CSVUploadButtonProps {
   fileCategory: string;
@@ -11,26 +13,22 @@ interface CSVUploadButtonProps {
 
 export default function ImportButton({
   fileCategory,
-  onFileUpload,
-  buttonText = "Upload CSV",
+  buttonText,
   type = "button",
 }: CSVUploadButtonProps) {
   const [fileName, setFileName] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    setError(null);
 
     if (!file) {
-      setError("No file selected");
-      return;
+      toast.error("No file selected");
     }
 
-    if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
-      setError("Please upload a valid CSV file");
+    if (file?.type !== "text/csv" && !file?.name.endsWith(".csv")) {
+      toast.error("Please upload a CSV file");
       setFileName("");
       return;
     }
@@ -47,20 +45,19 @@ export default function ImportButton({
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      if (response.status !== 200 && response.status !== 403) {
+        toast.error(data.message);
+      }
+      if (response.status === 403) {
+        return <AccessDenied />;
       }
 
-      const data = await response.json();
       if (data.success) {
-        alert("File imported successfully!");
-        onFileUpload(file);
-      } else {
-        throw new Error(data.error || "Unknown error occurred");
+        toast.success("File imported successfully");
       }
     } catch (error: any) {
-      setError(`An error occurred while importing the file: ${error.message}`);
-      console.error("Error uploading file:", error);
+      toast.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +84,6 @@ export default function ImportButton({
       {fileName && (
         <p className="text-sm text-muted-foreground">Selected: {fileName}</p>
       )}
-      {error && error}
     </div>
   );
 }

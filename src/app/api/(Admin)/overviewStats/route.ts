@@ -34,13 +34,16 @@ export async function GET(request: NextRequest) {
       students: item._count.courseName,
     }));
 
-    return NextResponse.json({
-      studentCount,
-      staffCount,
-      totalCoursesCount,
-      formattedStudentData,
-    });
-  } catch (error) {
-    return NextResponse.json({ error }, { status: 500 });
+    return NextResponse.json(
+      {
+        studentCount,
+        staffCount,
+        totalCoursesCount,
+        formattedStudentData,
+      },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }

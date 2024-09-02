@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 import type { Metadata } from "next";
 import AccessDenied from "@/components/accessDenied";
@@ -19,5 +18,9 @@ export default function RootLayout({
     return <AccessDenied />;
   }
 
-  return <>{children}</>;
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
 }

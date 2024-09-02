@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!id || !role) {
-      return NextResponse.json({ error: "Bad request" }, { status: 400 });
+      return NextResponse.json({ message: "Bad Request" }, { status: 400 });
     }
 
     let user;
@@ -35,10 +35,7 @@ export async function GET(request: NextRequest) {
               role: true,
             },
           });
-          return NextResponse.json(
-            { message: "User details fetched successfully", user },
-            { status: 200 }
-          );
+          return NextResponse.json({ user }, { status: 200 });
         } catch (error) {
           return NextResponse.json(
             { message: "Error while fetching user data!" },
@@ -74,8 +71,8 @@ export async function GET(request: NextRequest) {
             },
           });
           return NextResponse.json({ user, role: "Student" }, { status: 200 });
-        } catch (error) {
-          return NextResponse.json({ error }, { status: 500 });
+        } catch (error: any) {
+          return NextResponse.json({ message: error.message }, { status: 500 });
         }
 
       case "Staff":
