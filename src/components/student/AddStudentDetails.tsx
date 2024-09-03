@@ -9,7 +9,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-  
+
 interface AddStudentDetailsProps {
   id: string;
   setShowAddStudentDetails: (value: boolean) => void;
@@ -257,7 +257,13 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
                 value={studentFormData.courseName}
               >
                 <SelectTrigger className="w-full">
-                  <span>{studentFormData.courseName || "Select Course"}</span>
+                  <span
+                    className={
+                      studentFormData.courseName ? "" : "text-gray-500 "
+                    }
+                  >
+                    {studentFormData.courseName || "Select Course"}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   {courses.map((course, index) => (
@@ -280,7 +286,13 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
                 value={studentFormData.batchName}
               >
                 <SelectTrigger className="w-full">
-                  <span>{studentFormData.batchName || "Select Batch"}</span>
+                  <span
+                    className={
+                      studentFormData.batchName ? "" : "text-gray-500 "
+                    }
+                  >
+                    {studentFormData.batchName || "Select Batch"}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   {batches.map((batch, index) => (
@@ -307,27 +319,119 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
               {errors.dateOfBirth && (
                 <p className="text-red-500">{errors.dateOfBirth}</p>
               )}
-              <Input
-                type="text"
+
+              <Select
                 name="gender"
-                placeholder="Gender"
+                onValueChange={(value) =>
+                  handleStudentInputChange({
+                    target: { name: "gender", value },
+                  } as React.ChangeEvent<HTMLSelectElement>)
+                }
                 value={studentFormData.gender}
+              >
+                <SelectTrigger className="w-full">
+                  <span>{studentFormData.gender || "Gender"}</span>
+                </SelectTrigger>
+                <SelectContent>
+                  {["Male", "Female", "Others"].map((group) => (
+                    <SelectItem key={group} value={group}>
+                      {group}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.gender && <p className="text-red-500">{errors.gender}</p>}
+
+              <Select
+                name="bloodGroup"
+                onValueChange={(value) =>
+                  handleStudentInputChange({
+                    target: { name: "bloodGroup", value },
+                  } as React.ChangeEvent<HTMLSelectElement>)
+                }
+                value={studentFormData.bloodGroup}
+              >
+                <SelectTrigger className="w-full">
+                  <span>{studentFormData.bloodGroup || "Blood Group"}</span>
+                </SelectTrigger>
+                <SelectContent>
+                  {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map(
+                    (group) => (
+                      <SelectItem key={group} value={group}>
+                        {group}
+                      </SelectItem>
+                    )
+                  )}
+                </SelectContent>
+              </Select>
+              {errors.bloodGroup && (
+                <p className="text-red-500">{errors.bloodGroup}</p>
+              )}
+            </>
+          )}
+          {currentStep === 4 && (
+            <>
+              <Input
+                type="tel"
+                name="contactNo"
+                placeholder="Contact Number"
+                value={studentFormData.contactNo}
                 onChange={handleStudentInputChange}
                 required
               />
-              {errors.gender && <p className="text-red-500">{errors.gender}</p>}
+              {errors.contactNo && (
+                <p className="text-red-500">{errors.contactNo}</p>
+              )}
+              <Input
+                type="text"
+                name="address"
+                placeholder="Address"
+                maxLength={100}
+                value={studentFormData.address}
+                onChange={handleStudentInputChange}
+                className="h-16"
+                required
+              />
+              {errors.address && (
+                <p className="text-red-500">{errors.address}</p>
+              )}
+              <Input
+                type="text"
+                name="city"
+                placeholder="City"
+                value={studentFormData.city}
+                onChange={handleStudentInputChange}
+                required
+              />
+              {errors.city && <p className="text-red-500">{errors.city}</p>}
+              <Input
+                type="text"
+                name="state"
+                placeholder="State"
+                value={studentFormData.state}
+                onChange={handleStudentInputChange}
+                required
+              />
+              {errors.state && <p className="text-red-500">{errors.state}</p>}
+              <Input
+                type="text"
+                name="pinCode"
+                placeholder="Pin Code"
+                value={studentFormData.pinCode}
+                onChange={handleStudentInputChange}
+                required
+              />
+              {errors.pinCode && (
+                <p className="text-red-500">{errors.pinCode}</p>
+              )}
             </>
           )}
           <div className="flex justify-between mt-4">
             {currentStep > 1 && (
-              <Button type="button" onClick={previousStep} variant="outline">
-                Back
-              </Button>
+              <Button onClick={previousStep}>Previous</Button>
             )}
-            {currentStep < 3 ? (
-              <Button type="button" onClick={nextStep}>
-                Next
-              </Button>
+            {currentStep < 4 ? (
+              <Button onClick={nextStep}>Next</Button>
             ) : (
               <Button type="submit">Submit</Button>
             )}
