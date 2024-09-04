@@ -185,7 +185,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
                 required
               >
                 <option value="">Select Course</option>
-                <option value="B.Tech CS&E (CS)">BTech</option>
+                <option value="Course 3">BTech</option>
                 <option value="MTech">MTech</option>
                 <option value="MTech AI/ML">MTech AI/ML</option>
               </select>

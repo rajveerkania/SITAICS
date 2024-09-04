@@ -13,7 +13,6 @@ export default function Login() {
     emailOrUsername: "",
     password: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -61,7 +60,7 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(authState),
+        body: JSON.stringify({ ...authState, captchaToken }),
       });
 
       const data = await res.json();

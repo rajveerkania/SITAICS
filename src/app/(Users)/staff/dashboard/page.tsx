@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import Head from "next/head";
 import { Navbar } from "@/components/Navbar";
 import Navigation from "@/components/staff/Navigation";
 import Dashboard from "@/components/staff/Dashboard";
@@ -10,24 +9,25 @@ import Notification from "@/components/staff/Notification";
 import Attendance from "@/components/staff/Attendence";
 import StudentList from "@/components/staff/StudentList";
 import Timetable from "@/components/staff/Timetable";
+import AddStaffDetails from "@/components/staff/AddStaffDetails";
 
 const FacultyDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isBatchCoordinator] = useState(true);
+  const [userInfo, setUserInfo] = useState<any>({});
+   const [loading, setLoading] = useState(true);
+  const [showAddStudentDetails, setShowAddStudentDetails] = useState(false);
+
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Head>
-        <title>SITAICS Faculty Portal</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Navbar />
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
       <main className="container mx-auto mt-8 px-4">
         {activeTab === "dashboard" && <Dashboard />}
         {activeTab === "notifications" && <Notification />}
         {activeTab === "leave" && <Leave />}
-        {activeTab === "Timetable" && <Timetable />}
+        {activeTab === "timetable" && <Timetable />}
         {activeTab === "results" && <Result />}
         {activeTab === "students" && <StudentList />}
         {activeTab === "attendence" && <Attendance />}
@@ -36,4 +36,4 @@ const FacultyDashboard: React.FC = () => {
   );
 };
 
-export default FacultyDashboard;
+export default FacultyDashboard;  
