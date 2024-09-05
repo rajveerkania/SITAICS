@@ -24,6 +24,8 @@ import LeavesTab from "@/components/admin/LeavesTab";
 import AttendanceTab from "@/components/admin/Attendance";
 import BatchTab from "@/components/admin/BatchTab";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { Toaster, toast } from "sonner";
+import AccessDenied from "@/components/accessDenied";
 
 ChartJS.register(
   CategoryScale,
@@ -68,13 +70,22 @@ const AdminDashboard = () => {
     const fetchUserDetails = async () => {
       try {
         const response = await fetch(`/api/fetchUserDetails`);
+        const data = await response.json();
+        if (response.status !== 200)
+          toast.error(data.message || "Error while fetching user data");
+
         const overviewStats = await fetch(`/api/overviewStats`);
         const stats = await overviewStats.json();
+        if (overviewStats.status !== 200 && overviewStats.status !== 403)
+          toast.error(stats.message || "Error while fetching the stats");
+        else if (overviewStats.status === 403) {
+          return <AccessDenied />;
+        }
+
         setOverviewStats(stats);
-        const data = await response.json();
         setUserData(data.user);
       } catch (error) {
-        console.error("Error while fetching user details", error);
+        toast.error("Error while fetching the data!");
       } finally {
         setLoading(false);
       }
@@ -137,7 +148,8 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar name={userData?.name} />
+      <Toaster />
+      <Navbar name={userData?.name} role={userData?.role} />
       <div className="container mx-auto mt-8 px-4">
         {/* Mobile Menu Button */}
         <div className="lg:hidden mb-4">

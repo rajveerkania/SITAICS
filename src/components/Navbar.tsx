@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { NotificationDialog } from "./admin/AdminNotification";
-import { LogoutButton } from "./logoutbutton";
-import { FaSignOutAlt } from "react-icons/fa";
+import { NotificationDialog } from "@/components/admin/AdminNotification";
 import BlurIn from "./magicui/blur-in";
 
 interface NavBarProps {
   name?: string;
+  role?: string;
 }
 
-export function Navbar({ name }: NavBarProps) {
+export function Navbar({ name, role }: NavBarProps) {
   const [dateTime, setDateTime] = useState("");
+
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const greeting = `Welcome, ${name}`;
   const shortGreeting = `Welcome, ${name?.split(" ")[0]}`;
 
@@ -31,6 +32,29 @@ export function Navbar({ name }: NavBarProps) {
     const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
 
   return (
     <nav className="bg-white shadow-md p-4 transition-all duration-300 hover:shadow-lg">
@@ -56,11 +80,34 @@ export function Navbar({ name }: NavBarProps) {
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">{dateTime}</div>
           <NotificationDialog />
-          <div className="hidden sm:block">
-            <LogoutButton />
-          </div>
-          <div className="block sm:hidden">
-            <FaSignOutAlt size={24} />
+          <div className="relative">
+            <div onClick={toggleDropdown} className="cursor-pointer">
+              <Image
+                src={role === "Admin" ? "/Admin-logo.png" : "/User-logo.png"}
+                alt="Profile Logo"
+                width={60}
+                height={60}
+              />
+            </div>
+            {dropdownOpen && (
+              <ul className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg ">
+                <li className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg">
+                  My Profile
+                </li>
+                {role !== "Student" && (
+                  <li className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer">
+                    Send Notification
+                  </li>
+                )}
+
+                <li
+                  className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </li>
+              </ul>
+            )}
           </div>
         </div>
       </div>

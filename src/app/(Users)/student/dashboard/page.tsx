@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const StudentDashboard: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>({});
+  const [userRole, setUserRole] = useState("null");
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(true);
   const [showAddStudentDetails, setShowAddStudentDetails] = useState(false);
@@ -25,6 +26,7 @@ const StudentDashboard: React.FC = () => {
       const data = await response.json();
       if (data.user.isProfileCompleted) {
         setUserInfo(data.user);
+        setUserRole(data.role);
       } else {
         setUserInfo({ id: data.user.id });
         setShowAddStudentDetails(true);
@@ -67,113 +69,16 @@ const StudentDashboard: React.FC = () => {
         />
       ) : (
         <>
-          <Navbar name={userInfo.name} />
-          <div className="container mx-auto mt-8 px-4">
-            {/* Mobile Menu Button */}
-            <div className="lg:hidden mb-4">
-              <button
-                className="p-2 rounded-md bg-gray-200 hover:bg-gray-300"
-                onClick={toggleMobileMenu}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {/* Mobile Menu */}
-            <div
-              className={`${
-                isMobileMenuOpen ? "flex" : "hidden"
-              } lg:hidden flex-col bg-gray-800 absolute top-0 left-0 w-full h-full p-4 z-10 transition-all duration-300 ease-in-out`}
-            >
-              <button
-                className="self-end p-2 rounded-md hover:bg-gray-700"
-                onClick={toggleMobileMenu}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-
-              <ul className="mt-6 space-y-4">
-                {tabs.map((tab) => (
-                  <li key={tab.value} className="w-full">
-                    <button
-                      className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105 ${
-                        activeTab === tab.value
-                          ? "bg-gray-900 text-white"
-                          : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                      }`}
-                      onClick={() => {
-                        setActiveTab(tab.value);
-                        toggleMobileMenu(); // Close menu after selection
-                      }}
-                    >
-                      {tab.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Desktop Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="hidden lg:flex flex-wrap gap-2 mb-8">
-                {tabs.map((tab) => (
-                  <TabsTrigger
-                    key={tab.value}
-                    value={tab.value}
-                    className="flex-grow text-center"
-                  >
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {/* Content for each Tab */}
-              <TabsContent value="dashboard">
-                <Dashboard studentInfo={userInfo} />
-              </TabsContent>
-              <TabsContent value="timetable">
-                <Timetable timetableData={[]} />
-              </TabsContent>
-              <TabsContent value="exam">
-                <ExamResults />
-              </TabsContent>
-              <TabsContent value="leave">
-                <LeaveManagement />
-              </TabsContent>
-              <TabsContent value="achievement">
-                <Achievement />
-              </TabsContent>
-              <TabsContent value="feedback">
-                <Feedback />
-              </TabsContent>
-            </Tabs>
-          </div>
+          <Navbar name={userInfo.name} role={userRole} />
+          <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
+          <main className="container mx-auto mt-8 px-4">
+            {activeTab === "dashboard" && <Dashboard studentInfo={userInfo} />}
+            {activeTab === "timetable" && <Timetable timetableData={[]} />}
+            {activeTab === "exam" && <ExamResults />}
+            {activeTab === "leave" && <LeaveManagement />}
+            {activeTab === "achievement" && <Achievement />}
+            {activeTab === "feedback" && <Feedback />}
+          </main>
         </>
       )}
     </div>

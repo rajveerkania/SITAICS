@@ -1,29 +1,60 @@
-  import React, { useState } from 'react';
-  import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-  import { Button } from "@/components/ui/button";
-  import { Input } from "@/components/ui/input";
-  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-  import { MdAdd, MdDelete } from 'react-icons/md'; // Importing icons
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { FaEdit, FaTrashAlt } from 'react-icons/fa'; // Importing icons
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 
-  const SubjectsTab = () => {
-    const [subjects, setSubjects] = useState([
-      { id: 1, name: 'Mathematics', course: 'BTech' },
-      { id: 2, name: 'Data Structures', course: 'BTech' },
-      { id: 3, name: 'Machine Learning', course: 'MTech AI/ML' },
-    ]);
-    const [newSubject, setNewSubject] = useState({ name: '', course: '' });
+interface Subject {
+  id: number;
+  name: string;
+  course: string;
+}
 
-    const handleAddSubject = (e: React.FormEvent) => {
-      e.preventDefault();
-      setSubjects([...subjects, { id: subjects.length + 1, ...newSubject }]);
-      setNewSubject({ name: '', course: '' });
-    };
+const SubjectsTab = () => {
+  const [subjects, setSubjects] = useState<Subject[]>([
+    { id: 1, name: 'Mathematics', course: 'BTech' },
+    { id: 2, name: 'Data Structures', course: 'BTech' },
+    { id: 3, name: 'Machine Learning', course: 'MTech AI/ML' },
+  ]);
+  const [newSubject, setNewSubject] = useState({ name: '', course: '' });
+  const [editSubject, setEditSubject] = useState<Subject | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-    const handleDeleteSubject = (id: number) => {
-      setSubjects(subjects.filter(subject => subject.id !== id));
-    };
+  const handleAddSubject = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubjects([...subjects, { id: subjects.length + 1, ...newSubject }]);
+    setNewSubject({ name: '', course: '' });
+  };
 
-    return (
+  const handleDeleteSubject = (id: number) => {
+    setSubjects(subjects.filter(subject => subject.id !== id));
+  };
+
+  const handleEditSubject = (subject: Subject) => {
+    setEditSubject(subject);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveSubjectEdit = () => {
+    if (editSubject) {
+      setSubjects(subjects.map(subject =>
+        subject.id === editSubject.id ? editSubject : subject
+      ));
+      setEditDialogOpen(false);
+      setEditSubject(null);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (editSubject) {
+      setEditSubject({ ...editSubject, [e.target.name]: e.target.value });
+    }
+  };
+
+  return (
+    <>
       <Tabs defaultValue="add">
         <TabsList>
           <TabsTrigger value="add">Add Subject</TabsTrigger>
@@ -42,7 +73,7 @@
               onChange={(e) => setNewSubject({ ...newSubject, course: e.target.value })}
             />
             <Button type="submit" className="flex items-center">
-              <MdAdd className="mr-2" />
+              <FaEdit className="mr-2" />
               Add Subject
             </Button>
           </form>
@@ -53,7 +84,7 @@
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Course</TableHead>
-                <TableHead>Action</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -62,15 +93,21 @@
                   <TableCell>{subject.name}</TableCell>
                   <TableCell>{subject.course}</TableCell>
                   <TableCell>
-                    <Button 
-                      variant="destructive" 
-                      onClick={() => handleDeleteSubject(subject.id)} 
-                      style={{ backgroundColor: 'black', color: 'white' }} // Inline style for black background and white text
-                      className="flex items-center"
-                    >
-                      <MdDelete style={{ color: 'white' }} className="mr-2" /> {/* White icon */}
-                      Delete
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        onClick={() => handleEditSubject(subject)}
+                        style={{ backgroundColor: 'black', color: 'white' }}
+                      >
+                        <FaEdit className="mr-2" />
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        onClick={() => handleDeleteSubject(subject.id)} 
+                        style={{ backgroundColor: 'black', color: 'white' }}
+                      >
+                        <FaTrashAlt className="mr-2" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -78,7 +115,44 @@
           </Table>
         </TabsContent>
       </Tabs>
-    );
-  };
 
-  export default SubjectsTab;
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Subject</DialogTitle>
+          </DialogHeader>
+          {editSubject ? (
+            <div>
+              <Input
+                type="text"
+                name="name"
+                value={editSubject.name}
+                onChange={handleInputChange}
+                placeholder="Subject Name"
+                className="mb-2"
+              />
+              <Input
+                type="text"
+                name="course"
+                value={editSubject.course}
+                onChange={handleInputChange}
+                placeholder="Course"
+                className="mb-2"
+              />
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button variant="secondary" onClick={() => setEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveSubjectEdit}>Save Changes</Button>
+              </div>
+            </div>
+          ) : (
+            <p>Loading...</p>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export default SubjectsTab;

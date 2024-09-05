@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 import type { Metadata } from "next";
+import AccessDenied from "@/components/accessDenied";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -12,22 +12,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
-  const token = cookieStore.get("token")?.value;
+  const userRole = verifyToken();
 
-  if (!token) {
-    return <p>Access Denied</p>;
+  if (!userRole?.role || userRole?.role !== "Admin") {
+    return <AccessDenied />;
   }
 
-  const decodedToken = verifyToken(token);
-
-  if (
-    !decodedToken ||
-    typeof decodedToken !== "object" ||
-    decodedToken.role !== "Admin"
-  ) {
-    return <p>Access Denied</p>;
-  }
-
-  return <>{children}</>;
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
 }

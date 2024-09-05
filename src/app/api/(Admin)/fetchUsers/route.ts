@@ -27,10 +27,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "No users found." }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      users,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        users,
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

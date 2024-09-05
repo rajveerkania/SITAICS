@@ -214,11 +214,9 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
                 required
               >
                 <option value="">Select Course</option>
-                {courses.map((course, index) => (
-                  <option key={index} value={course.courseName}>
-                    {course.courseName}
-                  </option>
-                ))}
+                <option value="Course 1">BTech</option>
+                <option value="MTech">MTech</option>
+                <option value="MTech AI/ML">MTech AI/ML</option>
               </select>
               {errors.courseName && (
                 <p className="text-red-500">{errors.courseName}</p>
