@@ -27,7 +27,7 @@ interface User {
 
 const UsersTab = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [showUserDetails, setShowUserDetails] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null); // Store the selected user ID for the dialog
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,7 +75,7 @@ const UsersTab = () => {
         body: JSON.stringify({ id }),
       });
       const data = await response.json();
-      if (response.status != 200 && response.status !== 403) {
+      if (response.status !== 200 && response.status !== 403) {
         toast.error(data.message);
       }
       if (response.status === 403) {
@@ -156,7 +156,9 @@ const UsersTab = () => {
                         <TableCell>{user.role}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Button onClick={() => setShowUserDetails(true)}>
+                            <Button
+                              onClick={() => setSelectedUserId(user.id)} // Set selected user ID on edit click
+                            >
                               <FaRegEdit className="h-4 w-4" />
                             </Button>
                             <Button onClick={() => handleDeleteUser(user.id)}>
@@ -204,10 +206,13 @@ const UsersTab = () => {
           <AddUserForm onAddUserSuccess={handleAddUserSuccess} />
         </TabsContent>
       </Tabs>
-      <UserDetailsDialog
-        open={showUserDetails}
-        onOpenChange={setShowUserDetails}
-      />
+      {selectedUserId && (
+        <UserDetailsDialog
+          open={!!selectedUserId} // Open dialog if a user is selected
+          onOpenChange={() => setSelectedUserId(null)} // Close dialog when done
+          userId={selectedUserId} // Pass the selected user ID to the dialog
+        />
+      )}
     </div>
   );
 };

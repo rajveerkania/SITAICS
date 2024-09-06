@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 
 import { Navbar } from "@/components/Navbar";
+import Navigation from "@/components/student/Navigation";
 import Dashboard from "@/components/student/Dashboard";
 import Timetable from "@/components/student/Timetable";
 import ExamResults from "@/components/student/ExamResults";
@@ -10,15 +11,13 @@ import Achievement from "@/components/student/Achievement";
 import Feedback from "@/components/student/Feedback";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import AddStudentDetails from "@/components/student/AddStudentDetails";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const StudentDashboard: React.FC = () => {
+const Page: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>({});
   const [userRole, setUserRole] = useState("null");
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(true);
   const [showAddStudentDetails, setShowAddStudentDetails] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const fetchUserDetails = async () => {
     try {
@@ -42,25 +41,12 @@ const StudentDashboard: React.FC = () => {
     fetchUserDetails();
   }, []);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
   if (loading) {
     return <LoadingSkeleton loadingText="Dashboard" />;
   }
 
-  const tabs = [
-    { label: "Dashboard", value: "dashboard" },
-    { label: "Timetable", value: "timetable" },
-    { label: "Exam Results", value: "exam" },
-    { label: "Leave Management", value: "leave" },
-    { label: "Achievements", value: "achievement" },
-    { label: "Feedback", value: "feedback" },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-100 relative">
+    <div className="min-h-screen bg-gray-100">
       {showAddStudentDetails ? (
         <AddStudentDetails
           id={userInfo.id}
@@ -85,4 +71,4 @@ const StudentDashboard: React.FC = () => {
   );
 };
 
-export default StudentDashboard;
+export default Page;

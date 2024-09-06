@@ -1,14 +1,19 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface AddStudentDetailsProps {
   id: string;
   setShowAddStudentDetails: (value: boolean) => void;
   fetchUserDetails: () => void;
-}
-
-interface Course {
-  courseName: string;
 }
 
 const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
@@ -17,6 +22,9 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   fetchUserDetails,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [courses, setCourses] = useState<{ courseName: string }[]>([]);
+  const [batches, setBatches] = useState<{ batchName: string }[]>([]);
+  const [userName, setUserName] = useState("User");
 
   const [studentFormData, setStudentFormData] = useState({
     id,
@@ -54,30 +62,6 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
     state: "",
     pinCode: "",
   });
-
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const response = await fetch('/api/fetchCourses', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setCourses(data.courses);
-        } else {
-          console.error("Failed to fetch courses");
-        }
-      } catch (error) {
-        console.error("An error occurred while fetching courses:", error);
-      }
-    };
-
-    fetchCourses();
-  }, []);
 
   const handleStudentInputChange = (
     e: React.ChangeEvent<

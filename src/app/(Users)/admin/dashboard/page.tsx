@@ -151,7 +151,6 @@ const AdminDashboard = () => {
       <Toaster />
       <Navbar name={userData?.name} role={userData?.role} />
       <div className="container mx-auto mt-8 px-4">
-        {/* Mobile Menu Button */}
         <div className="lg:hidden mb-4">
           <button
             className="p-2 rounded-md bg-gray-200 hover:bg-gray-300"
@@ -173,8 +172,6 @@ const AdminDashboard = () => {
             </svg>
           </button>
         </div>
-
-        {/* Mobile Menu */}
         <div
           className={`${
             isMobileMenuOpen ? "flex" : "hidden"

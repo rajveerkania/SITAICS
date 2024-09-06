@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 
-// Define a type for generic user details
 type UserDetails = {
   id: string;
   name: string;
@@ -11,7 +17,6 @@ type UserDetails = {
   [key: string]: any;
 };
 
-// Extend StudentInfoProps from the generic UserDetails
 interface StudentInfoProps extends UserDetails {
   fatherName?: string;
   motherName?: string;
@@ -31,37 +36,46 @@ interface StudentInfoProps extends UserDetails {
   isProfileCompleted?: boolean;
 }
 
+interface StaffInfoProps extends UserDetails {
+  contactNumber?: string;
+  isBatchCoordinator?: boolean;
+  department?: string;
+  designation?: string;
+  joiningDate?: string;
+}
+
 export const UserDetailsDialog: React.FC<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userId: string; // Add a prop for user ID to fetch specific user data
+  userId: string;
 }> = ({ open, onOpenChange, userId }) => {
-  const [userInfo, setUserInfo] = useState<UserDetails | null>(null); // Maintain flexibility for different roles
+  const [userInfo, setUserInfo] = useState<UserDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setIsLoading(true);
-      fetch(`/api/fetchUserDetails?userId=${userId}`) // Fetching user details
+      setError(null);
+      fetch(`/api/fetchUserDetails?userId=${userId}`)
         .then((response) => response.json())
         .then((data) => {
           if (data.user) {
-            setUserInfo(data.user); // Set user details dynamically
+            setUserInfo(data.user);
           } else {
-            console.error("No user data found.");
+            setError("No user data found.");
           }
           setIsLoading(false);
         })
         .catch((error) => {
-          console.error("Error fetching user data:", error);
+          setError("Error fetching user data.");
           setIsLoading(false);
         });
     }
   }, [open, userId]);
 
-  // Function to handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (userInfo) {
       setUserInfo({
         ...userInfo,
@@ -70,9 +84,8 @@ export const UserDetailsDialog: React.FC<{
     }
   };
 
-  // Function to handle form submission
   const handleSaveChanges = () => {
-    fetch(`/api/updateUserDetails?userId=${userId}`, { // Update the API endpoint for PUT request
+    fetch(`/api/updateUserDetails?userId=${userId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -82,209 +95,100 @@ export const UserDetailsDialog: React.FC<{
       .then((response) => response.json())
       .then((data) => {
         console.log("User data updated successfully:", data);
-        onOpenChange(false); // Close dialog on success
+        setIsEditing(false);
+        onOpenChange(false);
       })
       .catch((error) => {
         console.error("Error updating user data:", error);
       });
   };
 
+  const renderField = (key: string, label: string) => {
+    if (!userInfo) return null;
+    return (
+      <div key={key} className="mb-4">
+        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        {isEditing ? (
+          <Input
+            type={key === "dateOfBirth" || key === "joiningDate" ? "date" : "text"}
+            name={key}
+            value={userInfo[key] || ""}
+            onChange={handleInputChange}
+            className="mt-1"
+          />
+        ) : (
+          <p className="mt-1">{userInfo[key] || "N/A"}</p>
+        )}
+      </div>
+    );
+  };
+
+  const renderUserFields = () => {
+    if (!userInfo) return null;
+
+    const commonFields = [
+      { key: "name", label: "Name" },
+      { key: "email", label: "Email" },
+      { key: "username", label: "Username" },
+      { key: "role", label: "Role" },
+    ];
+
+    const studentFields = [
+      { key: "fatherName", label: "Father's Name" },
+      { key: "motherName", label: "Mother's Name" },
+      { key: "enrollmentNumber", label: "Enrollment Number" },
+      { key: "courseName", label: "Course Name" },
+      { key: "batchName", label: "Batch Name" },
+      { key: "dateOfBirth", label: "Date of Birth" },
+      { key: "gender", label: "Gender" },
+      { key: "contactNo", label: "Contact Number" },
+      { key: "address", label: "Address" },
+      { key: "city", label: "City" },
+      { key: "state", label: "State" },
+      { key: "pinCode", label: "PIN Code" },
+      { key: "bloodGroup", label: "Blood Group" },
+      { key: "achievements", label: "Achievements" },
+    ];
+
+    const staffFields = [
+      { key: "contactNumber", label: "Contact Number" },
+      { key: "department", label: "Department" },
+      { key: "designation", label: "Designation" },
+      { key: "joiningDate", label: "Joining Date" },
+    ];
+
+    const fieldsToRender = [
+      ...commonFields,
+      ...(userInfo.role === "Student" ? studentFields : []),
+      ...(userInfo.role === "Staff" ? staffFields : []),
+    ];
+
+    return fieldsToRender.map((field) => renderField(field.key, field.label));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>User Details</DialogTitle>
         </DialogHeader>
         {isLoading ? (
           <p>Loading...</p>
+        ) : error ? (
+          <p>{error}</p>
         ) : userInfo ? (
-          <div>
-            {isEditing ? (
-              // Editable form fields
-              <div>
-                <input
-                  type="text"
-                  name="name"
-                  value={userInfo.name}
-                  onChange={handleInputChange}
-                  placeholder="Name"
-                />
-                {userInfo.role === "Student" && (
-                  <>
-                    <input
-                      type="text"
-                      name="fatherName"
-                      value={userInfo.fatherName}
-                      onChange={handleInputChange}
-                      placeholder="Father's Name"
-                    />
-                    <input
-                      type="text"
-                      name="motherName"
-                      value={userInfo.motherName}
-                      onChange={handleInputChange}
-                      placeholder="Mother's Name"
-                    />
-                    <input
-                      type="text"
-                      name="enrollmentNumber"
-                      value={userInfo.enrollmentNumber}
-                      onChange={handleInputChange}
-                      placeholder="Enrollment Number"
-                    />
-                    <input
-                      type="text"
-                      name="courseName"
-                      value={userInfo.courseName}
-                      onChange={handleInputChange}
-                      placeholder="Course Name"
-                    />
-                    <input
-                      type="text"
-                      name="batchName"
-                      value={userInfo.batchName}
-                      onChange={handleInputChange}
-                      placeholder="Batch Name"
-                    />
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      value={userInfo.dateOfBirth}
-                      onChange={handleInputChange}
-                      placeholder="Date of Birth"
-                    />
-                    <input
-                      type="text"
-                      name="gender"
-                      value={userInfo.gender}
-                      onChange={handleInputChange}
-                      placeholder="Gender"
-                    />
-                    <input
-                      type="tel"
-                      name="contactNo"
-                      value={userInfo.contactNo}
-                      onChange={handleInputChange}
-                      placeholder="Contact Number"
-                    />
-                    <input
-                      type="text"
-                      name="address"
-                      value={userInfo.address}
-                      onChange={handleInputChange}
-                      placeholder="Address"
-                    />
-                    <input
-                      type="text"
-                      name="city"
-                      value={userInfo.city}
-                      onChange={handleInputChange}
-                      placeholder="City"
-                    />
-                    <input
-                      type="text"
-                      name="state"
-                      value={userInfo.state}
-                      onChange={handleInputChange}
-                      placeholder="State"
-                    />
-                    <input
-                      type="text"
-                      name="pinCode"
-                      value={userInfo.pinCode}
-                      onChange={handleInputChange}
-                      placeholder="PIN Code"
-                    />
-                    {/* Add more fields as required */}
-                  </>
-                )}
-                {userInfo.role === "Staff" && (
-                  <>
-                    <input
-                      type="text"
-                      name="contactNumber"
-                      value={userInfo.contactNumber}
-                      onChange={handleInputChange}
-                      placeholder="Contact Number"
-                    />
-                    <input
-                      type="text"
-                      name="isBatchCoordinator"
-                      value={userInfo.isBatchCoordinator ? "Yes" : "No"}
-                      onChange={handleInputChange}
-                      placeholder="Batch Coordinator"
-                    />
-                    {/* Additional staff fields if any */}
-                  </>
-                )}
-                {/* Add conditions for other roles if needed */}
-                <button onClick={handleSaveChanges}>Save Changes</button>
-              </div>
-            ) : (
-              // Display user details
-              <div>
-                <p>
-                  <strong>Name:</strong> {userInfo.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {userInfo.email}
-                </p>
-                {userInfo.role === "Student" && (
-                  <>
-                    <p>
-                      <strong>Father's Name:</strong> {userInfo.fatherName}
-                    </p>
-                    <p>
-                      <strong>Mother's Name:</strong> {userInfo.motherName}
-                    </p>
-                    <p>
-                      <strong>Enrollment Number:</strong> {userInfo.enrollmentNumber}
-                    </p>
-                    <p>
-                      <strong>Course Name:</strong> {userInfo.courseName}
-                    </p>
-                    <p>
-                      <strong>Batch Name:</strong> {userInfo.batchName}
-                    </p>
-                    <p>
-                      <strong>Date of Birth:</strong> {userInfo.dateOfBirth}
-                    </p>
-                    <p>
-                      <strong>Gender:</strong> {userInfo.gender}
-                    </p>
-                    <p>
-                      <strong>Contact No.:</strong> {userInfo.contactNo}
-                    </p>
-                    <p>
-                      <strong>Address:</strong> {userInfo.address}
-                    </p>
-                    <p>
-                      <strong>City:</strong> {userInfo.city}
-                    </p>
-                    <p>
-                      <strong>State:</strong> {userInfo.state}
-                    </p>
-                    <p>
-                      <strong>PIN Code:</strong> {userInfo.pinCode}
-                    </p>
-                    {/* Display other student-specific details */}
-                  </>
-                )}
-                {userInfo.role === "Staff" && (
-                  <>
-                    <p>
-                      <strong>Contact Number:</strong> {userInfo.contactNumber}
-                    </p>
-                    <p>
-                      <strong>Batch Coordinator:</strong> {userInfo.isBatchCoordinator ? "Yes" : "No"}
-                    </p>
-                    {/* Additional staff details if any */}
-                  </>
-                )}
-                {/* Add conditions for other roles if needed */}
-                <button onClick={() => setIsEditing(true)}>Edit</button>
-              </div>
-            )}
+          <div className="mt-4">
+            {renderUserFields()}
+            <div className="mt-6 flex justify-end space-x-2">
+              {isEditing ? (
+                <>
+                  <Button onClick={handleSaveChanges}>Save Changes</Button>
+                  <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                </>
+              ) : (
+                <Button onClick={() => setIsEditing(true)}>Edit</Button>
+              )}
+            </div>
           </div>
         ) : (
           <p>User data not found.</p>
