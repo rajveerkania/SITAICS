@@ -114,8 +114,8 @@ const AdminDashboard = () => {
         data:
           overviewStats?.formattedStudentData.map((item) => item.students) ||
           [],
-        backgroundColor: "rgba(54, 162, 235, 0.6)",
-        borderColor: "rgba(54, 162, 235, 1)",
+        backgroundColor: "black",
+        borderColor: "rgba(0, 0, 0, 1)",
         borderWidth: 1,
       },
     ],
