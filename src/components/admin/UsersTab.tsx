@@ -107,92 +107,66 @@ const InactiveRecords = () => {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
-        <div className="w-full sm:w-auto flex items-center space-x-4">
-          <Select
-            value={selectedOption}
-            onValueChange={(value) => setSelectedOption(value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="admin">Admins</SelectItem>
-              <SelectItem value="student">Students</SelectItem>
-              <SelectItem value="staff">Staff</SelectItem>
-              <SelectItem value="po">Placement Officers</SelectItem>
-              <SelectItem value="batch">Batches</SelectItem>
-              <SelectItem value="subject">Subjects</SelectItem>
-              <SelectItem value="course">Courses</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Input
-            type="text"
-            placeholder="Search"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="w-full overflow-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              {!isCourseSubjectBatch && (
-                <>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Username</TableHead>
-                </>
-              )}
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {currentRecords.length > 0 ? (
-              currentRecords.map((record) => (
-                <TableRow key={record.id}>
-                  <TableCell>{record.name}</TableCell>
-                  {!isCourseSubjectBatch && (
-                    <>
-                      <TableCell>{record.email}</TableCell>
-                      <TableCell>
-                        {record.role ||
-                          record.course ||
-                          record.subject ||
-                          record.batch}
+      <Tabs defaultValue="view" onValueChange={(value) => setActiveTab(value)}>
+        <TabsList className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+          <div className="flex space-x-4">
+            <TabsTrigger value="view">View Users</TabsTrigger>
+            <TabsTrigger value="add">Add User</TabsTrigger>
+          </div>
+        </TabsList>
+        <TabsContent value="view">
+          <div className="w-full overflow-auto">
+            <div className="overflow-x-auto">
+              <div className="w-full sm:w-auto mt-1 flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="flex-col-reverse sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
+                />
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {currentUsers.length > 0 ? (
+                    currentUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>{user.name}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.role}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Button onClick={() => setShowUserDetails(true)}>
+                              <FaRegEdit className="h-4 w-4" />
+                            </Button>
+                            <Button onClick={() => handleDeleteUser(user.id)}>
+                              <FaTrashAlt className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center">
+                        No users found
                       </TableCell>
-                    </>
+                    </TableRow>
                   )}
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button onClick={() => handleView(record.id)}>
-                        <FaEye className="h-4 w-4" />
-                      </Button>
-                      <Button onClick={() => handleDelete(record.id)}>
-                        <FaTrashAlt className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={isCourseSubjectBatch ? 2 : 4}
-                  className="text-center"
-                >
-                  No records found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                </TableBody>
+              </Table>
+            </div>
 
         {filteredRecords.length > recordsPerPage && (
           <div className="pagination mt-4 flex justify-center items-center space-x-4 mb-4">

@@ -2,27 +2,23 @@ import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MdDelete, MdEdit } from "react-icons/md";
+import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 import axios from "axios";
 import AddBatchForm from "./AddBatchForm";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Batch {
   batchId: string;
   batchName: string;
   courseName: string;
   batchDuration: number;
-  currentSemester: number;
   studentCount: number;
 }
 
 const BatchTab = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [activeTab, setActiveTab] = useState("add");
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [currentBatch, setCurrentBatch] = useState<Batch | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchBatches();
@@ -34,15 +30,11 @@ const BatchTab = () => {
       setBatches(response.data);
     } catch (error) {
       console.error("Error fetching batches:", error);
-    }
-  };
-
-  const handleUpdateSemester = async (batchId: string, newSemester: number) => {
-    try {
-      await axios.put(`/api/UpdateBatchSemester/${batchId}`, { currentSemester: newSemester });
-      fetchBatches();
-    } catch (error) {
-      console.error("Error updating semester:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch batches. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -50,8 +42,14 @@ const BatchTab = () => {
     try {
       const response = await axios.get(`/api/students?batchName=${batchName}`);
       console.log("Student details:", response.data);
+      // You might want to open a modal or navigate to a new page to display this data
     } catch (error) {
       console.error("Error fetching student details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch student details. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -59,42 +57,23 @@ const BatchTab = () => {
     fetchBatches();
   };
 
-  const handleOpenEditDialog = (batch: Batch) => {
-    setCurrentBatch(batch);
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveBatchEdit = async () => {
-    if (!currentBatch) return;
-
-    try {
-      await axios.put(`/api/editBatch/${currentBatch.batchId}`, {
-        batchName: currentBatch.batchName,
-        courseName: currentBatch.courseName,
-        batchDuration: currentBatch.batchDuration,
-      });
-      fetchBatches();
-      setEditDialogOpen(false);
-    } catch (error) {
-      console.error("Error saving batch edit:", error);
-    }
-  };
-
   const handleDeleteBatch = async (batchId: string) => {
-    try {
-      await axios.delete(`/api/deleteBatch/${batchId}`);
-      fetchBatches();
-    } catch (error) {
-      console.error("Error deleting batch:", error);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (currentBatch) {
-      setCurrentBatch({
-        ...currentBatch,
-        [e.target.name]: e.target.value,
-      });
+    if (confirm("Are you sure you want to delete this batch? This action cannot be undone.")) {
+      try {
+        await axios.put('/api/deleteBatch', { batchId });
+        setBatches(batches.filter(batch => batch.batchId !== batchId));
+        toast({
+          title: "Success",
+          description: "Batch deleted successfully.",
+        });
+      } catch (error) {
+        console.error("Error deleting batch:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete batch. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -114,7 +93,6 @@ const BatchTab = () => {
               <TableHead>Batch Name</TableHead>
               <TableHead>Course</TableHead>
               <TableHead>Duration (Years)</TableHead>
-              <TableHead>Current Semester</TableHead>
               <TableHead>Total Students</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -129,33 +107,16 @@ const BatchTab = () => {
                 </TableCell>
                 <TableCell>{batch.courseName}</TableCell>
                 <TableCell>{batch.batchDuration}</TableCell>
-                <TableCell>
-                  <Input
-                    type="number"
-                    value={batch.currentSemester}
-                    onChange={(e) => handleUpdateSemester(batch.batchId, parseInt(e.target.value))}
-                  />
-                </TableCell>
                 <TableCell>{batch.studentCount}</TableCell>
                 <TableCell>
-                  <div className="flex space-x-2">
-                  <Button
-                      variant="outline"
-                      onClick={() => handleOpenEditDialog(batch)}
-                      style={{ backgroundColor: "black", color: "white" }}
-                      className="flex items-center"
-                    >
-                      <FaEdit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDeleteBatch(batch.batchId)}
-                      style={{ backgroundColor: "black", color: "white" }}
-                      className="flex items-center"
-                    >
-                      <FaTrashAlt className="h-4 w-4" />
-                    </Button>
-                  </div>
+                    <div className="flex items-center space-x-2">
+                            {/* <Button onClick={() => setShowUserDetails(true)}>
+                              <FaRegEdit className="h-4 w-4" />
+                            </Button> */}
+                      <Button onClick={() => handleDeleteBatch(batch.batchId)}>
+                              <FaTrashAlt className="h-4 w-4" />
+                       </Button>
+                      </div>
                 </TableCell>
               </TableRow>
             ))}
