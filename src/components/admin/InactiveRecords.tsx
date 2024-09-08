@@ -19,16 +19,19 @@ import LoadingSkeleton from "../LoadingSkeleton";
 import AccessDenied from "../accessDenied";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
-import { FaRegEdit, FaTrashAlt, FaEye } from "react-icons/fa";
 
 interface Record {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
   email?: string;
+  username?: string;
   role?: string;
   course?: string;
   subject?: string;
   batch?: string;
+  batchName?: string;
+  subjectName?: string;
+  courseName?: string;
 }
 
 const InactiveRecords = () => {
@@ -36,11 +39,10 @@ const InactiveRecords = () => {
   const [selectedOption, setSelectedOption] = useState<string>("admin");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const recordsPerPage = 10;
 
   const fetchRecords = async () => {
+    setRecords([]);
     setIsLoading(true);
     setError(null);
     try {
@@ -55,7 +57,7 @@ const InactiveRecords = () => {
         return <AccessDenied />;
       }
 
-      if (data.success && Array.isArray(data.records)) {
+      if (data.success) {
         setRecords(data.records);
       } else {
         toast.error("An unexpected error occurred");
@@ -72,27 +74,6 @@ const InactiveRecords = () => {
     fetchRecords();
   }, [selectedOption]);
 
-  const filteredRecords = records.filter((record) =>
-    record.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredRecords.length / recordsPerPage);
-
-  const currentRecords = filteredRecords.slice(
-    (currentPage - 1) * recordsPerPage,
-    currentPage * recordsPerPage
-  );
-
-  const handleDelete = (id: string) => {
-    // Implement delete functionality
-    console.log("Delete record with id:", id);
-  };
-
-  const handleView = (id: string) => {
-    // Implement view functionality
-    console.log("View record with id:", id);
-  };
-
   if (isLoading) {
     return <LoadingSkeleton loadingText="records" />;
   }
@@ -101,9 +82,56 @@ const InactiveRecords = () => {
     return <div>Error: {error}</div>;
   }
 
-  const isCourseSubjectBatch = ["course", "subject", "batch"].includes(
-    selectedOption
-  );
+  const getFilteredRecords = () => {
+    return records.filter((record) => {
+      const searchFields = [
+        "name",
+        "email",
+        "batchName",
+        "subjectName",
+        "courseName",
+      ];
+      return searchFields.some((field) =>
+        record[field as keyof Record]
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      );
+    });
+  };
+
+  const filteredRecords = getFilteredRecords();
+
+  const getTableHeaders = () => {
+    switch (selectedOption) {
+      case "batch":
+        return ["Batch Name"];
+      case "subject":
+        return ["Subject Name"];
+      case "course":
+        return ["Course Name"];
+      default:
+        return ["Name", "Email", "Username"];
+    }
+  };
+
+  const renderTableCell = (record: Record, header: string) => {
+    switch (header) {
+      case "Batch Name":
+        return record.batchName;
+      case "Subject Name":
+        return record.subjectName;
+      case "Course Name":
+        return record.courseName;
+      case "Name":
+        return record.name;
+      case "Email":
+        return record.email;
+      case "Username":
+        return record.username;
+      default:
+        return "";
+    }
+  };
 
   return (
     <div>
@@ -121,9 +149,9 @@ const InactiveRecords = () => {
               <SelectItem value="student">Students</SelectItem>
               <SelectItem value="staff">Staff</SelectItem>
               <SelectItem value="po">Placement Officers</SelectItem>
+              <SelectItem value="course">Courses</SelectItem>
               <SelectItem value="batch">Batches</SelectItem>
               <SelectItem value="subject">Subjects</SelectItem>
-              <SelectItem value="course">Courses</SelectItem>
             </SelectContent>
           </Select>
 
@@ -131,10 +159,7 @@ const InactiveRecords = () => {
             type="text"
             placeholder="Search"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
@@ -143,48 +168,30 @@ const InactiveRecords = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              {!isCourseSubjectBatch && (
-                <>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Username</TableHead>
-                </>
-              )}
+              {getTableHeaders().map((header, index) => (
+                <TableHead key={index}>{header}</TableHead>
+              ))}
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentRecords.length > 0 ? (
-              currentRecords.map((record) => (
-                <TableRow key={record.id}>
-                  <TableCell>{record.name}</TableCell>
-                  {!isCourseSubjectBatch && (
-                    <>
-                      <TableCell>{record.email}</TableCell>
-                      <TableCell>
-                        {record.role ||
-                          record.course ||
-                          record.subject ||
-                          record.batch}
-                      </TableCell>
-                    </>
-                  )}
+            {filteredRecords.length > 0 ? (
+              filteredRecords.map((record, index) => (
+                <TableRow key={index}>
+                  {getTableHeaders().map((header, cellIndex) => (
+                    <TableCell key={cellIndex}>
+                      {renderTableCell(record, header)}
+                    </TableCell>
+                  ))}
                   <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button onClick={() => handleView(record.id)}>
-                        <FaEye className="h-4 w-4" />
-                      </Button>
-                      <Button onClick={() => handleDelete(record.id)}>
-                        <FaTrashAlt className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button>Edit</Button>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={isCourseSubjectBatch ? 2 : 4}
+                  colSpan={getTableHeaders().length + 1}
                   className="text-center"
                 >
                   No records found
@@ -193,28 +200,6 @@ const InactiveRecords = () => {
             )}
           </TableBody>
         </Table>
-
-        {filteredRecords.length > recordsPerPage && (
-          <div className="pagination mt-4 flex justify-center items-center space-x-4 mb-4">
-            <Button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-              className="pagination-button"
-            >
-              Previous
-            </Button>
-            <span className="pagination-info">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-              className="pagination-button"
-            >
-              Next
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );

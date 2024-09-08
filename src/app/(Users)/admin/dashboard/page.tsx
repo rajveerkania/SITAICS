@@ -26,6 +26,7 @@ import BatchTab from "@/components/admin/BatchTab";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Toaster, toast } from "sonner";
 import AccessDenied from "@/components/accessDenied";
+import InactiveRecords from "@/components/admin/InactiveRecords";
 
 ChartJS.register(
   CategoryScale,
@@ -64,6 +65,7 @@ const AdminDashboard = () => {
     "Subjects",
     "Leaves",
     "Attendance",
+    "Inactive",
   ];
 
   useEffect(() => {
@@ -208,7 +210,7 @@ const AdminDashboard = () => {
                   }`}
                   onClick={() => {
                     setActiveTab(tab.toLowerCase());
-                    toggleMobileMenu(); // Close menu after selection
+                    toggleMobileMenu();
                   }}
                 >
                   {tab}
@@ -331,6 +333,16 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <AttendanceTab />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="inactive">
+            <Card>
+              <CardHeader>
+                <CardTitle>Inactive Records</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <InactiveRecords />
               </CardContent>
             </Card>
           </TabsContent>
