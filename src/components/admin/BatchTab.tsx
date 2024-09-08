@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MdDelete } from "react-icons/md";
+import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 import axios from "axios";
 import AddBatchForm from "./AddBatchForm";
 import { useToast } from "@/components/ui/use-toast";
@@ -109,15 +109,15 @@ const BatchTab = () => {
                 <TableCell>{batch.batchDuration}</TableCell>
                 <TableCell>{batch.studentCount}</TableCell>
                 <TableCell>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDeleteBatch(batch.batchId)}
-                    style={{ backgroundColor: "black", color: "white" }}
-                    className="flex items-center"
-                  >
-                    <MdDelete style={{ color: "white" }} className="mr-0" />
-                  </Button>
-                </TableCell> 
+                    <div className="flex items-center space-x-2">
+                            {/* <Button onClick={() => setShowUserDetails(true)}>
+                              <FaRegEdit className="h-4 w-4" />
+                            </Button> */}
+                      <Button onClick={() => handleDeleteBatch(batch.batchId)}>
+                              <FaTrashAlt className="h-4 w-4" />
+                       </Button>
+                      </div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -1,84 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MdAdd, MdDelete } from 'react-icons/md'; // Importing icons
+import { Button } from "@/components/ui/button";
+import { FaTrashAlt } from "react-icons/fa";
+import axios from "axios";
+import { useToast } from "@/components/ui/use-toast";
+import AddSubjectForm from "./AddSubjectForm";
 
-const SubjectsTab = () => {
-  const [subjects, setSubjects] = useState([
-    { id: 1, name: 'Mathematics', course: 'BTech' },
-    { id: 2, name: 'Data Structures', course: 'BTech' },
-    { id: 3, name: 'Machine Learning', course: 'MTech AI/ML' },
-  ]);
-  const [newSubject, setNewSubject] = useState({ name: '', course: '' });
+interface Subject {
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string;
+  semester: number;
+  courseName: string;
+  batchName?: string;
+}
 
-  const handleAddSubject = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubjects([...subjects, { id: subjects.length + 1, ...newSubject }]);
-    setNewSubject({ name: '', course: '' });
+const SubjectTab = () => {
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [activeTab, setActiveTab] = useState("view");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
+  const fetchSubjects = async () => {
+    try {
+      const response = await axios.get<Subject[]>("/api/fetchSubjects");
+      setSubjects(response.data);
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch subjects. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteSubject = (id: number) => {
-    setSubjects(subjects.filter(subject => subject.id !== id));
+  const handleDeleteSubject = async (subjectId: string) => {
+    if (confirm("Are you sure you want to delete this subject? This action cannot be undone.")) {
+      try {
+        await axios.delete(`/api/deleteSubject/${subjectId}`);
+        setSubjects(subjects.filter(subject => subject.subjectId !== subjectId));
+        toast({
+          title: "Success",
+          description: "Subject deleted successfully.",
+        });
+      } catch (error) {
+        console.error("Error deleting subject:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete subject. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   return (
-    <Tabs defaultValue="add">
-      <TabsList>
-        <TabsTrigger value="add">Add Subject</TabsTrigger>
-        <TabsTrigger value="manage">Manage Subjects</TabsTrigger>
-      </TabsList>
-      <TabsContent value="add">
-        <form onSubmit={handleAddSubject} className="space-y-4">
-          <Input
-            placeholder="Subject Name"
-            value={newSubject.name}
-            onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="view">View Subjects</TabsTrigger>
+          <TabsTrigger value="add">Add Subject</TabsTrigger>
+        </TabsList>
+        <TabsContent value="add">
+          <AddSubjectForm
+            onSubjectAdded={() => {
+              fetchSubjects();
+            }}
+            onTabChange={setActiveTab}
           />
-          <Input
-            placeholder="Course"
-            value={newSubject.course}
-            onChange={(e) => setNewSubject({ ...newSubject, course: e.target.value })}
-          />
-          <Button type="submit" className="flex items-center">
-            <MdAdd className="mr-2" />
-            Add Subject
-          </Button>
-        </form>
-      </TabsContent>
-      <TabsContent value="manage">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {subjects.map((subject) => (
-              <TableRow key={subject.id}>
-                <TableCell>{subject.name}</TableCell>
-                <TableCell>{subject.course}</TableCell>
-                <TableCell>
-                  <Button 
-                    variant="destructive" 
-                    onClick={() => handleDeleteSubject(subject.id)} 
-                    style={{ backgroundColor: 'black', color: 'white' }} // Inline style for black background and white text
-                    className="flex items-center"
-                  >
-                    <MdDelete style={{ color: 'white' }} className="mr-2" /> {/* White icon */}
-                    Delete
-                  </Button>
-                </TableCell>
+        </TabsContent>
+        <TabsContent value="view">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Subject Name</TableHead>
+                <TableHead>Subject Code</TableHead>
+                <TableHead>Semester</TableHead>
+                <TableHead>Course</TableHead>
+                <TableHead>Batch</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TabsContent>
-    </Tabs>
+            </TableHeader>
+            <TableBody>
+              {subjects.map((subject) => (
+                <TableRow key={subject.subjectId}>
+                  <TableCell>{subject.subjectName}</TableCell>
+                  <TableCell>{subject.subjectCode}</TableCell>
+                  <TableCell>{subject.semester}</TableCell>
+                  <TableCell>{subject.courseName}</TableCell>
+                  <TableCell>{subject.batchName || "N/A"}</TableCell>
+                  <TableCell>
+                    <Button onClick={() => handleDeleteSubject(subject.subjectId)}>
+                      <FaTrashAlt className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
-export default SubjectsTab;
+export default SubjectTab;
