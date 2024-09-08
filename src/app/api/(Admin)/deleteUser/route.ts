@@ -13,7 +13,7 @@ export async function PUT(request: NextRequest) {
   try {
     const { id } = await request.json();
     if (!id) {
-      return NextResponse.json({ error: "Bad Request" }, { status: 400 });
+      return NextResponse.json({ message: "Bad Request" }, { status: 400 });
     }
 
     const userRole = await prisma.user.findUnique({
@@ -48,11 +48,11 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json({
-      message: "User inactivated successfully!",
+      message: "User deleted successfully",
       success: true,
     });
   } catch (error: any) {
     console.error("Error deleting user:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ m: error.message }, { status: 500 });
   }
 }

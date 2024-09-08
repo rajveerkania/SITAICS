@@ -14,6 +14,7 @@ import AddStudentDetails from "@/components/student/AddStudentDetails";
 
 const Page: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>({});
+  const [userRole, setUserRole] = useState("null");
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(true);
   const [showAddStudentDetails, setShowAddStudentDetails] = useState(false);
@@ -24,6 +25,7 @@ const Page: React.FC = () => {
       const data = await response.json();
       if (data.user.isProfileCompleted) {
         setUserInfo(data.user);
+        setUserRole(data.role);
       } else {
         setUserInfo({ id: data.user.id });
         setShowAddStudentDetails(true);
@@ -53,7 +55,7 @@ const Page: React.FC = () => {
         />
       ) : (
         <>
-          <Navbar name={userInfo.name} />
+          <Navbar name={userInfo.name} role={userRole} />
           <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
           <main className="container mx-auto mt-8 px-4">
             {activeTab === "dashboard" && <Dashboard studentInfo={userInfo} />}

@@ -1,5 +1,14 @@
- "use client";
-import React, { useState, useEffect } from "react";
+"use client";
+import React, { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface AddStudentDetailsProps {
   id: string;
@@ -17,10 +26,12 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   fetchUserDetails,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<{ courseName: string }[]>([]);
+  const [batches, setBatches] = useState<{ batchName: string }[]>([]);
+  const [userName, setUserName] = useState("User");
 
   const [studentFormData, setStudentFormData] = useState({
-    id: id,
+    id,
     name: "",
     fatherName: "",
     motherName: "",
@@ -88,7 +99,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
     const { name, value } = e.target;
     setStudentFormData((prevData) => ({
       ...prevData,
-      [name]: name === "pinCode" ? parseInt(value) || null : value,
+      [name]: name === "pinCode" ? parseInt(value) || "" : value,
     }));
 
     let errorMessage = "";
@@ -111,6 +122,37 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
     return stepIsValid;
   };
 
+  const fetchBatches = async (courseName: string) => {
+    try {
+      const response = await fetch(
+        `/api/getBatchesName?courseName=${courseName}`
+      );
+      const data = await response.json();
+      setBatches(data.batches);
+    } catch (error) {
+      toast.error("An error occurred while fetching courses.");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -123,14 +165,15 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
       });
 
       if (updatedStudentDetails.ok) {
-        console.log("Student details added successfully.");
+        toast.success("Student details added successfully.");
         setShowAddStudentDetails(false);
         fetchUserDetails();
       } else {
-        console.error("Failed to add student details.");
+        toast.error("Failed to add student details.");
       }
     } catch (error) {
       console.error("An error occurred:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -144,47 +187,73 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
     setCurrentStep((prevStep) => prevStep - 1);
   };
 
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch(`/api/getCoursesName`);
+        const data = await response.json();
+        setCourses(data.courses);
+      } catch (error) {
+        toast.error("Something went wrong. Please try again later");
+      }
+    };
+
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch(`/api/fetchUserDetails`);
+        const data = await response.json();
+        setUserName(data.user.name);
+        console.log(data.user.name);
+      } catch (error) {
+        toast.error("Something went wrong. Please try again later");
+      }
+    };
+    fetchUserDetails();
+    fetchCourses();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div className="relative min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="absolute top-4 right-4">
+        <Button onClick={handleLogout}>Logout</Button>
+      </div>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          Add Profile Details
-        </h1>
+        <h1 className="text-3xl font-bold mb-3 text-center">{userName}</h1>
+        <p className="text-sm text-gray-400 text-center mb-6">
+          Enter your details to continue
+        </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           {currentStep === 1 && (
             <>
-              <input
+              <Input
                 type="text"
                 name="name"
                 placeholder="Full Name"
                 maxLength={30}
                 value={studentFormData.name}
                 onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
                 required
               />
               {errors.name && <p className="text-red-500">{errors.name}</p>}
-              <input
+              <Input
                 type="text"
                 name="fatherName"
                 placeholder="Father's Name"
                 maxLength={30}
                 value={studentFormData.fatherName}
                 onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
                 required
               />
               {errors.fatherName && (
                 <p className="text-red-500">{errors.fatherName}</p>
               )}
-              <input
+              <Input
                 type="text"
                 name="motherName"
                 placeholder="Mother's Name"
                 maxLength={30}
                 value={studentFormData.motherName}
                 onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
                 required
               />
               {errors.motherName && (
@@ -194,44 +263,73 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
           )}
           {currentStep === 2 && (
             <>
-              <input
+              <Input
                 type="text"
                 name="enrollmentNumber"
                 placeholder="Enrollment Number"
                 value={studentFormData.enrollmentNumber}
                 onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
                 required
               />
               {errors.enrollmentNumber && (
                 <p className="text-red-500">{errors.enrollmentNumber}</p>
               )}
-              <select
+              <Select
                 name="courseName"
+                onValueChange={(value) => {
+                  handleStudentInputChange({
+                    target: { name: "courseName", value },
+                  } as React.ChangeEvent<HTMLSelectElement>);
+                  fetchBatches(value);
+                }}
                 value={studentFormData.courseName}
-                onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
-                required
               >
-                <option value="">Select Course</option>
-                {courses.map((course, index) => (
-                  <option key={index} value={course.courseName}>
-                    {course.courseName}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <span
+                    className={
+                      studentFormData.courseName ? "" : "text-gray-500 "
+                    }
+                  >
+                    {studentFormData.courseName || "Select Course"}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course, index) => (
+                    <SelectItem key={index} value={course.courseName}>
+                      {course.courseName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.courseName && (
                 <p className="text-red-500">{errors.courseName}</p>
               )}
-              <input
-                type="text"
+              <Select
                 name="batchName"
-                placeholder="Batch Name"
+                onValueChange={(value) =>
+                  handleStudentInputChange({
+                    target: { name: "batchName", value },
+                  } as React.ChangeEvent<HTMLSelectElement>)
+                }
                 value={studentFormData.batchName}
-                onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
-                required
-              />
+              >
+                <SelectTrigger className="w-full">
+                  <span
+                    className={
+                      studentFormData.batchName ? "" : "text-gray-500 "
+                    }
+                  >
+                    {studentFormData.batchName || "Select Batch"}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {batches.map((batch, index) => (
+                    <SelectItem key={index} value={batch.batchName}>
+                      {batch.batchName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.batchName && (
                 <p className="text-red-500">{errors.batchName}</p>
               )}
@@ -239,94 +337,116 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
           )}
           {currentStep === 3 && (
             <>
-              <input
+              <Input
                 type="date"
                 name="dateOfBirth"
                 value={studentFormData.dateOfBirth}
                 onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
                 required
               />
               {errors.dateOfBirth && (
                 <p className="text-red-500">{errors.dateOfBirth}</p>
               )}
-              <input
-                type="text"
+
+              <Select
                 name="gender"
-                placeholder="Gender"
+                onValueChange={(value) =>
+                  handleStudentInputChange({
+                    target: { name: "gender", value },
+                  } as React.ChangeEvent<HTMLSelectElement>)
+                }
                 value={studentFormData.gender}
-                onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
-                required
-              />
+              >
+                <SelectTrigger className="w-full">
+                  <span>{studentFormData.gender || "Gender"}</span>
+                </SelectTrigger>
+                <SelectContent>
+                  {["Male", "Female", "Others"].map((group) => (
+                    <SelectItem key={group} value={group}>
+                      {group}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.gender && <p className="text-red-500">{errors.gender}</p>}
-              <input
-                type="text"
+
+              <Select
                 name="bloodGroup"
-                placeholder="Blood Group"
+                onValueChange={(value) =>
+                  handleStudentInputChange({
+                    target: { name: "bloodGroup", value },
+                  } as React.ChangeEvent<HTMLSelectElement>)
+                }
                 value={studentFormData.bloodGroup}
-                onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
-                required
-              />
+              >
+                <SelectTrigger className="w-full">
+                  <span>{studentFormData.bloodGroup || "Blood Group"}</span>
+                </SelectTrigger>
+                <SelectContent>
+                  {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map(
+                    (group) => (
+                      <SelectItem key={group} value={group}>
+                        {group}
+                      </SelectItem>
+                    )
+                  )}
+                </SelectContent>
+              </Select>
               {errors.bloodGroup && (
                 <p className="text-red-500">{errors.bloodGroup}</p>
-              )}
-              <input
-                type="text"
-                name="contactNo"
-                placeholder="Contact Number"
-                value={studentFormData.contactNo}
-                onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              {errors.contactNo && (
-                <p className="text-red-500">{errors.contactNo}</p>
               )}
             </>
           )}
           {currentStep === 4 && (
             <>
-              <input
+              <Input
+                type="tel"
+                name="contactNo"
+                placeholder="Contact Number"
+                value={studentFormData.contactNo}
+                onChange={handleStudentInputChange}
+                required
+              />
+              {errors.contactNo && (
+                <p className="text-red-500">{errors.contactNo}</p>
+              )}
+              <Input
                 type="text"
                 name="address"
                 placeholder="Address"
+                maxLength={100}
                 value={studentFormData.address}
                 onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
+                className="h-16"
                 required
               />
               {errors.address && (
                 <p className="text-red-500">{errors.address}</p>
               )}
-              <input
+              <Input
                 type="text"
                 name="city"
                 placeholder="City"
                 value={studentFormData.city}
                 onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
                 required
               />
               {errors.city && <p className="text-red-500">{errors.city}</p>}
-              <input
+              <Input
                 type="text"
                 name="state"
                 placeholder="State"
                 value={studentFormData.state}
                 onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
                 required
               />
               {errors.state && <p className="text-red-500">{errors.state}</p>}
-              <input
-                type="number"
+              <Input
+                type="text"
                 name="pinCode"
                 placeholder="Pin Code"
                 value={studentFormData.pinCode}
                 onChange={handleStudentInputChange}
-                className="w-full p-2 border rounded"
                 required
               />
               {errors.pinCode && (
@@ -334,32 +454,14 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
               )}
             </>
           )}
-
-          <div className="flex justify-between mt-6">
+          <div className="flex justify-between mt-4">
             {currentStep > 1 && (
-              <button
-                type="button"
-                onClick={previousStep}
-                className="px-4 py-2 bg-gray-300 rounded"
-              >
-                Previous
-              </button>
+              <Button onClick={previousStep}>Previous</Button>
             )}
             {currentStep < 4 ? (
-              <button
-                type="button"
-                onClick={nextStep}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
-              >
-                Next
-              </button>
+              <Button onClick={nextStep}>Next</Button>
             ) : (
-              <button
-                type="submit"
-                className="px-4 py-2 bg-green-500 text-white rounded"
-              >
-                Submit
-              </button>
+              <Button type="submit">Submit</Button>
             )}
           </div>
         </form>

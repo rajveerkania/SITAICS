@@ -12,7 +12,6 @@ export async function POST(req: Request) {
   try {
     const { courseName } = await req.json();
 
-    // Check if course already exists
     const existingCourse = await prisma.course.findUnique({
       where: { courseName },
     });
