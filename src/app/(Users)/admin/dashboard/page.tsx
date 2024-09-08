@@ -27,6 +27,7 @@ import { NextResponse } from "next/server";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Toaster, toast } from "sonner";
 import AccessDenied from "@/components/accessDenied";
+import InactiveRecords from "@/components/admin/InactiveRecords";
 
 ChartJS.register(
   CategoryScale,
@@ -66,6 +67,7 @@ const AdminDashboard = () => {
     "Subjects",
     "Leaves",
     "Attendance",
+    "Inactive",
   ];
 
   useEffect(() => {
@@ -317,6 +319,17 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          <TabsContent value="inactive">
+            <Card>
+              <CardHeader>
+                <CardTitle>Inactive Records</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <InactiveRecords />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
         </Tabs>
       </div>
       <UserDetailsDialog
