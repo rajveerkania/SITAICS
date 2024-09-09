@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,45 +10,37 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
+import AddUserForm from "./AddUserForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { UserDetailsDialog } from "./UserDetailsDialog";
 import LoadingSkeleton from "../LoadingSkeleton";
 import AccessDenied from "../accessDenied";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
-import { FaRegEdit, FaTrashAlt, FaEye } from "react-icons/fa";
 
-interface Record {
+interface User {
   id: string;
   name: string;
-  email?: string;
-  role?: string;
-  course?: string;
-  subject?: string;
-  batch?: string;
+  email: string;
+  role: string;
 }
 
-const InactiveRecords = () => {
-  const [records, setRecords] = useState<Record[]>([]);
-  const [selectedOption, setSelectedOption] = useState<string>("admin");
+const UsersTab = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [showUserDetails, setShowUserDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const recordsPerPage = 10;
+  const [activeTab, setActiveTab] = useState("manage");
+  const usersPerPage = 10;
 
-  const fetchRecords = async () => {
+  const fetchUsers = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `/api/getInactiveRecords?category=${selectedOption}`
-      );
+      const response = await fetch("/api/fetchUsers");
       const data = await response.json();
       if (response.status !== 200 && response.status !== 403) {
         toast.error(data.message);
@@ -55,80 +49,100 @@ const InactiveRecords = () => {
         return <AccessDenied />;
       }
 
-      if (data.success && Array.isArray(data.records)) {
-        setRecords(data.records);
+      if (data.success && Array.isArray(data.users)) {
+        setUsers(data.users);
       } else {
         toast.error("An unexpected error occurred");
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
-      setError("Failed to load records. Please try again later.");
+      setError("Failed to load users. Please try again later.");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRecords();
-  }, [selectedOption]);
+    fetchUsers();
+  }, []);
 
-  const filteredRecords = records.filter((record) =>
-    record.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredRecords.length / recordsPerPage);
-
-  const currentRecords = filteredRecords.slice(
-    (currentPage - 1) * recordsPerPage,
-    currentPage * recordsPerPage
-  );
-
-  const handleDelete = (id: string) => {
-    // Implement delete functionality
-    console.log("Delete record with id:", id);
+  const handleDeleteUser = async (id: string) => {
+    try {
+      const response = await fetch("/api/deleteUser", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+      const data = await response.json();
+      if (response.status != 200 && response.status !== 403) {
+        toast.error(data.message);
+      }
+      if (response.status === 403) {
+        return <AccessDenied />;
+      }
+      if (data.success) {
+        setUsers(users.filter((user) => user.id !== id));
+        toast.success(data.message);
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("An error occurred while deleting the user");
+    }
   };
 
-  const handleView = (id: string) => {
-    // Implement view functionality
-    console.log("View record with id:", id);
+  const handleAddUserSuccess = async () => {
+    await fetchUsers();
   };
+
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
+  const currentUsers = filteredUsers.slice(
+    (currentPage - 1) * usersPerPage,
+    currentPage * usersPerPage
+  );
 
   if (isLoading) {
-    return <LoadingSkeleton loadingText="records" />;
+    return <LoadingSkeleton loadingText="users" />;
   }
 
   if (error) {
     return <div>Error: {error}</div>;
   }
 
-  const isCourseSubjectBatch = ["course", "subject", "batch"].includes(
-    selectedOption
-  );
-
   return (
-    <div>
-      <Tabs defaultValue="view" onValueChange={(value) => setActiveTab(value)}>
-        <TabsList className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
-          <div className="flex space-x-4">
-            <TabsTrigger value="view">View Users</TabsTrigger>
-            <TabsTrigger value="add">Add User</TabsTrigger>
-          </div>
-        </TabsList>
-        <TabsContent value="view">
+    <>
+      <Tabs
+        defaultValue="manage"
+        onValueChange={(value) => setActiveTab(value)}
+      >
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="manage">Manage Users</TabsTrigger>
+            <TabsTrigger value="create">Create User</TabsTrigger>
+          </TabsList>
+          {activeTab === "manage" && (
+            <Input
+              className="w-full sm:w-auto sm:ml-auto"
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          )}
+        </div>
+
+        <TabsContent value="manage">
           <div className="w-full overflow-auto">
             <div className="overflow-x-auto">
-              <div className="w-full sm:w-auto mt-1 flex items-center">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="flex-col-reverse sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
-                />
-              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -168,30 +182,40 @@ const InactiveRecords = () => {
               </Table>
             </div>
 
-        {filteredRecords.length > recordsPerPage && (
-          <div className="pagination mt-4 flex justify-center items-center space-x-4 mb-4">
-            <Button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-              className="pagination-button"
-            >
-              Previous
-            </Button>
-            <span className="pagination-info">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-              className="pagination-button"
-            >
-              Next
-            </Button>
+            {filteredUsers.length > usersPerPage && (
+              <div className="pagination mt-4 flex justify-center items-center space-x-4 mb-">
+                <Button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  className="pagination-button"
+                >
+                  Previous
+                </Button>
+                <span className="pagination-info">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className="pagination-button"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
+        </TabsContent>
+        <TabsContent value="create">
+          <AddUserForm onAddUserSuccess={handleAddUserSuccess} />
+        </TabsContent>
+      </Tabs>
+      <UserDetailsDialog
+        open={showUserDetails}
+        onOpenChange={setShowUserDetails}
+        userId={""}
+      />
+    </>
   );
 };
 
-export default InactiveRecords;
+export default UsersTab;

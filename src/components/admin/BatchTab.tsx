@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 import axios from "axios";
 import AddBatchForm from "./AddBatchForm";
@@ -17,7 +24,7 @@ interface Batch {
 
 const BatchTab = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
-  const [activeTab, setActiveTab] = useState("add");
+  const [activeTab, setActiveTab] = useState("manage");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,10 +65,14 @@ const BatchTab = () => {
   };
 
   const handleDeleteBatch = async (batchId: string) => {
-    if (confirm("Are you sure you want to delete this batch? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this batch? This action cannot be undone."
+      )
+    ) {
       try {
-        await axios.put('/api/deleteBatch', { batchId });
-        setBatches(batches.filter(batch => batch.batchId !== batchId));
+        await axios.put("/api/deleteBatch", { batchId });
+        setBatches(batches.filter((batch) => batch.batchId !== batchId));
         toast({
           title: "Success",
           description: "Batch deleted successfully.",
@@ -80,11 +91,14 @@ const BatchTab = () => {
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList>
-        <TabsTrigger value="add">Add Batch</TabsTrigger>
         <TabsTrigger value="manage">Manage Batches</TabsTrigger>
+        <TabsTrigger value="create">Create Batch</TabsTrigger>
       </TabsList>
-      <TabsContent value="add">
-        <AddBatchForm onBatchAdded={handleBatchAdded} onTabChange={setActiveTab} />
+      <TabsContent value="create">
+        <AddBatchForm
+          onBatchAdded={handleBatchAdded}
+          onTabChange={setActiveTab}
+        />
       </TabsContent>
       <TabsContent value="manage">
         <Table>
@@ -94,14 +108,17 @@ const BatchTab = () => {
               <TableHead>Course</TableHead>
               <TableHead>Duration (Years)</TableHead>
               <TableHead>Total Students</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {batches.map((batch) => (
               <TableRow key={batch.batchId}>
                 <TableCell>
-                  <Button variant="link" onClick={() => handleViewBatchDetails(batch.batchName)}>
+                  <Button
+                    variant="link"
+                    onClick={() => handleViewBatchDetails(batch.batchName)}
+                  >
                     {batch.batchName}
                   </Button>
                 </TableCell>
@@ -109,64 +126,23 @@ const BatchTab = () => {
                 <TableCell>{batch.batchDuration}</TableCell>
                 <TableCell>{batch.studentCount}</TableCell>
                 <TableCell>
-                    <div className="flex items-center space-x-2">
-                            {/* <Button onClick={() => setShowUserDetails(true)}>
+                  <div className="flex items-center space-x-2">
+                    <Button>
+                      <FaRegEdit />
+                    </Button>
+                    {/* <Button onClick={() => setShowUserDetails(true)}>
                               <FaRegEdit className="h-4 w-4" />
                             </Button> */}
-                      <Button onClick={() => handleDeleteBatch(batch.batchId)}>
-                              <FaTrashAlt className="h-4 w-4" />
-                       </Button>
-                      </div>
+                    <Button onClick={() => handleDeleteBatch(batch.batchId)}>
+                      <FaTrashAlt className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TabsContent>
-
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Batch</DialogTitle>
-          </DialogHeader>
-          {currentBatch ? (
-            <div>
-              <Input
-                type="text"
-                name="batchName"
-                value={currentBatch.batchName}
-                onChange={handleInputChange}
-                placeholder="Batch Name"
-                className="mb-2"
-              />
-              <Input
-                type="text"
-                name="courseName"
-                value={currentBatch.courseName}
-                onChange={handleInputChange}
-                placeholder="Course Name"
-                className="mb-2"
-              />
-              <Input
-                type="number"
-                name="batchDuration"
-                value={currentBatch.batchDuration}
-                onChange={handleInputChange}
-                placeholder="Batch Duration"
-                className="mb-2"
-              />
-              <div className="flex justify-end space-x-2 mt-4">
-                <Button variant="secondary" onClick={() => setEditDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveBatchEdit}>Save Changes</Button>
-              </div>
-            </div>
-          ) : (
-            <p>Loading...</p>
-          )}
-        </DialogContent>
-      </Dialog>
     </Tabs>
   );
 };

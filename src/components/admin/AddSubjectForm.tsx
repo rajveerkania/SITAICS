@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import axios from "axios";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -14,7 +20,10 @@ interface AddSubjectFormProps {
   onTabChange: (tab: string) => void;
 }
 
-const AddSubjectForm: React.FC<AddSubjectFormProps> = ({ onSubjectAdded, onTabChange }) => {
+const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
+  onSubjectAdded,
+  onTabChange,
+}) => {
   const [newSubject, setNewSubject] = useState({
     subjectName: "",
     subjectCode: "",
@@ -39,7 +48,10 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({ onSubjectAdded, onTabCh
       } else if (response.data && Array.isArray(response.data.courses)) {
         setCourses(response.data.courses);
       } else {
-        console.error("Unexpected response structure for courses:", response.data);
+        console.error(
+          "Unexpected response structure for courses:",
+          response.data
+        );
         toast({
           title: "Error",
           description: "Failed to fetch courses. Unexpected data structure.",
@@ -69,7 +81,12 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({ onSubjectAdded, onTabCh
 
     try {
       await axios.post("/api/addSubject", subjectData);
-      setNewSubject({ subjectName: "", subjectCode: "", semester: "", courseId: "" });
+      setNewSubject({
+        subjectName: "",
+        subjectCode: "",
+        semester: "",
+        courseId: "",
+      });
       onSubjectAdded();
       onTabChange("view");
       toast({
@@ -91,24 +108,32 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({ onSubjectAdded, onTabCh
       <Input
         placeholder="Subject Name"
         value={newSubject.subjectName}
-        onChange={(e) => setNewSubject({ ...newSubject, subjectName: e.target.value })}
+        onChange={(e) =>
+          setNewSubject({ ...newSubject, subjectName: e.target.value })
+        }
         required
       />
       <Input
         placeholder="Subject Code"
         value={newSubject.subjectCode}
-        onChange={(e) => setNewSubject({ ...newSubject, subjectCode: e.target.value })}
+        onChange={(e) =>
+          setNewSubject({ ...newSubject, subjectCode: e.target.value })
+        }
         required
       />
       <Input
         placeholder="Semester"
         value={newSubject.semester}
-        onChange={(e) => setNewSubject({ ...newSubject, semester: e.target.value })}
+        onChange={(e) =>
+          setNewSubject({ ...newSubject, semester: e.target.value })
+        }
         required
       />
       <Select
         value={newSubject.courseId}
-        onValueChange={(value) => setNewSubject({ ...newSubject, courseId: value })}
+        onValueChange={(value) =>
+          setNewSubject({ ...newSubject, courseId: value })
+        }
         required
       >
         <SelectTrigger>
@@ -133,7 +158,7 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({ onSubjectAdded, onTabCh
         </SelectContent>
       </Select>
       <Button type="submit" className="flex items-center">
-        Add Subject
+        Create Subject
       </Button>
     </form>
   );

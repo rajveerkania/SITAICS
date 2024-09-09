@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FaTrashAlt } from "react-icons/fa";
 import axios from "axios";
@@ -18,7 +25,7 @@ interface Subject {
 
 const SubjectTab = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [activeTab, setActiveTab] = useState("view");
+  const [activeTab, setActiveTab] = useState("manage");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -40,10 +47,16 @@ const SubjectTab = () => {
   };
 
   const handleDeleteSubject = async (subjectId: string) => {
-    if (confirm("Are you sure you want to delete this subject? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this subject? This action cannot be undone."
+      )
+    ) {
       try {
         await axios.delete(`/api/deleteSubject/${subjectId}`);
-        setSubjects(subjects.filter(subject => subject.subjectId !== subjectId));
+        setSubjects(
+          subjects.filter((subject) => subject.subjectId !== subjectId)
+        );
         toast({
           title: "Success",
           description: "Subject deleted successfully.",
@@ -59,35 +72,14 @@ const SubjectTab = () => {
     }
   };
 
-  const handleEditSubject = (subject: Subject) => {
-    setEditSubject(subject);
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveSubjectEdit = () => {
-    if (editSubject) {
-      setSubjects(subjects.map(subject =>
-        subject.id === editSubject.id ? editSubject : subject
-      ));
-      setEditDialogOpen(false);
-      setEditSubject(null);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (editSubject) {
-      setEditSubject({ ...editSubject, [e.target.name]: e.target.value });
-    }
-  };
-
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="view">View Subjects</TabsTrigger>
-          <TabsTrigger value="add">Add Subject</TabsTrigger>
+          <TabsTrigger value="manage">Manage Subjects</TabsTrigger>
+          <TabsTrigger value="create">Create Subject</TabsTrigger>
         </TabsList>
-        <TabsContent value="add">
+        <TabsContent value="create">
           <AddSubjectForm
             onSubjectAdded={() => {
               fetchSubjects();
@@ -95,7 +87,7 @@ const SubjectTab = () => {
             onTabChange={setActiveTab}
           />
         </TabsContent>
-        <TabsContent value="view">
+        <TabsContent value="manage">
           <Table>
             <TableHeader>
               <TableRow>
@@ -116,7 +108,9 @@ const SubjectTab = () => {
                   <TableCell>{subject.courseName}</TableCell>
                   <TableCell>{subject.batchName || "N/A"}</TableCell>
                   <TableCell>
-                    <Button onClick={() => handleDeleteSubject(subject.subjectId)}>
+                    <Button
+                      onClick={() => handleDeleteSubject(subject.subjectId)}
+                    >
                       <FaTrashAlt className="h-4 w-4" />
                     </Button>
                   </TableCell>

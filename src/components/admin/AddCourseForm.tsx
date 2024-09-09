@@ -46,7 +46,7 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({
         placeholder="Enter course name"
         required
       />
-      <Button type="submit">Add Course</Button>
+      <Button type="submit">Create Course</Button>
     </form>
   );
 };

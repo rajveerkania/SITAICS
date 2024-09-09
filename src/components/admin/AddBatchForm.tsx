@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import axios from "axios";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -14,7 +20,10 @@ interface AddBatchFormProps {
   onTabChange: (tab: string) => void;
 }
 
-const AddBatchForm: React.FC<AddBatchFormProps> = ({ onBatchAdded, onTabChange }) => {
+const AddBatchForm: React.FC<AddBatchFormProps> = ({
+  onBatchAdded,
+  onTabChange,
+}) => {
   const [newBatch, setNewBatch] = useState({
     batchName: "",
     courseName: "",
@@ -53,7 +62,12 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({ onBatchAdded, onTabChange }
     e.preventDefault();
     try {
       await axios.post("/api/addBatch", newBatch);
-      setNewBatch({ batchName: "", courseName: "", batchDuration: "", currentSemester: "" });
+      setNewBatch({
+        batchName: "",
+        courseName: "",
+        batchDuration: "",
+        currentSemester: "",
+      });
       onBatchAdded();
       onTabChange("manage");
       toast({
@@ -75,12 +89,16 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({ onBatchAdded, onTabChange }
       <Input
         placeholder="Batch Name"
         value={newBatch.batchName}
-        onChange={(e) => setNewBatch({ ...newBatch, batchName: e.target.value })}
+        onChange={(e) =>
+          setNewBatch({ ...newBatch, batchName: e.target.value })
+        }
         required
       />
       <Select
         value={newBatch.courseName}
-        onValueChange={(value) => setNewBatch({ ...newBatch, courseName: value })}
+        onValueChange={(value) =>
+          setNewBatch({ ...newBatch, courseName: value })
+        }
         required
       >
         <SelectTrigger>
@@ -108,18 +126,22 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({ onBatchAdded, onTabChange }
         placeholder="Duration (in years)"
         type="number"
         value={newBatch.batchDuration}
-        onChange={(e) => setNewBatch({ ...newBatch, batchDuration: e.target.value })}
+        onChange={(e) =>
+          setNewBatch({ ...newBatch, batchDuration: e.target.value })
+        }
         required
       />
       <Input
         placeholder="Current Semester"
         type="number"
         value={newBatch.currentSemester}
-        onChange={(e) => setNewBatch({ ...newBatch, currentSemester: e.target.value })}
+        onChange={(e) =>
+          setNewBatch({ ...newBatch, currentSemester: e.target.value })
+        }
         required
       />
       <Button type="submit" className="flex items-center">
-        Add Batch
+        Create Batch
       </Button>
     </form>
   );
