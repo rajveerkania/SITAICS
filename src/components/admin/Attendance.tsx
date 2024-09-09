@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"; // Assuming you have a Dialog component
+} from "@/components/ui/dialog";
 
 // Mock attendance data
 const mockAttendanceData = [
@@ -100,7 +100,10 @@ const AttendanceTab = () => {
             placeholder="Search by name"
             className="px-4 py-2 border border-gray-300 rounded-md mb-2 sm:mb-0 sm:w-64"
           />
-          <Select onValueChange={setSelectedCourse} value={selectedCourse || ""}>
+          <Select
+            onValueChange={setSelectedCourse}
+            value={selectedCourse || ""}
+          >
             <SelectTrigger className="w-[200px]">
               {selectedCourse || "Select Course"}
             </SelectTrigger>
@@ -123,7 +126,10 @@ const AttendanceTab = () => {
               {/* Add more batch options */}
             </SelectContent>
           </Select>
-          <Select onValueChange={setSelectedSubject} value={selectedSubject || ""}>
+          <Select
+            onValueChange={setSelectedSubject}
+            value={selectedSubject || ""}
+          >
             <SelectTrigger className="w-[200px]">
               {selectedSubject || "Select Subject"}
             </SelectTrigger>
@@ -163,7 +169,10 @@ const AttendanceTab = () => {
         </TableHeader>
         <TableBody>
           {filteredData.map((entry) => (
-            <TableRow key={entry.id} className="hover:bg-gray-100 transition-all">
+            <TableRow
+              key={entry.id}
+              className="hover:bg-gray-100 transition-all"
+            >
               <TableCell>{entry.name}</TableCell>
               <TableCell>{entry.course}</TableCell>
               <TableCell>{entry.batch}</TableCell>
@@ -184,7 +193,9 @@ const AttendanceTab = () => {
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Attendance for {selectedStudent.name}</DialogTitle>
+              <DialogTitle>
+                Edit Attendance for {selectedStudent.name}
+              </DialogTitle>
             </DialogHeader>
             <div className="p-4">
               <Table>
@@ -196,24 +207,30 @@ const AttendanceTab = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedStudent.attendance.map((record: any, index: number) => (
-                    <TableRow key={index}>
-                      <TableCell>{record.date}</TableCell>
-                      <TableCell>{record.status}</TableCell>
-                      <TableCell>
-                        <Select
-                          value={record.status}
-                          onValueChange={(newStatus) => handleAttendanceChange(index, newStatus)}
-                        >
-                          <SelectTrigger className="w-[120px]">{record.status}</SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Present">Present</SelectItem>
-                            <SelectItem value="Absent">Absent</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {selectedStudent.attendance.map(
+                    (record: any, index: number) => (
+                      <TableRow key={index}>
+                        <TableCell>{record.date}</TableCell>
+                        <TableCell>{record.status}</TableCell>
+                        <TableCell>
+                          <Select
+                            value={record.status}
+                            onValueChange={(newStatus) =>
+                              handleAttendanceChange(index, newStatus)
+                            }
+                          >
+                            <SelectTrigger className="w-[120px]">
+                              {record.status}
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Present">Present</SelectItem>
+                              <SelectItem value="Absent">Absent</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  )}
                 </TableBody>
               </Table>
               <DialogFooter className="flex justify-end mt-4">
