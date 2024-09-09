@@ -75,6 +75,17 @@ export default function Login() {
         setErrors({ emailOrUsername: "Incorrect Details" });
         return;
       }
+      switch (data.role) {
+        case "Admin":
+          router.push("/admin/dashboard");
+          break;
+        case "Staff":
+          router.push("/staff/dashboard");
+          break;
+        default:
+          router.push("/student/dashboard");
+          break;
+      }
     } catch (error) {
       console.error("An error occurred during login:", error);
       setErrors({ emailOrUsername: "An unexpected error occurred." });
