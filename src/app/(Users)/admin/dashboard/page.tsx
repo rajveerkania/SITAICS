@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Bar } from "react-chartjs-2";
 import {
-  BarChart,
-  Bar,
-  ResponsiveContainer,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
   Tooltip,
-  CartesianGrid,
   Legend,
-  XAxis,
-  YAxis,
-} from "recharts";
+} from "chart.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatCard } from "@/components/StatCard";
@@ -23,8 +23,19 @@ import SubjectsTab from "@/components/admin/SubjectsTab";
 import LeavesTab from "@/components/admin/LeavesTab";
 import AttendanceTab from "@/components/admin/Attendance";
 import BatchTab from "@/components/admin/BatchTab";
-import { NextResponse } from "next/server";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { Toaster, toast } from "sonner";
+import AccessDenied from "@/components/accessDenied";
+import InactiveRecords from "@/components/admin/InactiveRecords";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface CourseData {
   course: string;
@@ -49,27 +60,34 @@ const AdminDashboard = () => {
   const tabs = [
     "Overview",
     "Users",
-    "Batches",
     "Courses",
+    "Batches",
     "Subjects",
     "Leaves",
     "Attendance",
+    "Inactive",
   ];
 
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
         const response = await fetch(`/api/fetchUserDetails`);
+        const data = await response.json();
+        if (response.status !== 200)
+          toast.error(data.message || "Error while fetching user data");
+
         const overviewStats = await fetch(`/api/overviewStats`);
         const stats = await overviewStats.json();
+        if (overviewStats.status !== 200 && overviewStats.status !== 403)
+          toast.error(stats.message || "Error while fetching the stats");
+        else if (overviewStats.status === 403) {
+          return <AccessDenied />;
+        }
+
         setOverviewStats(stats);
-        const data = await response.json();
         setUserData(data.user);
       } catch (error) {
-        return NextResponse.json(
-          { message: "Error while fetching user details" },
-          { status: 500 }
-        );
+        toast.error("Error while fetching the data!");
       } finally {
         setLoading(false);
       }
@@ -89,9 +107,51 @@ const AdminDashboard = () => {
     );
   }
 
+  const chartData = {
+    labels:
+      overviewStats?.formattedStudentData.map((item) => item.course) || [],
+    datasets: [
+      {
+        label: "Number of Students",
+        data:
+          overviewStats?.formattedStudentData.map((item) => item.students) ||
+          [],
+        backgroundColor: "black",
+        borderColor: "rgba(0, 0, 0, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: "Number of Students",
+        },
+      },
+      x: {
+        title: {
+          display: true,
+          text: "Courses",
+        },
+      },
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar name={userData?.name} />
+      <Toaster />
+      <Navbar name={userData?.name} role={userData?.role} />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button
@@ -114,22 +174,39 @@ const AdminDashboard = () => {
             </svg>
           </button>
         </div>
-
-        {/* Mobile view */}
-
         <div
           className={`${
-            isMobileMenuOpen ? "block" : "hidden"
-          } lg:hidden bg-white rounded-md shadow-md mb-4`}
+            isMobileMenuOpen ? "flex" : "hidden"
+          } lg:hidden flex-col bg-gray-800 absolute top-0 left-0 w-full h-full p-4 z-10 transition-all duration-300 ease-in-out`}
         >
-          <ul className="py-2">
+          <button
+            className="self-end p-2 rounded-md hover:bg-gray-700"
+            onClick={toggleMobileMenu}
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          <ul className="mt-6 space-y-4">
             {tabs.map((tab) => (
-              <li key={tab} className="px-4 py-2">
+              <li key={tab} className="w-full">
                 <button
-                  className={`w-full text-left ${
+                  className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105 ${
                     activeTab === tab.toLowerCase()
-                      ? "font-bold text-black"
-                      : "text-gray-700 hover:text--600"
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                   }`}
                   onClick={() => {
                     setActiveTab(tab.toLowerCase());
@@ -142,6 +219,7 @@ const AdminDashboard = () => {
             ))}
           </ul>
         </div>
+
         {/* Desktop Tabs */}
         <Tabs
           value={activeTab}
@@ -160,6 +238,7 @@ const AdminDashboard = () => {
             ))}
           </TabsList>
 
+          {/* Overview Tab Content */}
           <TabsContent value="overview">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
               <StatCard
@@ -182,20 +261,7 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="w-full h-[300px] sm:h-[400px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        width={500}
-                        height={300}
-                        data={overviewStats?.formattedStudentData}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="course" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="students" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <Bar data={chartData} options={chartOptions} />
                   </div>
                 </CardContent>
               </Card>
@@ -209,6 +275,7 @@ const AdminDashboard = () => {
               </Card>
             </div>
           </TabsContent>
+
           <TabsContent value="users">
             <Card>
               <CardHeader>
@@ -219,16 +286,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="batches">
-            <Card>
-              <CardHeader>
-                <CardTitle>Batch Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BatchTab />
-              </CardContent>
-            </Card>
-          </TabsContent>
           <TabsContent value="courses">
             <Card>
               <CardHeader>
@@ -236,6 +293,16 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <CoursesTab />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="batches">
+            <Card>
+              <CardHeader>
+                <CardTitle>Batch Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BatchTab />
               </CardContent>
             </Card>
           </TabsContent>
@@ -269,11 +336,24 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          <TabsContent value="inactive">
+            <Card>
+              <CardHeader>
+                <CardTitle>Inactive Records</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <InactiveRecords />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
         </Tabs>
       </div>
+
       <UserDetailsDialog
         open={showUserDetails}
         onOpenChange={setShowUserDetails}
+        userId={""}
       />
     </div>
   );

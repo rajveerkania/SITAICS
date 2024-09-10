@@ -59,6 +59,17 @@ const LeavesTab = () => {
             <option value="MTech AI/ML">MTech AI/ML</option>
             <option value="MSCDF">MSCDF</option>
           </select>
+          <select
+            value={filterCourse}
+            onChange={(e) => setFilterCourse(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-md mb-2 sm:mb-0 sm:w-64"
+          >
+            <option value="">All Batch</option>
+            <option value="BTech">2024</option>
+            <option value="MTech">2024</option>
+            <option value="MTech AI/ML">2024</option>
+            <option value="MSCDF">2024</option>
+          </select>
         </div>
         <Button 
           variant="outline" 

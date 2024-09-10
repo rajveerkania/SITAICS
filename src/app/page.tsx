@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 export default function Login() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function Login() {
     password: "",
   });
   const [loading, setLoading] = useState(false);
+  const [skeleton, setSkeleton] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPassword, setShowPassword] = useState(false);
 
@@ -46,25 +48,15 @@ export default function Login() {
         body: JSON.stringify(authState),
       });
 
+      if (res.ok) {
+        setSkeleton(true);
+      }
+
       const data = await res.json();
       if (!data.success) {
         setErrors({ emailOrUsername: "Incorrect Details" });
         return;
       }
-
-      setTimeout(() => {
-        switch (data.role) {
-          case "Admin":
-            router.push("/admin/dashboard");
-            break;
-          case "Staff":
-            router.push("/staff/dashboard");
-            break;
-          default:
-            router.push("/student/dashboard");
-            break;
-        }
-      }, 1500);
     } catch (error) {
       console.error("An error occurred during login:", error);
       setErrors({ emailOrUsername: "An unexpected error occurred." });
@@ -73,25 +65,27 @@ export default function Login() {
     }
   };
 
-  return (
+  return skeleton ? (
+    <LoadingSkeleton loadingText="Dashboard" />
+  ) : (
     <section className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 relative">
       <div className="bg-white shadow-2xl rounded-2xl p-6 sm:p-8 max-w-md w-full transform transition-transform duration-300 ease-in-out">
-        <div className="flex flex-col sm:flex-row items-center justify-center mb-6 sm:mb-10 space-y-4 sm:space-y-0">
+        <div className="flex flex-row items-center justify-between mb-6 sm:mb-10">
           <Image
             src="/rru.png"
             alt="RRU Logo"
-            className="h-auto w-16 sm:w-20"
+            className="h-auto w-12 sm:w-20"
             height={64}
             width={64}
             priority
           />
-          <h1 className="text-3xl sm:text-4xl font-bold leading-tight text-black text-center mx-4">
+          <h1 className="text-2xl sm:text-4xl font-bold leading-tight text-black text-center">
             SITAICS
           </h1>
           <Image
             src="/sitaics.png"
             alt="SITAICS Logo"
-            className="h-auto w-16 sm:w-20"
+            className="h-auto w-12 sm:w-20"
             width={64}
             height={64}
             priority

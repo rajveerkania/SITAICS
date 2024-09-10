@@ -74,6 +74,7 @@ model Subject {
   subjectCode String
   semester    Int
   courseId    String
+  course      Course         @relation(fields: [courseId], references: [courseId])
   isActive    Boolean        @default(true)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
@@ -84,6 +85,7 @@ model Subject {
 model Course {
   courseId       String           @id @default(uuid())
   courseName     String           @unique
+  subjects       Subject[]
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
@@ -122,4 +124,3 @@ enum Role {
   PO
   Student
 }
-

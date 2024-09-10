@@ -9,6 +9,13 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
+import ImportButton from "@/components/ImportButton";
+import { toast } from "sonner";
+import AccessDenied from "../accessDenied";
+
+interface CSVData {
+  [key: string]: string;
+}
 
 const AddUserForm = ({
   onAddUserSuccess,
@@ -21,6 +28,30 @@ const AddUserForm = ({
   const [role, setRole] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [csvData, setCSVData] = useState<CSVData[]>([]);
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      const text = await file.text();
+      const result = parseCSV(text);
+      setCSVData(result);
+    } catch (error: any) {
+      toast.error(error);
+    }
+  };
+
+  const parseCSV = (text: string): CSVData[] => {
+    const lines = text.split("\n");
+    const headers = lines[0].split(",").map((header) => header.trim());
+
+    return lines.slice(1).map((line) => {
+      const values = line.split(",").map((value) => value.trim());
+      return headers.reduce((obj, header, index) => {
+        obj[header] = values[index] || "";
+        return obj;
+      }, {} as CSVData);
+    });
+  };
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,20 +64,23 @@ const AddUserForm = ({
         body: JSON.stringify({ username, name, email, password, role }),
       });
       const data = await response.json();
+      if (response.status !== 200 && response.status !== 403) {
+        toast.error(data.message);
+      }
+      if (response.status === 403) {
+        return <AccessDenied />;
+      }
       if (data.success) {
-        alert("User added successfully!");
+        toast.success("User added successfully");
         onAddUserSuccess();
         setUsername("");
         setName("");
         setEmail("");
         setRole("");
         setPassword("");
-      } else {
-        alert(data.error);
       }
     } catch (error) {
-      console.error("Error adding user:", error);
-      alert("An error occurred while adding the user");
+      toast.error("An unexpected error occurred");
     }
   };
 
@@ -99,7 +133,16 @@ const AddUserForm = ({
           )}
         </button>
       </div>
-      <Button type="submit">Add User</Button>
+
+      <div className="flex justify-between pt-5">
+        <Button type="submit">Create User</Button>
+        <ImportButton
+          type="button"
+          onFileUpload={handleFileUpload}
+          fileCategory="importUsers"
+          buttonText="Import CSV"
+        />
+      </div>
     </form>
   );
 };

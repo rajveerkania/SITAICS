@@ -8,10 +8,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt, FaEdit } from "react-icons/fa";
 import AddCourseForm from "./AddCourseForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import LoadingSkeleton from "../LoadingSkeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Input } from "@/components/ui/input";
 
 interface Course {
   courseId: string;
@@ -25,7 +27,9 @@ const CoursesTab = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("view");
+  const [activeTab, setActiveTab] = useState("manage");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editCourse, setEditCourse] = useState<Course | null>(null);
   const coursesPerPage = 5;
 
   const fetchCourses = async () => {
@@ -54,23 +58,57 @@ const CoursesTab = () => {
   const handleDeleteCourse = async (courseId: string) => {
     try {
       const response = await fetch("/api/deleteCourse", {
-        method: "DELETE",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ courseId }),
       });
       if (response.ok) {
-        setCourses(courses.filter((course) => course.courseId !== courseId));
+        fetchCourses();
       }
     } catch (error) {
       console.error("Error deleting course:", error);
     }
   };
 
+  const handleEditCourse = (course: Course) => {
+    setEditCourse(course);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveCourseEdit = async () => {
+    if (!editCourse) return;
+
+    try {
+      const response = await fetch(`/api/editCourse/${editCourse.courseId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ courseName: editCourse.courseName }),
+      });
+
+      if (response.ok) {
+        await fetchCourses();
+        setEditDialogOpen(false);
+      } else {
+        throw new Error("Failed to update course");
+      }
+    } catch (error) {
+      console.error("Error saving course edit:", error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (editCourse) {
+      setEditCourse({ ...editCourse, [e.target.name]: e.target.value });
+    }
+  };
+
   const handleAddCourseSuccess = (newCourse: Course) => {
     setCourses((prevCourses) => [...prevCourses, newCourse]);
-    setActiveTab("view");
+    setActiveTab("manage");
   };
 
   const filteredCourses = courses.filter(
@@ -95,30 +133,30 @@ const CoursesTab = () => {
   }
 
   return (
-    <div>
+    <>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
-          <div className="flex space-x-4">
-            <TabsTrigger value="view">View Courses</TabsTrigger>
-            <TabsTrigger value="add">Add Course</TabsTrigger>
-          </div>
-          {activeTab === "view" && (
-            <div className="flex items-center space-x-2 w-full sm:w-auto">
-              <input
-                type="text"
-                placeholder="Search by course name"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all duration-300"
-              />
-            </div>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+          <TabsList className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+            <TabsTrigger value="manage">Manage Courses</TabsTrigger>
+            <TabsTrigger value="create">Create Course</TabsTrigger>
+          </TabsList>
+          {activeTab === "manage" && (
+            <Input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full sm:w-auto sm:ml-auto"
+            />
           )}
-        </TabsList>
-        <TabsContent value="view">
+        </div>
+
+        <TabsContent value="manage">
           <div className="w-full overflow-auto">
+            <div className="flex items-center space-x-2 w-full sm:w-auto"></div>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -134,7 +172,16 @@ const CoursesTab = () => {
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Button
+                            onClick={() => handleEditCourse(course)}
+                            style={{ backgroundColor: "black", color: "white" }}
+                          >
+                            <FaEdit className="h-4 w-4" />
+                          </Button>
+                          <Button
                             onClick={() => handleDeleteCourse(course.courseId)}
+                            variant="destructive"
+                            style={{ backgroundColor: "black", color: "white" }}
+                            className="flex items-center"
                           >
                             <FaTrashAlt className="h-4 w-4" />
                           </Button>
@@ -174,11 +221,42 @@ const CoursesTab = () => {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="add">
+        <TabsContent value="create">
           <AddCourseForm onAddCourseSuccess={handleAddCourseSuccess} />
         </TabsContent>
       </Tabs>
-    </div>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Course</DialogTitle>
+          </DialogHeader>
+          {editCourse ? (
+            <div>
+              <Input
+                type="text"
+                name="courseName"
+                value={editCourse.courseName}
+                onChange={handleInputChange}
+                placeholder="Course Name"
+                className="mb-2"
+              />
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveCourseEdit}>Save Changes</Button>
+              </div>
+            </div>
+          ) : (
+            <p>Loading...</p>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
