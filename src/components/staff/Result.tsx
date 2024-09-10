@@ -64,7 +64,7 @@ const Result: React.FC = () => {
         />
         <button
           type="submit"
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+          className="w-full bg-black hover:bg-black text-white font-bold py-2 px-4 rounded"
         >
           Upload Result Report
         </button>

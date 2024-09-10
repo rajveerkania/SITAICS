@@ -79,7 +79,7 @@ const Timetable: React.FC = () => {
       <div className="flex justify-end">
         <button
           onClick={handleUpload}
-          className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-transform transform hover:scale-105"
+          className="bg-black text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-black transition-transform transform hover:scale-105"
         >
           Upload
         </button>

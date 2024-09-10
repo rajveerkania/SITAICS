@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { NotificationDialog } from "./admin/AdminNotification";
-import { LogoutButton } from "./logoutbutton";
+import { LogoutButton } from "./LogoutButton";
 import { FaSignOutAlt } from "react-icons/fa";
 import BlurIn from "./magicui/blur-in";
 

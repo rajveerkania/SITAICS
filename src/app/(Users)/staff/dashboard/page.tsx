@@ -10,6 +10,8 @@ import Attendance from "@/components/staff/Attendence";
 import StudentList from "@/components/staff/StudentList";
 import Timetable from "@/components/staff/Timetable";
 import AddStaffDetails from "@/components/staff/AddStaffDetails";
+import Profile from "@/components/staff/Profile";
+import Achievements from "@/components/staff/Achievement";
 
 const FacultyDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -29,8 +31,10 @@ const FacultyDashboard: React.FC = () => {
         {activeTab === "leave" && <Leave />}
         {activeTab === "timetable" && <Timetable />}
         {activeTab === "results" && <Result />}
+        {activeTab === "achievements" && <Achievements />}
         {activeTab === "students" && <StudentList />}
-        {activeTab === "attendence" && <Attendance />}
+        {activeTab === "attendance" && <Attendance />}
+        {activeTab === "profile" && <Profile />}
       </main>
     </div>
   );
