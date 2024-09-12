@@ -9,10 +9,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 import axios from "axios";
 import AddBatchForm from "./AddBatchForm";
-import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 
 interface Batch {
   batchId: string;
@@ -37,11 +43,17 @@ const BatchTab = () => {
       setBatches(response.data);
     } catch (error) {
       console.error("Error fetching batches:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch batches. Please try again.",
-        variant: "destructive",
+    }
+  };
+
+  const handleUpdateSemester = async (batchId: string, newSemester: number) => {
+    try {
+      await axios.put(`/api/UpdateBatchSemester/${batchId}`, {
+        currentSemester: newSemester,
       });
+      fetchBatches();
+    } catch (error) {
+      console.error("Error updating semester:", error);
     }
   };
 
@@ -94,7 +106,7 @@ const BatchTab = () => {
         <TabsTrigger value="manage">Manage Batches</TabsTrigger>
         <TabsTrigger value="create">Create Batch</TabsTrigger>
       </TabsList>
-      <TabsContent value="create">
+      <TabsContent value="add">
         <AddBatchForm
           onBatchAdded={handleBatchAdded}
           onTabChange={setActiveTab}
@@ -124,11 +136,28 @@ const BatchTab = () => {
                 </TableCell>
                 <TableCell>{batch.courseName}</TableCell>
                 <TableCell>{batch.batchDuration}</TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    value={batch.currentSemester}
+                    onChange={(e) =>
+                      handleUpdateSemester(
+                        batch.batchId,
+                        parseInt(e.target.value)
+                      )
+                    }
+                  />
+                </TableCell>
                 <TableCell>{batch.studentCount}</TableCell>
                 <TableCell>
-                  <div className="flex items-center space-x-2">
-                    <Button>
-                      <FaRegEdit />
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenEditDialog(batch)}
+                      style={{ backgroundColor: "black", color: "white" }}
+                      className="flex items-center"
+                    >
+                      <FaEdit className="h-4 w-4" />
                     </Button>
                     {/* <Button onClick={() => setShowUserDetails(true)}>
                               <FaRegEdit className="h-4 w-4" />
@@ -143,6 +172,53 @@ const BatchTab = () => {
           </TableBody>
         </Table>
       </TabsContent>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Batch</DialogTitle>
+          </DialogHeader>
+          {currentBatch ? (
+            <div>
+              <Input
+                type="text"
+                name="batchName"
+                value={currentBatch.batchName}
+                onChange={handleInputChange}
+                placeholder="Batch Name"
+                className="mb-2"
+              />
+              <Input
+                type="text"
+                name="courseName"
+                value={currentBatch.courseName}
+                onChange={handleInputChange}
+                placeholder="Course Name"
+                className="mb-2"
+              />
+              <Input
+                type="number"
+                name="batchDuration"
+                value={currentBatch.batchDuration}
+                onChange={handleInputChange}
+                placeholder="Batch Duration"
+                className="mb-2"
+              />
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveBatchEdit}>Save Changes</Button>
+              </div>
+            </div>
+          ) : (
+            <p>Loading...</p>
+          )}
+        </DialogContent>
+      </Dialog>
     </Tabs>
   );
 };
