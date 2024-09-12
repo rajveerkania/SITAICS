@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MdDelete, MdEdit } from "react-icons/md";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import axios from "axios";
 import AddBatchForm from "./AddBatchForm";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 
 interface Batch {
@@ -39,7 +50,9 @@ const BatchTab = () => {
 
   const handleUpdateSemester = async (batchId: string, newSemester: number) => {
     try {
-      await axios.put(`/api/UpdateBatchSemester/${batchId}`, { currentSemester: newSemester });
+      await axios.put(`/api/UpdateBatchSemester/${batchId}`, {
+        currentSemester: newSemester,
+      });
       fetchBatches();
     } catch (error) {
       console.error("Error updating semester:", error);
@@ -105,7 +118,10 @@ const BatchTab = () => {
         <TabsTrigger value="manage">Manage Batches</TabsTrigger>
       </TabsList>
       <TabsContent value="add">
-        <AddBatchForm onBatchAdded={handleBatchAdded} onTabChange={setActiveTab} />
+        <AddBatchForm
+          onBatchAdded={handleBatchAdded}
+          onTabChange={setActiveTab}
+        />
       </TabsContent>
       <TabsContent value="manage">
         <Table>
@@ -123,7 +139,10 @@ const BatchTab = () => {
             {batches.map((batch) => (
               <TableRow key={batch.batchId}>
                 <TableCell>
-                  <Button variant="link" onClick={() => handleViewBatchDetails(batch.batchName)}>
+                  <Button
+                    variant="link"
+                    onClick={() => handleViewBatchDetails(batch.batchName)}
+                  >
                     {batch.batchName}
                   </Button>
                 </TableCell>
@@ -133,13 +152,18 @@ const BatchTab = () => {
                   <Input
                     type="number"
                     value={batch.currentSemester}
-                    onChange={(e) => handleUpdateSemester(batch.batchId, parseInt(e.target.value))}
+                    onChange={(e) =>
+                      handleUpdateSemester(
+                        batch.batchId,
+                        parseInt(e.target.value)
+                      )
+                    }
                   />
                 </TableCell>
                 <TableCell>{batch.studentCount}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                  <Button
+                    <Button
                       variant="outline"
                       onClick={() => handleOpenEditDialog(batch)}
                       style={{ backgroundColor: "black", color: "white" }}
@@ -195,7 +219,10 @@ const BatchTab = () => {
                 className="mb-2"
               />
               <div className="flex justify-end space-x-2 mt-4">
-                <Button variant="secondary" onClick={() => setEditDialogOpen(false)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditDialogOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleSaveBatchEdit}>Save Changes</Button>
