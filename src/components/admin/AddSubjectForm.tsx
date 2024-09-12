@@ -15,20 +15,20 @@ interface Course {
   courseName: string;
 }
 
-interface AddBatchFormProps {
-  onBatchAdded: () => void;
+interface AddSubjectFormProps {
+  onSubjectAdded: () => void;
   onTabChange: (tab: string) => void;
 }
 
-const AddBatchForm: React.FC<AddBatchFormProps> = ({
-  onBatchAdded,
+const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
+  onSubjectAdded,
   onTabChange,
 }) => {
-  const [newBatch, setNewBatch] = useState({
-    batchName: "",
-    courseName: "",
-    batchDuration: "",
-    currentSemester: "",
+  const [newSubject, setNewSubject] = useState({
+    subjectName: "",
+    subjectCode: "",
+    semester: "",
+    courseId: "",
   });
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -39,12 +39,24 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
   }, []);
 
   const fetchCourses = async () => {
+    setLoading(true);
     try {
       const response = await axios.get("/api/fetchCourses");
-      if (response.data && response.data.courses) {
+      console.log("API Response for courses:", response.data);
+      if (Array.isArray(response.data)) {
+        setCourses(response.data);
+      } else if (response.data && Array.isArray(response.data.courses)) {
         setCourses(response.data.courses);
       } else {
-        console.error("Unexpected response structure:", response.data);
+        console.error(
+          "Unexpected response structure for courses:",
+          response.data
+        );
+        toast({
+          title: "Error",
+          description: "Failed to fetch courses. Unexpected data structure.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error fetching courses:", error);
@@ -58,46 +70,69 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
     }
   };
 
-  const handleAddBatch = async (e: React.FormEvent) => {
+  const handleAddSubject = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Convert semester to integer before submitting
+    const subjectData = {
+      ...newSubject,
+      semester: parseInt(newSubject.semester, 10), // Convert to integer
+    };
+
     try {
-      await axios.post("/api/addBatch", newBatch);
-      setNewBatch({
-        batchName: "",
-        courseName: "",
-        batchDuration: "",
-        currentSemester: "",
+      await axios.post("/api/addSubject", subjectData);
+      setNewSubject({
+        subjectName: "",
+        subjectCode: "",
+        semester: "",
+        courseId: "",
       });
-      onBatchAdded();
-      onTabChange("manage");
+      onSubjectAdded();
+      onTabChange("view");
       toast({
         title: "Success",
-        description: "New batch added successfully.",
+        description: "New Subject added successfully.",
       });
     } catch (error) {
-      console.error("Error adding batch:", error);
+      console.error("Error adding Subject:", error);
       toast({
         title: "Error",
-        description: "Failed to add new batch. Please try again.",
+        description: "Failed to add new Subject. Please try again.",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <form onSubmit={handleAddBatch} className="space-y-4">
+    <form onSubmit={handleAddSubject} className="space-y-4">
       <Input
-        placeholder="Batch Name"
-        value={newBatch.batchName}
+        placeholder="Subject Name"
+        value={newSubject.subjectName}
         onChange={(e) =>
-          setNewBatch({ ...newBatch, batchName: e.target.value })
+          setNewSubject({ ...newSubject, subjectName: e.target.value })
+        }
+        required
+      />
+      <Input
+        placeholder="Subject Code"
+        value={newSubject.subjectCode}
+        onChange={(e) =>
+          setNewSubject({ ...newSubject, subjectCode: e.target.value })
+        }
+        required
+      />
+      <Input
+        placeholder="Semester"
+        value={newSubject.semester}
+        onChange={(e) =>
+          setNewSubject({ ...newSubject, semester: e.target.value })
         }
         required
       />
       <Select
-        value={newBatch.courseName}
+        value={newSubject.courseId}
         onValueChange={(value) =>
-          setNewBatch({ ...newBatch, courseName: value })
+          setNewSubject({ ...newSubject, courseId: value })
         }
         required
       >
@@ -122,29 +157,11 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
           )}
         </SelectContent>
       </Select>
-      <Input
-        placeholder="Duration (in years)"
-        type="number"
-        value={newBatch.batchDuration}
-        onChange={(e) =>
-          setNewBatch({ ...newBatch, batchDuration: e.target.value })
-        }
-        required
-      />
-      <Input
-        placeholder="Current Semester"
-        type="number"
-        value={newBatch.currentSemester}
-        onChange={(e) =>
-          setNewBatch({ ...newBatch, currentSemester: e.target.value })
-        }
-        required
-      />
       <Button type="submit" className="flex items-center">
-        Create Batch
+        Create Subject
       </Button>
     </form>
   );
 };
 
-export default AddBatchForm;
+export default AddSubjectForm;

@@ -16,6 +16,10 @@ interface AddStudentDetailsProps {
   fetchUserDetails: () => void;
 }
 
+interface Course {
+  courseName: string;
+}
+
 const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   id,
   setShowAddStudentDetails,
@@ -62,6 +66,30 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
     state: "",
     pinCode: "",
   });
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch('/api/fetchCourses', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data.courses);
+        } else {
+          console.error("Failed to fetch courses");
+        }
+      } catch (error) {
+        console.error("An error occurred while fetching courses:", error);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const handleStudentInputChange = (
     e: React.ChangeEvent<

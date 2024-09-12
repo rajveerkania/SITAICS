@@ -135,7 +135,7 @@ const AddUserForm = ({
       </div>
 
       <div className="flex justify-between pt-5">
-        <Button type="submit">Add User</Button>
+        <Button type="submit">Create User</Button>
         <ImportButton
           type="button"
           onFileUpload={handleFileUpload}

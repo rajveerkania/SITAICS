@@ -237,4 +237,4 @@ const BatchTab = () => {
   );
 };
 
-export default BatchTab;
+export default BatchTab
