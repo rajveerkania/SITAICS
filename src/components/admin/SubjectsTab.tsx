@@ -20,7 +20,6 @@ interface Subject {
   subjectCode: string;
   semester: number;
   courseName: string;
-  batchName?: string;
 }
 
 const SubjectTab = () => {
@@ -54,9 +53,8 @@ const SubjectTab = () => {
     ) {
       try {
         await axios.delete(`/api/deleteSubject/${subjectId}`);
-        setSubjects(
-          subjects.filter((subject) => subject.subjectId !== subjectId)
-        );
+        // Remove the subject from the local state
+        setSubjects(subjects.filter((subject) => subject.subjectId !== subjectId));
         toast({
           title: "Success",
           description: "Subject deleted successfully.",
@@ -83,6 +81,7 @@ const SubjectTab = () => {
           <AddSubjectForm
             onSubjectAdded={() => {
               fetchSubjects();
+              setActiveTab("manage");
             }}
             onTabChange={setActiveTab}
           />
@@ -95,7 +94,6 @@ const SubjectTab = () => {
                 <TableHead>Subject Code</TableHead>
                 <TableHead>Semester</TableHead>
                 <TableHead>Course</TableHead>
-                <TableHead>Batch</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -106,7 +104,6 @@ const SubjectTab = () => {
                   <TableCell>{subject.subjectCode}</TableCell>
                   <TableCell>{subject.semester}</TableCell>
                   <TableCell>{subject.courseName}</TableCell>
-                  <TableCell>{subject.batchName || "N/A"}</TableCell>
                   <TableCell>
                     <Button
                       onClick={() => handleDeleteSubject(subject.subjectId)}

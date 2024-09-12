@@ -25,13 +25,15 @@ interface Batch {
   batchName: string;
   courseName: string;
   batchDuration: number;
+  currentSemester: number;
   studentCount: number;
 }
 
 const BatchTab = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
-  const [activeTab, setActiveTab] = useState("manage");
-  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("add");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [currentBatch, setCurrentBatch] = useState<Batch | null>(null);
 
   useEffect(() => {
     fetchBatches();
@@ -61,14 +63,8 @@ const BatchTab = () => {
     try {
       const response = await axios.get(`/api/students?batchName=${batchName}`);
       console.log("Student details:", response.data);
-      // You might want to open a modal or navigate to a new page to display this data
     } catch (error) {
       console.error("Error fetching student details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch student details. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -76,35 +72,50 @@ const BatchTab = () => {
     fetchBatches();
   };
 
+  const handleOpenEditDialog = (batch: Batch) => {
+    setCurrentBatch(batch);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveBatchEdit = async () => {
+    if (!currentBatch) return;
+
+    try {
+      await axios.put(`/api/editBatch/${currentBatch.batchId}`, {
+        batchName: currentBatch.batchName,
+        courseName: currentBatch.courseName,
+        batchDuration: currentBatch.batchDuration,
+      });
+      fetchBatches();
+      setEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving batch edit:", error);
+    }
+  };
+
   const handleDeleteBatch = async (batchId: string) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this batch? This action cannot be undone."
-      )
-    ) {
-      try {
-        await axios.put("/api/deleteBatch", { batchId });
-        setBatches(batches.filter((batch) => batch.batchId !== batchId));
-        toast({
-          title: "Success",
-          description: "Batch deleted successfully.",
-        });
-      } catch (error) {
-        console.error("Error deleting batch:", error);
-        toast({
-          title: "Error",
-          description: "Failed to delete batch. Please try again.",
-          variant: "destructive",
-        });
-      }
+    try {
+      await axios.delete(`/api/deleteBatch/${batchId}`);
+      fetchBatches();
+    } catch (error) {
+      console.error("Error deleting batch:", error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (currentBatch) {
+      setCurrentBatch({
+        ...currentBatch,
+        [e.target.name]: e.target.value,
+      });
     }
   };
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList>
+        <TabsTrigger value="add">Add Batch</TabsTrigger>
         <TabsTrigger value="manage">Manage Batches</TabsTrigger>
-        <TabsTrigger value="create">Create Batch</TabsTrigger>
       </TabsList>
       <TabsContent value="add">
         <AddBatchForm
@@ -119,8 +130,9 @@ const BatchTab = () => {
               <TableHead>Batch Name</TableHead>
               <TableHead>Course</TableHead>
               <TableHead>Duration (Years)</TableHead>
+              <TableHead>Current Semester</TableHead>
               <TableHead>Total Students</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -159,10 +171,12 @@ const BatchTab = () => {
                     >
                       <FaEdit className="h-4 w-4" />
                     </Button>
-                    {/* <Button onClick={() => setShowUserDetails(true)}>
-                              <FaRegEdit className="h-4 w-4" />
-                            </Button> */}
-                    <Button onClick={() => handleDeleteBatch(batch.batchId)}>
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDeleteBatch(batch.batchId)}
+                      style={{ backgroundColor: "black", color: "white" }}
+                      className="flex items-center"
+                    >
                       <FaTrashAlt className="h-4 w-4" />
                     </Button>
                   </div>
@@ -223,4 +237,4 @@ const BatchTab = () => {
   );
 };
 
-export default BatchTab;
+export default BatchTab
