@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import axios from "axios";
 import AddBatchForm from "./AddBatchForm";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +18,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { toast } from "sonner";
+import axios from "axios";
 
 interface Batch {
   batchId: string;
@@ -31,7 +32,7 @@ interface Batch {
 
 const BatchTab = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
-  const [activeTab, setActiveTab] = useState("add");
+  const [activeTab, setActiveTab] = useState("manage");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentBatch, setCurrentBatch] = useState<Batch | null>(null);
 
@@ -41,8 +42,9 @@ const BatchTab = () => {
 
   const fetchBatches = async () => {
     try {
-      const response = await axios.get<Batch[]>("/api/fetchBatches");
-      setBatches(response.data);
+      const response = await fetch("/api/fetchBatches");
+      const data = await response.json();
+      setBatches(data);
     } catch (error) {
       console.error("Error fetching batches:", error);
     }
@@ -61,8 +63,7 @@ const BatchTab = () => {
 
   const handleViewBatchDetails = async (batchName: string) => {
     try {
-      const response = await axios.get(`/api/students?batchName=${batchName}`);
-      console.log("Student details:", response.data);
+      const response = await fetch(`/api/students?batchName=${batchName}`);
     } catch (error) {
       console.error("Error fetching student details:", error);
     }
@@ -95,10 +96,21 @@ const BatchTab = () => {
 
   const handleDeleteBatch = async (batchId: string) => {
     try {
-      await axios.delete(`/api/deleteBatch/${batchId}`);
+      const response = await fetch(`/api/deleteBatch/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ batchId }),
+      });
+      const data = await response.json();
+      response.status === 200
+        ? toast.error(data.message)
+        : toast.success(data.message);
+
       fetchBatches();
     } catch (error) {
-      console.error("Error deleting batch:", error);
+      toast.error("An unexpected error occurred");
     }
   };
 
@@ -114,10 +126,10 @@ const BatchTab = () => {
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList>
-        <TabsTrigger value="add">Add Batch</TabsTrigger>
         <TabsTrigger value="manage">Manage Batches</TabsTrigger>
+        <TabsTrigger value="Create">Create Batch</TabsTrigger>
       </TabsList>
-      <TabsContent value="add">
+      <TabsContent value="Create">
         <AddBatchForm
           onBatchAdded={handleBatchAdded}
           onTabChange={setActiveTab}
@@ -129,7 +141,6 @@ const BatchTab = () => {
             <TableRow>
               <TableHead>Batch Name</TableHead>
               <TableHead>Course</TableHead>
-              <TableHead>Duration (Years)</TableHead>
               <TableHead>Current Semester</TableHead>
               <TableHead>Total Students</TableHead>
               <TableHead>Actions</TableHead>
@@ -147,19 +158,7 @@ const BatchTab = () => {
                   </Button>
                 </TableCell>
                 <TableCell>{batch.courseName}</TableCell>
-                <TableCell>{batch.batchDuration}</TableCell>
-                <TableCell>
-                  <Input
-                    type="number"
-                    value={batch.currentSemester}
-                    onChange={(e) =>
-                      handleUpdateSemester(
-                        batch.batchId,
-                        parseInt(e.target.value)
-                      )
-                    }
-                  />
-                </TableCell>
+                <TableCell>{batch.currentSemester}</TableCell>
                 <TableCell>{batch.studentCount}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
@@ -237,4 +236,4 @@ const BatchTab = () => {
   );
 };
 
-export default BatchTab
+export default BatchTab;

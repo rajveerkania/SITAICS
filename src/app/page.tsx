@@ -137,7 +137,7 @@ export default function Login() {
               Email address or Username
             </label>
             <div className="mt-2">
-              <input
+              <Input
                 className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
                   errors.emailOrUsername ? "border-red-500" : "border-gray-300"
                 } bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-1 ${
@@ -171,7 +171,7 @@ export default function Login() {
               </label>
             </div>
             <div className="mt-2 relative">
-              <input
+              <Input
                 className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
                   errors.password ? "border-red-500" : "border-gray-300"
                 } bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-1 ${

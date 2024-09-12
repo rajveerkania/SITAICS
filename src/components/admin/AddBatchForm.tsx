@@ -8,8 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 import axios from "axios";
-import { useToast } from "@/components/ui/use-toast";
 
 interface Course {
   courseName: string;
@@ -32,7 +32,6 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
   });
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchCourses();
@@ -40,19 +39,15 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get("/api/fetchCourses");
-      if (response.data && response.data.courses) {
-        setCourses(response.data.courses);
+      const response = await fetch("/api/fetchCourses");
+      const data = await response.json();
+      if (response.status === 200) {
+        setCourses(data.courses);
       } else {
-        console.error("Unexpected response structure:", response.data);
+        toast.error(data.message);
       }
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch courses. Please try again.",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      toast.error(error);
     } finally {
       setLoading(false);
     }
@@ -61,7 +56,7 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
   const handleAddBatch = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post("/api/addBatch", newBatch);
+      const response = await axios.post("/api/addBatch", newBatch);
       setNewBatch({
         batchName: "",
         courseName: "",
@@ -70,17 +65,9 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
       });
       onBatchAdded();
       onTabChange("manage");
-      toast({
-        title: "Success",
-        description: "New batch added successfully.",
-      });
-    } catch (error) {
-      console.error("Error adding batch:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add new batch. Please try again.",
-        variant: "destructive",
-      });
+      if (response.status === 200) toast.success("Batch added successfully");
+    } catch (error: any) {
+      toast.error(error);
     }
   };
 
