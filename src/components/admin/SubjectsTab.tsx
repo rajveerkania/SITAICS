@@ -9,9 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FaTrashAlt } from "react-icons/fa";
-import axios from "axios";
-import { useToast } from "@/components/ui/use-toast";
+import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
+import { toast } from "sonner";
 import AddSubjectForm from "./AddSubjectForm";
 
 interface Subject {
@@ -20,55 +19,41 @@ interface Subject {
   subjectCode: string;
   semester: number;
   courseName: string;
-  batchName?: string;
 }
 
 const SubjectTab = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [activeTab, setActiveTab] = useState("manage");
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchSubjects();
   }, []);
 
   const fetchSubjects = async () => {
-    try {
-      const response = await axios.get<Subject[]>("/api/fetchSubjects");
-      setSubjects(response.data);
-    } catch (error) {
-      console.error("Error fetching subjects:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch subjects. Please try again.",
-        variant: "destructive",
-      });
+    const response = await fetch("/api/fetchSubjects/");
+    const data = await response.json();
+    setSubjects(data);
+    if (response.status === 500) {
+      toast.error(data.message);
     }
   };
 
   const handleDeleteSubject = async (subjectId: string) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this subject? This action cannot be undone."
-      )
-    ) {
-      try {
-        await axios.delete(`/api/deleteSubject/${subjectId}`);
-        setSubjects(
-          subjects.filter((subject) => subject.subjectId !== subjectId)
-        );
-        toast({
-          title: "Success",
-          description: "Subject deleted successfully.",
-        });
-      } catch (error) {
-        console.error("Error deleting subject:", error);
-        toast({
-          title: "Error",
-          description: "Failed to delete subject. Please try again.",
-          variant: "destructive",
-        });
+    try {
+      const response = await fetch(`/api/deleteSubject/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ subjectId }),
+      });
+      const data = await response.json();
+      if (data.status !== 200) {
+        toast.success(data.message);
       }
+      fetchSubjects();
+    } catch (error) {
+      toast.error("An unexpected error occurred");
     }
   };
 
@@ -83,6 +68,7 @@ const SubjectTab = () => {
           <AddSubjectForm
             onSubjectAdded={() => {
               fetchSubjects();
+              setActiveTab("manage");
             }}
             onTabChange={setActiveTab}
           />
@@ -95,7 +81,6 @@ const SubjectTab = () => {
                 <TableHead>Subject Code</TableHead>
                 <TableHead>Semester</TableHead>
                 <TableHead>Course</TableHead>
-                <TableHead>Batch</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -106,13 +91,17 @@ const SubjectTab = () => {
                   <TableCell>{subject.subjectCode}</TableCell>
                   <TableCell>{subject.semester}</TableCell>
                   <TableCell>{subject.courseName}</TableCell>
-                  <TableCell>{subject.batchName || "N/A"}</TableCell>
                   <TableCell>
-                    <Button
-                      onClick={() => handleDeleteSubject(subject.subjectId)}
-                    >
-                      <FaTrashAlt className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button>
+                        <FaRegEdit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteSubject(subject.subjectId)}
+                      >
+                        <FaTrashAlt className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

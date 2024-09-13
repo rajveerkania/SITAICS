@@ -226,12 +226,23 @@ const AdminDashboard = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="hidden lg:flex flex-wrap justify-start gap-2 mb-8">
+          <TabsList className="hidden lg:flex flex-wrap justify-start gap-2 mb-8 p-4 bg-white text-black rounded-lg shadow-md">
             {tabs.map((tab) => (
               <TabsTrigger
                 key={tab}
                 value={tab.toLowerCase()}
-                className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
+                className={`
+        flex-grow basis-full sm:basis-1/2 md:basis-auto
+        text-center px-4 py-2 rounded-md
+        font-medium text-sm
+        transition-all duration-200 ease-in-out
+        ${
+          activeTab === tab.toLowerCase()
+            ? "bg-gray-900 text-white shadow-sm"
+            : "bg-gray-200 text-black hover:bg-gray-300"
+        }
+      `}
+                onClick={() => setActiveTab(tab.toLowerCase())}
               >
                 {tab}
               </TabsTrigger>
@@ -346,7 +357,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
         </Tabs>
       </div>
 

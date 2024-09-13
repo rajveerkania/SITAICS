@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { Input } from "@/components/ui/input";
 
 export default function Login() {
   const router = useRouter();
@@ -57,6 +58,17 @@ export default function Login() {
         setErrors({ emailOrUsername: "Incorrect Details" });
         return;
       }
+      switch (data.role) {
+        case "Admin":
+          router.push("/admin/dashboard");
+          break;
+        case "Staff":
+          router.push("/staff/dashboard");
+          break;
+        default:
+          router.push("/student/dashboard");
+          break;
+      }
     } catch (error) {
       console.error("An error occurred during login:", error);
       setErrors({ emailOrUsername: "An unexpected error occurred." });
@@ -107,7 +119,7 @@ export default function Login() {
               Email address or Username
             </label>
             <div className="mt-2">
-              <input
+              <Input
                 className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
                   errors.emailOrUsername ? "border-red-500" : "border-gray-300"
                 } bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-1 ${
@@ -141,7 +153,7 @@ export default function Login() {
               </label>
             </div>
             <div className="mt-2 relative">
-              <input
+              <Input
                 className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
                   errors.password ? "border-red-500" : "border-gray-300"
                 } bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-1 ${

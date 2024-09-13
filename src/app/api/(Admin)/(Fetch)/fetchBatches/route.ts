@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   try {
     // Fetch only active batches
     const batches = await prisma.batch.findMany({
-      where: { isActive: true },  // Ensure only active batches are fetched
+      where: { isActive: true },
       include: {
         course: {
           select: {

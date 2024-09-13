@@ -43,7 +43,6 @@ const UsersTab = () => {
       const response = await fetch("/api/fetchUsers");
       const data = await response.json();
       if (response.status !== 200 && response.status !== 403) {
-        toast.error(data.message);
       }
       if (response.status === 403) {
         return <AccessDenied />;
@@ -68,7 +67,7 @@ const UsersTab = () => {
 
   const handleDeleteUser = async (id: string) => {
     try {
-      const response = await fetch("/api/deleteUser", {
+      const response = await fetch(`/api/deleteUser`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
