@@ -19,6 +19,7 @@ import LoadingSkeleton from "../LoadingSkeleton";
 import AccessDenied from "../accessDenied";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
+import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 
 interface Record {
   id?: string;
@@ -136,32 +137,32 @@ const InactiveRecords = () => {
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
-        <div className="w-full sm:w-auto flex items-center space-x-4">
-          <Select
-            value={selectedOption}
-            onValueChange={(value) => setSelectedOption(value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="admin">Admins</SelectItem>
-              <SelectItem value="student">Students</SelectItem>
-              <SelectItem value="staff">Staff</SelectItem>
-              <SelectItem value="po">Placement Officers</SelectItem>
-              <SelectItem value="course">Courses</SelectItem>
-              <SelectItem value="batch">Batches</SelectItem>
-              <SelectItem value="subject">Subjects</SelectItem>
-            </SelectContent>
-          </Select>
+        <Select
+          value={selectedOption}
+          onValueChange={(value) => setSelectedOption(value)}
+        >
+          <SelectTrigger className="sm:w-full lg:w-max">
+            <SelectValue placeholder="Select Category" />
+          </SelectTrigger>
 
-          <Input
-            type="text"
-            placeholder="Search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+          <SelectContent>
+            <SelectItem value="admin">Admins</SelectItem>
+            <SelectItem value="student">Students</SelectItem>
+            <SelectItem value="staff">Staff</SelectItem>
+            <SelectItem value="po">Placement Officers</SelectItem>
+            <SelectItem value="course">Courses</SelectItem>
+            <SelectItem value="batch">Batches</SelectItem>
+            <SelectItem value="subject">Subjects</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Input
+          className="w-full sm:w-auto sm:ml-auto"
+          type="text"
+          placeholder="Search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
       <div className="w-full overflow-auto">
@@ -184,7 +185,14 @@ const InactiveRecords = () => {
                     </TableCell>
                   ))}
                   <TableCell>
-                    <Button>Edit</Button>
+                    <div className="flex items-center space-x-2">
+                      <Button>
+                        <FaRegEdit className="h-4 w-4" />
+                      </Button>
+                      <Button>
+                        <FaTrashAlt className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

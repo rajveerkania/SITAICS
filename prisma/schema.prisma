@@ -71,9 +71,10 @@ model StaffDetails {
 model Subject {
   subjectId   String         @id @default(uuid())
   subjectName String
-  subjectCode String
+  subjectCode String         @unique
   semester    Int
   courseId    String
+  course      Course         @relation(fields: [courseId], references: [courseId])
   isActive    Boolean        @default(true)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
@@ -84,12 +85,14 @@ model Subject {
 model Course {
   courseId       String           @id @default(uuid())
   courseName     String           @unique
+  subjects       Subject[]
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   batches        Batch[]
   StudentDetails StudentDetails[]
 }
+
 model Batch {
   batchId         String           @id @default(uuid())
   batchName       String           @unique

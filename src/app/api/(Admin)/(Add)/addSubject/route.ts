@@ -9,13 +9,53 @@ export async function POST(req: Request) {
   if (userRole !== "Admin") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
-  try {
-    const { subjectName, subjectCode, semester, courseId, batchId } =
-      await req.json();
 
-    // Check if subject already exists for the course
+  try {
+    const {
+      subjectName,
+      subjectCode,
+      semester,
+      courseId: providedCourseId,
+    } = await req.json();
+
+    if (!subjectName || !subjectCode || !semester || !providedCourseId) {
+      return NextResponse.json(
+        { error: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    const semesterInt = parseInt(semester, 10);
+    if (isNaN(semesterInt)) {
+      return NextResponse.json(
+        { error: "Semester must be a valid number" },
+        { status: 400 }
+      );
+    }
+
+    let course = await prisma.course.findUnique({
+      where: { courseId: providedCourseId },
+    });
+
+    if (!course) {
+      course = await prisma.course.findUnique({
+        where: { courseName: providedCourseId },
+      });
+
+      if (!course) {
+        return NextResponse.json(
+          { error: "Course not found. Please check the course ID or name." },
+          { status: 404 }
+        );
+      }
+    }
+
     const existingSubject = await prisma.subject.findFirst({
-      where: { subjectName, subjectCode, courseId },
+      where: {
+        subjectName,
+        subjectCode,
+        courseId: course.courseId,
+      },
     });
 
     if (existingSubject) {
@@ -29,36 +69,19 @@ export async function POST(req: Request) {
       data: {
         subjectName,
         subjectCode,
-        semester,
-        courseId,
+        semester: semesterInt,
+        courseId: course.courseId,
+        isActive: true,
       },
     });
 
-    if (batchId) {
-      // Check if batch exists and get its current semester
-      const batch = await prisma.batch.findUnique({
-        where: { batchId },
-      });
-
-      if (!batch) {
-        return NextResponse.json({ error: "Batch not found" }, { status: 404 });
-      }
-
-      // Add subject to the batch's current semester
-      await prisma.batchSubject.create({
-        data: {
-          batchId,
-          subjectId: subject.subjectId,
-          semester: batch.currentSemester,
-        },
-      });
-    }
-
     return NextResponse.json(subject, { status: 201 });
-  } catch (error) {
-    console.error("Error adding subject:", error);
+  } catch (error: any) {
     return NextResponse.json(
-      { error: "Failed to add subject" },
+      {
+        message: "An error occurred while adding the subject",
+        error: error.message,
+      },
       { status: 500 }
     );
   }

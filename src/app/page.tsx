@@ -7,6 +7,7 @@ import Image from "next/image";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Eye, EyeOff } from "lucide-react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { Input } from "@/components/ui/input";
 
 export default function Login() {
   const router = useRouter();
@@ -75,7 +76,6 @@ export default function Login() {
         setErrors({ emailOrUsername: "Incorrect Details" });
         return;
       }
-
       switch (data.role) {
         case "Admin":
           router.push("/admin/dashboard");
@@ -98,26 +98,26 @@ export default function Login() {
   return skeleton ? (
     <LoadingSkeleton loadingText="Dashboard" />
   ) : (
-    <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6">
-      <div className="bg-white shadow-lg rounded-lg p-6 sm:p-8 max-w-sm w-full">
-        <div className="flex items-center justify-center mb-6">
+    <section className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 relative">
+      <div className="bg-white shadow-2xl rounded-2xl p-6 sm:p-8 max-w-md w-full transform transition-transform duration-300 ease-in-out">
+        <div className="flex flex-row items-center justify-between mb-6 sm:mb-10">
           <Image
             src="/rru.png"
             alt="RRU Logo"
-            className="h-auto w-14 sm:w-16"
+            className="h-auto w-12 sm:w-20"
             height={64}
             width={64}
             priority
           />
-          <h1 className="text-2xl sm:text-3xl font-bold text-center mx-4">
+          <h1 className="text-2xl sm:text-4xl font-bold leading-tight text-black text-center">
             SITAICS
           </h1>
           <Image
             src="/sitaics.png"
             alt="SITAICS Logo"
-            className="h-auto w-14 sm:w-16"
-            height={64}
+            className="h-auto w-12 sm:w-20"
             width={64}
+            height={64}
             priority
           />
         </div>
@@ -127,24 +127,24 @@ export default function Login() {
             e.preventDefault();
             submitForm();
           }}
-          className="space-y-4"
+          className="space-y-5"
         >
           <div>
             <label
               htmlFor="emailOrUsername"
-              className="text-sm sm:text-base font-medium text-gray-900"
+              className="text-base font-medium text-gray-900"
             >
               Email address or Username
             </label>
-            <div className="mt-1">
-              <input
-                className={`block w-full rounded-lg border px-3 py-2 text-sm sm:text-base ${
+            <div className="mt-2">
+              <Input
+                className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
                   errors.emailOrUsername ? "border-red-500" : "border-gray-300"
-                } bg-transparent placeholder-gray-400 focus:outline-none focus:ring-1 ${
+                } bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-1 ${
                   errors.emailOrUsername
                     ? "focus:ring-red-500"
                     : "focus:ring-gray-400"
-                }`}
+                } focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 transition duration-150 ease-in-out`}
                 type="text"
                 placeholder="Email or Username"
                 onChange={(e) =>
@@ -155,29 +155,28 @@ export default function Login() {
                 }
               />
               {errors.emailOrUsername && (
-                <span className="text-red-500 font-bold mt-1 block">
+                <span className="text-red-500 font-bold mt-2 block">
                   {errors.emailOrUsername}
                 </span>
               )}
             </div>
           </div>
-
           <div>
-            <div className="flex justify-between">
+            <div className="flex items-center justify-between">
               <label
                 htmlFor="password"
-                className="text-sm sm:text-base font-medium text-gray-900"
+                className="text-base font-medium text-gray-900"
               >
                 Password
               </label>
             </div>
-            <div className="mt-1 relative">
-              <input
-                className={`block w-full rounded-lg border px-3 py-2 text-sm sm:text-base ${
+            <div className="mt-2 relative">
+              <Input
+                className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
                   errors.password ? "border-red-500" : "border-gray-300"
-                } bg-transparent placeholder-gray-400 focus:outline-none focus:ring-1 ${
+                } bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-1 ${
                   errors.password ? "focus:ring-red-500" : "focus:ring-gray-400"
-                } pr-10`}
+                } focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 pr-10 transition duration-150 ease-in-out`}
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 onChange={(e) =>
@@ -197,45 +196,42 @@ export default function Login() {
               </button>
             </div>
             {errors.password && (
-              <span className="text-red-500 font-bold mt-1 block">
+              <span className="text-red-500 font-bold mt-2 block animate-pulse">
                 {errors.password}
               </span>
             )}
+            <div className="mt-3 flex">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-semibold text-black hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
+            <div className="mt-4">
+              <ReCAPTCHA
+                sitekey="6Ldx5i8qAAAAAGNuXmx6IP-LjQG7Zhwc9f7VSr3R"
+                onChange={(token) => setCaptchaToken(token)}
+                className="w-full"
+              />
+            </div>
+            {errors.captcha && (
+              <span className="text-red-500 font-bold mt-2 block animate-pulse">
+                {errors.captcha}
+              </span>
+            )}
           </div>
-
-          <div className="flex justify-between items-center">
-            <Link
-              href="/forgot-password"
-              className="text-sm font-semibold text-black hover:underline"
-            >
-              Forgot password?
-            </Link>
-          </div>
-
-          <div className="mt-4">
-            <ReCAPTCHA
-              sitekey="6Ldx5i8qAAAAAGNuXmx6IP-LjQG7Zhwc9f7VSr3R"
-              onChange={(token) => setCaptchaToken(token)}
-              className="w-full"
-            />
-          </div>
-          {errors.captcha && (
-            <span className="text-red-500 font-bold mt-2 block">
-              {errors.captcha}
-            </span>
-          )}
-
           <div>
             <button
               type="submit"
-              className={`block w-full rounded-lg px-4 py-2.5 font-semibold text-white ${
+              className={`inline-flex w-full items-center justify-center rounded-md px-3.5 py-2.5 font-semibold leading-7 text-white ${
                 loading ? "bg-gray-500" : "bg-black"
-              } hover:bg-black/80 transition duration-150 ease-in-out ${
-                loading ? "cursor-not-allowed" : ""
+              } hover:bg-black/80 transition duration-150 ease-in-out transform ${
+                loading ? "scale-95" : "hover:scale-105"
               }`}
               disabled={loading}
             >
-              {loading ? "Authenticating..." : "Login"}
+              {loading ? "Authenticating" : "Login"}
             </button>
           </div>
         </form>

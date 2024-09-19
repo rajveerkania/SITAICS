@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MdDelete, MdEdit } from "react-icons/md";
-import axios from "axios";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import AddBatchForm from "./AddBatchForm";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { toast } from "sonner";
+import axios from "axios";
 
 interface Batch {
   batchId: string;
@@ -20,7 +32,7 @@ interface Batch {
 
 const BatchTab = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
-  const [activeTab, setActiveTab] = useState("add");
+  const [activeTab, setActiveTab] = useState("manage");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentBatch, setCurrentBatch] = useState<Batch | null>(null);
 
@@ -30,8 +42,9 @@ const BatchTab = () => {
 
   const fetchBatches = async () => {
     try {
-      const response = await axios.get<Batch[]>("/api/fetchBatches");
-      setBatches(response.data);
+      const response = await fetch("/api/fetchBatches");
+      const data = await response.json();
+      setBatches(data);
     } catch (error) {
       console.error("Error fetching batches:", error);
     }
@@ -39,7 +52,9 @@ const BatchTab = () => {
 
   const handleUpdateSemester = async (batchId: string, newSemester: number) => {
     try {
-      await axios.put(`/api/UpdateBatchSemester/${batchId}`, { currentSemester: newSemester });
+      await axios.put(`/api/UpdateBatchSemester/${batchId}`, {
+        currentSemester: newSemester,
+      });
       fetchBatches();
     } catch (error) {
       console.error("Error updating semester:", error);
@@ -48,8 +63,7 @@ const BatchTab = () => {
 
   const handleViewBatchDetails = async (batchName: string) => {
     try {
-      const response = await axios.get(`/api/students?batchName=${batchName}`);
-      console.log("Student details:", response.data);
+      const response = await fetch(`/api/students?batchName=${batchName}`);
     } catch (error) {
       console.error("Error fetching student details:", error);
     }
@@ -82,10 +96,21 @@ const BatchTab = () => {
 
   const handleDeleteBatch = async (batchId: string) => {
     try {
-      await axios.delete(`/api/deleteBatch/${batchId}`);
+      const response = await fetch(`/api/deleteBatch/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ batchId }),
+      });
+      const data = await response.json();
+      response.status === 200
+        ? toast.error(data.message)
+        : toast.success(data.message);
+
       fetchBatches();
     } catch (error) {
-      console.error("Error deleting batch:", error);
+      toast.error("An unexpected error occurred");
     }
   };
 
@@ -101,11 +126,14 @@ const BatchTab = () => {
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList>
-        <TabsTrigger value="add">Add Batch</TabsTrigger>
         <TabsTrigger value="manage">Manage Batches</TabsTrigger>
+        <TabsTrigger value="Create">Create Batch</TabsTrigger>
       </TabsList>
-      <TabsContent value="add">
-        <AddBatchForm onBatchAdded={handleBatchAdded} onTabChange={setActiveTab} />
+      <TabsContent value="Create">
+        <AddBatchForm
+          onBatchAdded={handleBatchAdded}
+          onTabChange={setActiveTab}
+        />
       </TabsContent>
       <TabsContent value="manage">
         <Table>
@@ -113,7 +141,6 @@ const BatchTab = () => {
             <TableRow>
               <TableHead>Batch Name</TableHead>
               <TableHead>Course</TableHead>
-              <TableHead>Duration (Years)</TableHead>
               <TableHead>Current Semester</TableHead>
               <TableHead>Total Students</TableHead>
               <TableHead>Actions</TableHead>
@@ -123,23 +150,19 @@ const BatchTab = () => {
             {batches.map((batch) => (
               <TableRow key={batch.batchId}>
                 <TableCell>
-                  <Button variant="link" onClick={() => handleViewBatchDetails(batch.batchName)}>
+                  <Button
+                    variant="link"
+                    onClick={() => handleViewBatchDetails(batch.batchName)}
+                  >
                     {batch.batchName}
                   </Button>
                 </TableCell>
                 <TableCell>{batch.courseName}</TableCell>
-                <TableCell>{batch.batchDuration}</TableCell>
-                <TableCell>
-                  <Input
-                    type="number"
-                    value={batch.currentSemester}
-                    onChange={(e) => handleUpdateSemester(batch.batchId, parseInt(e.target.value))}
-                  />
-                </TableCell>
+                <TableCell>{batch.currentSemester}</TableCell>
                 <TableCell>{batch.studentCount}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                  <Button
+                    <Button
                       variant="outline"
                       onClick={() => handleOpenEditDialog(batch)}
                       style={{ backgroundColor: "black", color: "white" }}
@@ -195,7 +218,10 @@ const BatchTab = () => {
                 className="mb-2"
               />
               <div className="flex justify-end space-x-2 mt-4">
-                <Button variant="secondary" onClick={() => setEditDialogOpen(false)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditDialogOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleSaveBatchEdit}>Save Changes</Button>

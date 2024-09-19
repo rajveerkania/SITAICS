@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 import axios from "axios";
 
 interface Course {
-  courseId: string;
   courseName: string;
 }
 
@@ -14,7 +20,10 @@ interface AddBatchFormProps {
   onTabChange: (tab: string) => void;
 }
 
-const AddBatchForm: React.FC<AddBatchFormProps> = ({ onBatchAdded, onTabChange }) => {
+const AddBatchForm: React.FC<AddBatchFormProps> = ({
+  onBatchAdded,
+  onTabChange,
+}) => {
   const [newBatch, setNewBatch] = useState({
     batchName: "",
     courseName: "",
@@ -30,10 +39,15 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({ onBatchAdded, onTabChange }
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get<Course[]>("/api/fetchCourses");
-      setCourses(response.data);
-    } catch (error) {
-      console.error("Error fetching courses:", error);
+      const response = await fetch("/api/fetchCourses");
+      const data = await response.json();
+      if (response.status === 200) {
+        setCourses(data.courses);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      toast.error(error);
     } finally {
       setLoading(false);
     }
@@ -42,12 +56,18 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({ onBatchAdded, onTabChange }
   const handleAddBatch = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post("/api/addBatch", newBatch);
-      setNewBatch({ batchName: "", courseName: "", batchDuration: "", currentSemester: "" });
+      const response = await axios.post("/api/addBatch", newBatch);
+      setNewBatch({
+        batchName: "",
+        courseName: "",
+        batchDuration: "",
+        currentSemester: "",
+      });
       onBatchAdded();
       onTabChange("manage");
-    } catch (error) {
-      console.error("Error adding batch:", error);
+      if (response.status === 200) toast.success("Batch added successfully");
+    } catch (error: any) {
+      toast.error(error);
     }
   };
 
@@ -56,11 +76,17 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({ onBatchAdded, onTabChange }
       <Input
         placeholder="Batch Name"
         value={newBatch.batchName}
-        onChange={(e) => setNewBatch({ ...newBatch, batchName: e.target.value })}
+        onChange={(e) =>
+          setNewBatch({ ...newBatch, batchName: e.target.value })
+        }
+        required
       />
       <Select
         value={newBatch.courseName}
-        onValueChange={(value) => setNewBatch({ ...newBatch, courseName: value })}
+        onValueChange={(value) =>
+          setNewBatch({ ...newBatch, courseName: value })
+        }
+        required
       >
         <SelectTrigger>
           <SelectValue placeholder="Select Course" />
@@ -71,8 +97,8 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({ onBatchAdded, onTabChange }
               Loading Courses...
             </SelectItem>
           ) : courses.length > 0 ? (
-            courses.map((course) => (
-              <SelectItem key={course.courseId} value={course.courseName}>
+            courses.map((course, index) => (
+              <SelectItem key={index} value={course.courseName}>
                 {course.courseName}
               </SelectItem>
             ))
@@ -87,16 +113,22 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({ onBatchAdded, onTabChange }
         placeholder="Duration (in years)"
         type="number"
         value={newBatch.batchDuration}
-        onChange={(e) => setNewBatch({ ...newBatch, batchDuration: e.target.value })}
+        onChange={(e) =>
+          setNewBatch({ ...newBatch, batchDuration: e.target.value })
+        }
+        required
       />
       <Input
         placeholder="Current Semester"
         type="number"
         value={newBatch.currentSemester}
-        onChange={(e) => setNewBatch({ ...newBatch, currentSemester: e.target.value })}
+        onChange={(e) =>
+          setNewBatch({ ...newBatch, currentSemester: e.target.value })
+        }
+        required
       />
       <Button type="submit" className="flex items-center">
-        Add Batch
+        Create Batch
       </Button>
     </form>
   );

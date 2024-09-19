@@ -27,7 +27,7 @@ const CoursesTab = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("view");
+  const [activeTab, setActiveTab] = useState("manage");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editCourse, setEditCourse] = useState<Course | null>(null);
   const coursesPerPage = 5;
@@ -65,7 +65,6 @@ const CoursesTab = () => {
         body: JSON.stringify({ courseId }),
       });
       if (response.ok) {
-        // Refetch courses to update the list
         fetchCourses();
       }
     } catch (error) {
@@ -109,7 +108,7 @@ const CoursesTab = () => {
 
   const handleAddCourseSuccess = (newCourse: Course) => {
     setCourses((prevCourses) => [...prevCourses, newCourse]);
-    setActiveTab("view");
+    setActiveTab("manage");
   };
 
   const filteredCourses = courses.filter(
@@ -134,28 +133,30 @@ const CoursesTab = () => {
   }
 
   return (
-    <div>
+    <>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
-          <div className="flex space-x-4">
-            <TabsTrigger value="view">View Courses</TabsTrigger>
-            <TabsTrigger value="add">Add Course</TabsTrigger>
-          </div>
-        </TabsList>
-        <TabsContent value="view">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+          <TabsList className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+            <TabsTrigger value="manage">Manage Courses</TabsTrigger>
+            <TabsTrigger value="create">Create Course</TabsTrigger>
+          </TabsList>
+          {activeTab === "manage" && (
+            <Input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full sm:w-auto sm:ml-auto"
+            />
+          )}
+        </div>
+
+        <TabsContent value="manage">
           <div className="w-full overflow-auto">
-            <div className="flex items-center space-x-2 w-full sm:w-auto">
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="flex-grow sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
-              />
-            </div>
+            <div className="flex items-center space-x-2 w-full sm:w-auto"></div>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -220,7 +221,7 @@ const CoursesTab = () => {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="add">
+        <TabsContent value="create">
           <AddCourseForm onAddCourseSuccess={handleAddCourseSuccess} />
         </TabsContent>
       </Tabs>
@@ -241,7 +242,10 @@ const CoursesTab = () => {
                 className="mb-2"
               />
               <div className="flex justify-end space-x-2 mt-4">
-                <Button variant="secondary" onClick={() => setEditDialogOpen(false)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditDialogOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleSaveCourseEdit}>Save Changes</Button>
@@ -252,7 +256,7 @@ const CoursesTab = () => {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };
 
