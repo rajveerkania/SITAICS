@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -8,134 +9,254 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { FaTrashAlt } from "react-icons/fa";
-import { useToast } from "@/components/ui/use-toast";
-import AddSubjectForm from "./AddSubjectForm";
+import AddBatchForm from "./AddBatchForm";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { toast } from "sonner";
 
-interface Subject {
-  subjectId: string;
-  subjectName: string;
-  subjectCode: string;
-  semester: number;
+interface Batch {
+  batchId: string;
+  batchName: string;
   courseName: string;
+  batchDuration: number;
+  currentSemester: number;
+  studentCount: number;
 }
 
-const SubjectTab: React.FC = () => {
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+const BatchTab = () => {
+  const [batches, setBatches] = useState<Batch[]>([]);
   const [activeTab, setActiveTab] = useState("manage");
-  const { toast } = useToast();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [currentBatch, setCurrentBatch] = useState<Batch | null>(null);
 
   useEffect(() => {
-    fetchSubjects();
+    fetchBatches();
   }, []);
 
-  const fetchSubjects = async () => {
+  const fetchBatches = async () => {
     try {
-      const response = await fetch("/api/fetchSubjects");
+      const response = await fetch("/api/fetchBatches");
       if (!response.ok) {
-        throw new Error("Failed to fetch subjects");
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data: Subject[] = await response.json();
-      setSubjects(data);
-    } catch (error) {
-      console.error("Error fetching subjects:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch subjects. Please try again.",
-        variant: "destructive",
+      const data = await response.json();
+      setBatches(data);
+    } catch (error: any) {
+      toast.error(`Error in fetching batches: ${error.message}`);
+    }
+  };
+
+  const handleUpdateSemester = async (batchId: string, newSemester: number) => {
+    try {
+      const response = await fetch(`/api/UpdateBatchSemester/${batchId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ currentSemester: newSemester }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      fetchBatches();
+    } catch (error: any) {
+      toast.error(`Error updating semester: ${error.message}`);
+    }
+  };
+
+  const handleViewBatchDetails = async (batchName: string) => {
+    try {
+      const response = await fetch(`/api/students?batchName=${batchName}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // Handle the response data here
+    } catch (error: any) {
+      toast.error(`Error fetching student details: ${error.message}`);
+    }
+  };
+
+  const handleBatchAdded = () => {
+    fetchBatches();
+  };
+
+  const handleOpenEditDialog = (batch: Batch) => {
+    setCurrentBatch(batch);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveBatchEdit = async () => {
+    if (!currentBatch) return;
+
+    try {
+      const response = await fetch(`/api/editBatch/${currentBatch.batchId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          batchName: currentBatch.batchName,
+          courseName: currentBatch.courseName,
+          batchDuration: currentBatch.batchDuration,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      fetchBatches();
+      setEditDialogOpen(false);
+    } catch (error: any) {
+      toast.error(`Error saving batch edit: ${error.message}`);
+    }
+  };
+
+  const handleDeleteBatch = async (batchId: string) => {
+    try {
+      const response = await fetch(`/api/deleteBatch/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ batchId }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("Batch deleted successfully");
+      } else {
+        toast.error(`Error in deleting the batch: ${data.message}`);
+      }
+      fetchBatches();
+    } catch (error: any) {
+      toast.error(`An unexpected error occurred: ${error.message}`);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (currentBatch) {
+      setCurrentBatch({
+        ...currentBatch,
+        [e.target.name]: e.target.value,
       });
     }
   };
 
-  const handleDeleteSubject = async (subjectId: string) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this subject? This action cannot be undone."
-      )
-    ) {
-      try {
-        console.log("Attempting to delete subject:", subjectId);
-        const response = await fetch(`/api/deleteSubject/${subjectId}`, {
-          method: "DELETE",
-        });
-
-        console.log("Delete response status:", response.status);
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("Error response data:", errorData);
-          throw new Error(errorData.message || "Failed to delete subject");
-        }
-
-        const responseData = await response.json();
-        console.log("Delete response data:", responseData);
-
-        // Remove the subject from the local state
-        setSubjects(subjects.filter((subject) => subject.subjectId !== subjectId));
-        toast({
-          title: "Success",
-          description: "Subject deleted successfully.",
-        });
-      } catch (error) {
-        console.error("Error deleting subject:", error);
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to delete subject. Please try again.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
   return (
-    <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="manage">Manage Subjects</TabsTrigger>
-          <TabsTrigger value="create">Create Subject</TabsTrigger>
-        </TabsList>
-        <TabsContent value="create">
-          <AddSubjectForm
-            onSubjectAdded={() => {
-              fetchSubjects();
-              setActiveTab("manage");
-            }}
-            onTabChange={setActiveTab}
-          />
-        </TabsContent>
-        <TabsContent value="manage">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Subject Name</TableHead>
-                <TableHead>Subject Code</TableHead>
-                <TableHead>Semester</TableHead>
-                <TableHead>Course</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {subjects.map((subject) => (
-                <TableRow key={subject.subjectId}>
-                  <TableCell>{subject.subjectName}</TableCell>
-                  <TableCell>{subject.subjectCode}</TableCell>
-                  <TableCell>{subject.semester}</TableCell>
-                  <TableCell>{subject.courseName}</TableCell>
-                  <TableCell>
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList>
+        <TabsTrigger value="manage">Manage Batches</TabsTrigger>
+        <TabsTrigger value="Create">Create Batch</TabsTrigger>
+      </TabsList>
+      <TabsContent value="Create">
+        <AddBatchForm
+          onBatchAdded={handleBatchAdded}
+          onTabChange={setActiveTab}
+        />
+      </TabsContent>
+      <TabsContent value="manage">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Batch Name</TableHead>
+              <TableHead>Course</TableHead>
+              <TableHead>Current Semester</TableHead>
+              <TableHead>Total Students</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {batches.map((batch) => (
+              <TableRow key={batch.batchId}>
+                <TableCell>
+                  <Button
+                    variant="link"
+                    onClick={() => handleViewBatchDetails(batch.batchName)}
+                  >
+                    {batch.batchName}
+                  </Button>
+                </TableCell>
+                <TableCell>{batch.courseName}</TableCell>
+                <TableCell>{batch.currentSemester}</TableCell>
+                <TableCell>{batch.studentCount}</TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
                     <Button
-                      onClick={() => handleDeleteSubject(subject.subjectId)}
+                      variant="outline"
+                      onClick={() => handleOpenEditDialog(batch)}
+                      style={{ backgroundColor: "black", color: "white" }}
+                      className="flex items-center"
+                    >
+                      <FaEdit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDeleteBatch(batch.batchId)}
+                      style={{ backgroundColor: "black", color: "white" }}
+                      className="flex items-center"
                     >
                       <FaTrashAlt className="h-4 w-4" />
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TabsContent>
-      </Tabs>
-    </div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TabsContent>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Batch</DialogTitle>
+          </DialogHeader>
+          {currentBatch ? (
+            <div>
+              <Input
+                type="text"
+                name="batchName"
+                value={currentBatch.batchName}
+                onChange={handleInputChange}
+                placeholder="Batch Name"
+                className="mb-2"
+              />
+              <Input
+                type="text"
+                name="courseName"
+                value={currentBatch.courseName}
+                onChange={handleInputChange}
+                placeholder="Course Name"
+                className="mb-2"
+              />
+              <Input
+                type="number"
+                name="batchDuration"
+                value={currentBatch.batchDuration}
+                onChange={handleInputChange}
+                placeholder="Batch Duration"
+                className="mb-2"
+              />
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveBatchEdit}>Save Changes</Button>
+              </div>
+            </div>
+          ) : (
+            <p>Loading...</p>
+          )}
+        </DialogContent>
+      </Dialog>
+    </Tabs>
   );
 };
 
-export default SubjectTab;
+export default BatchTab;

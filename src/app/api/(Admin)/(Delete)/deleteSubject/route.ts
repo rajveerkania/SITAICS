@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/utils/auth";
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { subjectId: string } }
-) {
+export async function PUT(request: NextRequest) {
   try {
     const decodedUser = verifyToken();
     const userRole = decodedUser?.role;
@@ -14,7 +11,7 @@ export async function DELETE(
       return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
     }
 
-    const { subjectId } = params;
+    const { subjectId } = await request.json();
 
     const updatedSubject = await prisma.subject.update({
       where: { subjectId },
@@ -33,9 +30,8 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error deleting subject:", error);
     return NextResponse.json(
-      { message: "An error occurred while deleting the subject" },
+      { message: "An error occurred while updating the subject" },
       { status: 500 }
     );
   }
