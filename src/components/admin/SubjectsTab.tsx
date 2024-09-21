@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FaTrashAlt } from "react-icons/fa";
-import axios from "axios";
 import { useToast } from "@/components/ui/use-toast";
 import AddSubjectForm from "./AddSubjectForm";
 
@@ -33,8 +32,12 @@ const SubjectTab = () => {
 
   const fetchSubjects = async () => {
     try {
-      const response = await axios.get<Subject[]>("/api/fetchSubjects");
-      setSubjects(response.data);
+      const response = await fetch("/api/fetchSubjects");
+      if (!response.ok) {
+        throw new Error("Failed to fetch subjects");
+      }
+      const data: Subject[] = await response.json();
+      setSubjects(data);
     } catch (error) {
       console.error("Error fetching subjects:", error);
       toast({
@@ -52,7 +55,14 @@ const SubjectTab = () => {
       )
     ) {
       try {
-        await axios.delete(`/api/deleteSubject/${subjectId}`);
+        const response = await fetch(`/api/deleteSubject/${subjectId}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete subject");
+        }
+
         // Remove the subject from the local state
         setSubjects(subjects.filter((subject) => subject.subjectId !== subjectId));
         toast({
