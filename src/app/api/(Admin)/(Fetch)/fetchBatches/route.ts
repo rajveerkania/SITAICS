@@ -9,9 +9,9 @@ export async function GET(req: Request) {
   const decodedUser = verifyToken();
   const userRole = decodedUser?.role;
 
-  if (!["Admin", "Staff"].includes(userRole!)) {
-    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
-  }
+  // if (!["Admin", "Staff"].includes(userRole!)) {
+  //   return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+  // }
 
   try {
     // Fetch only active batches

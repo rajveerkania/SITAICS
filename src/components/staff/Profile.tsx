@@ -1,44 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 const UserProfile: React.FC = () => {
-  // Dummy user data
-  const [user, setUser] = useState({
-    id: "1",
-    email: "john.doe@example.com",
-    username: "johndoe",
-    name: "John Doe",
-    isBatchCoordinator: true,
-    batchId: "CS001",
-    subjects: ["Mathematics", "Computer Science"],
-    contactNumber: "+1234567890",
-    createdAt: "2024-09-09T12:34:56Z",
-  });
-
+  const [user, setUser] = useState<any>(null); // State to store user data
   const [isEditing, setIsEditing] = useState(false); // State to toggle editing
-  const [formData, setFormData] = useState({ ...user }); // Form data for editing
+  const [formData, setFormData] = useState<any>(null); // Form data for editing
+  const [loading, setLoading] = useState(true); // State to show loading
+  const [error, setError] = useState<string | null>(null); // State to handle errors
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch("/api/fetchUserDetails"); // Replace with the correct API route
+        const data = await response.json();
+
+        if (response.ok) {
+          setUser(data.user);
+          setFormData(data.user);
+        } else {
+          throw new Error(data.message || "Failed to fetch user data");
+        }
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleEditClick = () => {
     setIsEditing(true);
   };
 
   const handleSaveClick = () => {
-    setUser({ ...user, ...formData }); // Save changes
+    // Update the user state with the form data
+    setUser({ ...user, ...formData });
     setIsEditing(false);
   };
 
   const handleCancelClick = () => {
-    setFormData({ ...user }); // Reset changes
+    setFormData({ ...user }); // Reset form data to original user data
     setIsEditing(false);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
       [name]: value,
     }));
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!user) {
+    return <div>No user data available</div>;
+  }
 
   return (
     <motion.div
@@ -183,7 +209,7 @@ const UserProfile: React.FC = () => {
               <div className="flex flex-col space-y-2">
                 <span className="font-medium text-gray-800">Subjects:</span>
                 <ul className="list-disc list-inside text-gray-600">
-                  {user.subjects.map((subject, index) => (
+                  {user.subjects.map((subject: string, index: number) => (
                     <li key={index}>{subject}</li>
                   ))}
                 </ul>
@@ -207,7 +233,7 @@ const UserProfile: React.FC = () => {
               <button
                 onClick={handleEditClick}
                 className="bg-black text-white py-2 px-4 rounded-md"
-              >
+              > 
                 Edit
               </button>
             </div>

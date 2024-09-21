@@ -22,13 +22,13 @@ model User {
 }
 
 model StudentDetails {
-  id                 String    @id
+  id                 String          @id
   email              String
-  username           String    @unique
+  username           String          @unique
   name               String
   fatherName         String?
   motherName         String?
-  enrollmentNumber   String?   @unique
+  enrollmentNumber   String?         @unique
   courseName         String?
   batchName          String?
   dateOfBirth        DateTime?
@@ -39,33 +39,45 @@ model StudentDetails {
   city               String?
   state              String?
   pinCode            Int?
-  achievements       String?
   results            Json?
-  isActive           Boolean   @default(true)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  isProfileCompleted Boolean   @default(false)
-  user               User      @relation(fields: [id], references: [id])
-  course             Course?   @relation(fields: [courseName], references: [courseName])
-  batch              Batch?    @relation(fields: [batchName], references: [batchName])
+  isActive           Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  isProfileCompleted Boolean         @default(false)
+  user               User            @relation(fields: [id], references: [id])
+  course             Course?         @relation(fields: [courseName], references: [courseName])
+  batch              Batch?          @relation(fields: [batchName], references: [batchName])
+  achievements       Achievement[]   // Relationship to achievements
 }
 
 model StaffDetails {
-  id                 String    @id
+  id                 String          @id
   email              String
   username           String
   name               String
-  isBatchCoordinator Boolean   @default(false)
+  isBatchCoordinator Boolean         @default(false)
   batchId            String?
   subjects           Subject[]
   contactNumber      String?
-  achievements       String?
-  isActive           Boolean   @default(true)
-  isProfileCompleted Boolean   @default(false)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  user               User      @relation(fields: [id], references: [id])
-  batch              Batch?    @relation(fields: [batchId], references: [batchId])
+  isActive           Boolean         @default(true)
+  isProfileCompleted Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  user               User            @relation(fields: [id], references: [id])
+  batch              Batch?          @relation(fields: [batchId], references: [batchId])
+  achievements       Achievement[]   // Relationship to achievements
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  date        DateTime
+  file        String?
+  student     StudentDetails? @relation(fields: [studentId], references: [id])
+  studentId   String?
+  staff       StaffDetails? @relation(fields: [staffId], references: [id])
+  staffId     String?
 }
 
 model Subject {
@@ -77,7 +89,7 @@ model Subject {
   course      Course         @relation(fields: [courseId], references: [courseId])
   isActive    Boolean        @default(true)
   createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  updatedAt   DateTime       @default(now()) @updatedAt
   staff       StaffDetails[]
   batches     BatchSubject[]
 }
@@ -88,7 +100,7 @@ model Course {
   subjects       Subject[]
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  updatedAt      DateTime         @default(now()) @updatedAt
   batches        Batch[]
   StudentDetails StudentDetails[]
 }
@@ -104,7 +116,7 @@ model Batch {
   subjects        BatchSubject[]
   isActive        Boolean          @default(true)
   createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  updatedAt       DateTime         @default(now()) @updatedAt
   course          Course           @relation(fields: [courseId], references: [courseId])
 }
 

@@ -48,7 +48,7 @@ const BatchTab = () => {
     } catch (error) {
       console.error("Error fetching batches:", error);
     }
-  };
+  }; 
 
   const handleUpdateSemester = async (batchId: string, newSemester: number) => {
     try {

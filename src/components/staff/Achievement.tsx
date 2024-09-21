@@ -11,22 +11,49 @@ interface Achievement {
 }
 
 const Achievements: React.FC = () => {
-  // Dummy achievement data
-  const [achievements, setAchievements] = useState<Achievement[]>([
-    { id: "1", title: "Best Innovator Award", description: "Awarded for exceptional innovation in project development." },
-    { id: "2", title: "Top Performer", description: "Recognized as the top performer of the year." },
-  ]);
-
-  const [newAchievement, setNewAchievement] = useState({ title: "", description: "", pdfUrl: "" });
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [newAchievement, setNewAchievement] = useState({ title: "", description: "", pdfUrl: "", date: "" });
   const [activeTab, setActiveTab] = useState("view");
+  const [file, setFile] = useState<File | null>(null);
 
-  const handleAddAchievement = () => {
-    if (newAchievement.title && newAchievement.description) {
-      setAchievements((prev) => [
-        ...prev,
-        { id: (prev.length + 1).toString(), ...newAchievement },
-      ]);
-      setNewAchievement({ title: "", description: "", pdfUrl: "" });
+  const fetchAchievements = async () => {
+    // Fetch achievements from the backend (if needed)
+  };
+
+  const handleAddAchievement = async () => {
+    if (newAchievement.title && newAchievement.description && newAchievement.date) {
+      try {
+        const formData = new FormData();
+        formData.append("title", newAchievement.title);
+        formData.append("description", newAchievement.description);
+        formData.append("date", newAchievement.date);
+        if (file) formData.append("file", file);
+
+        const res = await fetch("/api/achievements", {
+          method: "POST",
+          body: JSON.stringify({
+            title: newAchievement.title,
+            description: newAchievement.description,
+            date: newAchievement.date,
+            file: newAchievement.pdfUrl,
+            userId: 1, // Replace with the actual user ID when available
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          setAchievements([...achievements, data.achievement]);
+          setNewAchievement({ title: "", description: "", pdfUrl: "", date: "" });
+          setFile(null);
+        } else {
+          console.error("Failed to add achievement:", data.message);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
     }
   };
 
@@ -35,9 +62,10 @@ const Achievements: React.FC = () => {
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      const url = URL.createObjectURL(selectedFile);
       setNewAchievement((prev) => ({ ...prev, pdfUrl: url }));
     }
   };
@@ -132,14 +160,20 @@ const Achievements: React.FC = () => {
               rows={3}
             />
             <input
+              type="date"
+              value={newAchievement.date}
+              onChange={(e) => setNewAchievement({ ...newAchievement, date: e.target.value })}
+              className="w-full p-3 mb-2 border border-gray-300 rounded-lg"
+            />
+            <input
               type="file"
               accept=".pdf"
               onChange={handleFileUpload}
-              className="w-full mb-4"
+              className="w-full p-3 mb-4 border border-gray-300 rounded-lg"
             />
             <button
               onClick={handleAddAchievement}
-              className="w-full bg-black hover:bg-gray-900 text-white font-bold py-2 px-4 rounded-lg"
+              className="bg-black text-white py-2 px-6 rounded-lg hover:bg-gray-900"
             >
               Add Achievement
             </button>

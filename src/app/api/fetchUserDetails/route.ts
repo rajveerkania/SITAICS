@@ -86,8 +86,7 @@ export async function GET(request: NextRequest) {
               contactNumber: true,
               isBatchCoordinator: true,
               batchId: true,
-              subjects: true,
-              achievements: true,
+              subjects: true
             },
           });
           return NextResponse.json({ user, role: "Staff" }, { status: 200 });

@@ -1,10 +1,22 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface AddStaffDetailsProps {
   id: string;
   setShowAddStaffDetails: (value: boolean) => void;
   fetchUserDetails: () => void;
+}
+
+interface StaffFormData {
+  id: string;
+  email: string;
+  username: string;
+  name: string;
+  isBatchCoordinator: boolean;
+  batchId?: string; // Optional
+  contactNumber?: string; // Optional
+  achievements?: string; // Optional
 }
 
 const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
@@ -13,44 +25,47 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   fetchUserDetails,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
-
-  const [staffFormData, setStaffFormData] = useState({
-    id: id,
+  const [staffFormData, setStaffFormData] = useState<StaffFormData>({
+    id: id, 
     email: "",
     username: "",
     name: "",
     isBatchCoordinator: false,
     batchId: "",
-    subjects: "",
     contactNumber: "",
     achievements: "",
   });
 
-  const [errors, setErrors] = useState({
+  const [errors, setErrors] = useState<Partial<Record<keyof StaffFormData, string>>>({
     email: "",
     username: "",
     name: "",
     batchId: "",
-    subjects: "",
     contactNumber: "",
     achievements: "",
   });
 
+  const router = useRouter();
+
   const handleStaffInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setStaffFormData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
+    validateField(name as keyof StaffFormData, value);
+  };
 
+  const validateField = (name: keyof StaffFormData, value: string) => {
     let errorMessage = "";
-    switch (name) {
-      default:
-        break;
+    if (!value && ["email", "username", "name"].includes(name)) {
+      errorMessage = `${name} is required`;
+    } else if (name === "email" && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)) {
+      errorMessage = "Invalid email address";
+    } else if (name === "contactNumber" && !/^\d{10}$/.test(value)) {
+      errorMessage = "Invalid contact number";
     }
 
     setErrors((prevErrors) => ({
@@ -61,7 +76,17 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
 
   const validateStep = () => {
     let stepIsValid = true;
-    let stepErrors = { ...errors };
+    let stepErrors: Partial<Record<keyof StaffFormData, string>> = { ...errors };
+
+    if (currentStep === 1) {
+      ["email", "username", "name"].forEach((field) => {
+        const key = field as keyof StaffFormData;
+        if (!staffFormData[key]) {
+          stepErrors[key] = `${field} is required`;
+          stepIsValid = false;
+        }
+      });
+    }
 
     setErrors(stepErrors);
     return stepIsValid;
@@ -69,24 +94,26 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const updatedStaffDetails = await fetch(`/api/addStaffDetails`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(staffFormData),
-      });
+    if (validateStep()) {
+      try {
+        const response = await fetch(`/api/addStaffDetails`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(staffFormData),
+        });
 
-      if (updatedStaffDetails.ok) {
-        console.log("Staff details added successfully.");
-        setShowAddStaffDetails(false);
-        fetchUserDetails();
-      } else {
-        console.error("Failed to add staff details.");
+        if (response.ok) {
+          setShowAddStaffDetails(false);
+          fetchUserDetails();
+          router.push("/staff/dashboard");
+        } else {
+          console.error("Failed to add staff details.");
+        }
+      } catch (error) {
+        console.error("An error occurred:", error);
       }
-    } catch (error) {
-      console.error("An error occurred:", error);
     }
   };
 
@@ -102,10 +129,8 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          Add Staff Details
-        </h1>
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md relative">
+        <h1 className="text-2xl font-bold mb-6 text-center">Add Staff Details</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           {currentStep === 1 && (
             <>
@@ -171,22 +196,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                 <p className="text-red-500">{errors.batchId}</p>
               )}
               <input
-                type="text"
-                name="subjects"
-                placeholder="Subjects"
-                value={staffFormData.subjects}
-                onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
-              />
-              {errors.subjects && (
-                <p className="text-red-500">{errors.subjects}</p>
-              )}
-            </>
-          )}
-          {currentStep === 3 && (
-            <>
-              <input
-                type="text"
+                type="tel"
                 name="contactNumber"
                 placeholder="Contact Number"
                 value={staffFormData.contactNumber}
@@ -208,29 +218,28 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
               )}
             </>
           )}
-
           <div className="flex justify-between mt-6">
             {currentStep > 1 && (
               <button
                 type="button"
                 onClick={previousStep}
-                className="px-4 py-2 bg-gray-300 rounded"
+                className="bg-gray-200 p-2 rounded"
               >
-                Previous
+                Back
               </button>
             )}
-            {currentStep < 3 ? (
+            {currentStep < 2 ? (
               <button
                 type="button"
                 onClick={nextStep}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
+                className="bg-blue-500 text-white p-2 rounded"
               >
                 Next
               </button>
             ) : (
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-500 text-white rounded"
+                className="bg-green-500 text-white p-2 rounded"
               >
                 Submit
               </button>
