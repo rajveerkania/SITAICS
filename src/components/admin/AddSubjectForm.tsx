@@ -8,8 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import axios from "axios";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
+
 
 interface Course {
   courseName: string;
@@ -32,7 +32,6 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
   });
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchCourses();
@@ -41,30 +40,20 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
   const fetchCourses = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/api/fetchCourses");
-      console.log("API Response for courses:", response.data);
-      if (Array.isArray(response.data)) {
-        setCourses(response.data);
-      } else if (response.data && Array.isArray(response.data.courses)) {
-        setCourses(response.data.courses);
+      const response = await fetch("/api/fetchCourses");
+      const data = await response.json();
+      console.log("API Response for courses:", data);
+      if (Array.isArray(data)) {
+        setCourses(data);
+      } else if (data && Array.isArray(data.courses)) {
+        setCourses(data.courses);
       } else {
-        console.error(
-          "Unexpected response structure for courses:",
-          response.data
-        );
-        toast({
-          title: "Error",
-          description: "Failed to fetch courses. Unexpected data structure.",
-          variant: "destructive",
-        });
+        // console.error("Unexpected response structure for courses:", data);
+        toast.error("Unexpected response structure for courses:", data)
       }
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch courses. Please try again.",
-        variant: "destructive",
-      });
+    } catch (error:any) {
+      // console.error("Error fetching courses:", error);
+      toast.error("Error fetching courses",error)
     } finally {
       setLoading(false);
     }
@@ -80,26 +69,27 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
     };
 
     try {
-      await axios.post("/api/addSubject", subjectData);
+      const response = await fetch("/api/addSubject", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(subjectData),
+      });
+      const result = await response.json();
       setNewSubject({
         subjectName: "",
         subjectCode: "",
         semester: "",
         courseId: "",
       });
+      toast.success("Subject added successfully")
+      fetchCourses();
       onSubjectAdded();
-      onTabChange("view");
-      toast({
-        title: "Success",
-        description: "New Subject added successfully.",
-      });
-    } catch (error) {
-      console.error("Error adding Subject:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add new Subject. Please try again.",
-        variant: "destructive",
-      });
+      onTabChange("manage");
+    } catch (error:any) {
+      // console.error("Error adding Subject:", error);
+      toast.error("Error adding Subject",error)
     }
   };
 
