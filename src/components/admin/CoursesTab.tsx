@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import LoadingSkeleton from "../LoadingSkeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 interface Course {
   courseId: string;
@@ -65,10 +66,11 @@ const CoursesTab = () => {
         body: JSON.stringify({ courseId }),
       });
       if (response.ok) {
+        toast.success("Course deleted successfully")
         fetchCourses();
       }
-    } catch (error) {
-      console.error("Error deleting course:", error);
+    } catch (error:any) {
+       toast.error("Error in deleting course",error);
     }
   };
 
@@ -92,11 +94,14 @@ const CoursesTab = () => {
       if (response.ok) {
         await fetchCourses();
         setEditDialogOpen(false);
-      } else {
-        throw new Error("Failed to update course");
+      } else(error:any) =>{
+        // throw new Error("Failed to update course");
+        toast.error("Failed to update course",error);
+
       }
-    } catch (error) {
-      console.error("Error saving course edit:", error);
+    } catch (error:any) {
+       toast.error("Error saving course edit:",error);
+
     }
   };
 

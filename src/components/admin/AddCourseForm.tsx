@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 interface AddCourseFormProps {
   onAddCourseSuccess: (newCourse: {
@@ -27,13 +28,15 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({
       });
       const data = await response.json();
       if (response.ok) {
+        toast.success("Course added successfully");
+
         onAddCourseSuccess({ ...data, isActive: true });
         setCourseName("");
       } else {
-        console.log("Failed to add course");
+        toast.error(data.message);
       }
     } catch (error) {
-      console.error("Error adding course:", error);
+      toast.error("An unexpected error occurred");
     }
   };
 

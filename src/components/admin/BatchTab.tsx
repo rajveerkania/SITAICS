@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { toast } from "sonner";
-import axios from "axios";
 
 interface Batch {
   batchId: string;
@@ -43,29 +42,43 @@ const BatchTab = () => {
   const fetchBatches = async () => {
     try {
       const response = await fetch("/api/fetchBatches");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       setBatches(data);
-    } catch (error) {
-      console.error("Error fetching batches:", error);
+    } catch (error: any) {
+      toast.error(`Error in fetching batches: ${error.message}`);
     }
   };
 
   const handleUpdateSemester = async (batchId: string, newSemester: number) => {
     try {
-      await axios.put(`/api/UpdateBatchSemester/${batchId}`, {
-        currentSemester: newSemester,
+      const response = await fetch(`/api/UpdateBatchSemester/${batchId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ currentSemester: newSemester }),
       });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       fetchBatches();
-    } catch (error) {
-      console.error("Error updating semester:", error);
+    } catch (error: any) {
+      toast.error(`Error updating semester: ${error.message}`);
     }
   };
 
   const handleViewBatchDetails = async (batchName: string) => {
     try {
       const response = await fetch(`/api/students?batchName=${batchName}`);
-    } catch (error) {
-      console.error("Error fetching student details:", error);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // Handle the response data here
+    } catch (error: any) {
+      toast.error(`Error fetching student details: ${error.message}`);
     }
   };
 
@@ -82,15 +95,24 @@ const BatchTab = () => {
     if (!currentBatch) return;
 
     try {
-      await axios.put(`/api/editBatch/${currentBatch.batchId}`, {
-        batchName: currentBatch.batchName,
-        courseName: currentBatch.courseName,
-        batchDuration: currentBatch.batchDuration,
+      const response = await fetch(`/api/editBatch/${currentBatch.batchId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          batchName: currentBatch.batchName,
+          courseName: currentBatch.courseName,
+          batchDuration: currentBatch.batchDuration,
+        }),
       });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       fetchBatches();
       setEditDialogOpen(false);
-    } catch (error) {
-      console.error("Error saving batch edit:", error);
+    } catch (error: any) {
+      toast.error(`Error saving batch edit: ${error.message}`);
     }
   };
 
@@ -104,13 +126,14 @@ const BatchTab = () => {
         body: JSON.stringify({ batchId }),
       });
       const data = await response.json();
-      response.status === 200
-        ? toast.error(data.message)
-        : toast.success(data.message);
-
+      if (response.ok) {
+        toast.success("Batch deleted successfully");
+      } else {
+        toast.error(`Error in deleting the batch: ${data.message}`);
+      }
       fetchBatches();
-    } catch (error) {
-      toast.error("An unexpected error occurred");
+    } catch (error: any) {
+      toast.error(`An unexpected error occurred: ${error.message}`);
     }
   };
 

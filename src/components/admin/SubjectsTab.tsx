@@ -9,8 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
-import { toast } from "sonner";
+import { FaTrashAlt } from "react-icons/fa";
+import { useToast } from "@/components/ui/use-toast";
 import AddSubjectForm from "./AddSubjectForm";
 
 interface Subject {
@@ -30,30 +30,52 @@ const SubjectTab = () => {
   }, []);
 
   const fetchSubjects = async () => {
-    const response = await fetch("/api/fetchSubjects/");
-    const data = await response.json();
-    setSubjects(data);
-    if (response.status === 500) {
-      toast.error(data.message);
+    try {
+      const response = await fetch("/api/fetchSubjects");
+      if (!response.ok) {
+        throw new Error("Failed to fetch subjects");
+      }
+      const data: Subject[] = await response.json();
+      setSubjects(data);
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch subjects. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleDeleteSubject = async (subjectId: string) => {
-    try {
-      const response = await fetch(`/api/deleteSubject/`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ subjectId }),
-      });
-      const data = await response.json();
-      if (data.status !== 200) {
-        toast.success(data.message);
+    if (
+      confirm(
+        "Are you sure you want to delete this subject? This action cannot be undone."
+      )
+    ) {
+      try {
+        const response = await fetch(`/api/deleteSubject/${subjectId}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete subject");
+        }
+
+        // Remove the subject from the local state
+        setSubjects(subjects.filter((subject) => subject.subjectId !== subjectId));
+        toast({
+          title: "Success",
+          description: "Subject deleted successfully.",
+        });
+      } catch (error) {
+        console.error("Error deleting subject:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete subject. Please try again.",
+          variant: "destructive",
+        });
       }
-      fetchSubjects();
-    } catch (error) {
-      toast.error("An unexpected error occurred");
     }
   };
 
