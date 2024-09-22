@@ -238,7 +238,7 @@ const AdminDashboard = () => {
         transition-all duration-200 ease-in-out
         ${
           activeTab === tab.toLowerCase()
-            ? "bg-gray-900 text-white shadow-md border-b-4 border-gray-600 z-10"
+            ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative" // Active tab styles with top shadow
             : "bg-gray-200 text-black hover:bg-gray-300"
         }
       `}
