@@ -238,7 +238,7 @@ const AdminDashboard = () => {
         transition-all duration-200 ease-in-out
         ${
           activeTab === tab.toLowerCase()
-            ? "bg-gray-900 text-white shadow-sm"
+            ? "bg-gray-900 text-white shadow-md border-b-4 border-gray-600 z-10"
             : "bg-gray-200 text-black hover:bg-gray-300"
         }
       `}

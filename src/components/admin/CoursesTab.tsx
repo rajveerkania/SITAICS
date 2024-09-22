@@ -45,7 +45,6 @@ const CoursesTab = () => {
         throw new Error("Failed to fetch courses or invalid data structure");
       }
     } catch (error) {
-      console.error("Error fetching courses:", error);
       setError("Failed to load courses. Please try again later.");
     } finally {
       setIsLoading(false);
@@ -66,11 +65,11 @@ const CoursesTab = () => {
         body: JSON.stringify({ courseId }),
       });
       if (response.ok) {
-        toast.success("Course deleted successfully")
+        toast.success("Course deleted successfully");
         fetchCourses();
       }
-    } catch (error:any) {
-       toast.error("Error in deleting course",error);
+    } catch (error: any) {
+      toast.error("Error in deleting course", error);
     }
   };
 
@@ -94,14 +93,12 @@ const CoursesTab = () => {
       if (response.ok) {
         await fetchCourses();
         setEditDialogOpen(false);
-      } else(error:any) =>{
-        // throw new Error("Failed to update course");
-        toast.error("Failed to update course",error);
-
-      }
-    } catch (error:any) {
-       toast.error("Error saving course edit:",error);
-
+      } else
+        (error: any) => {
+          toast.error("Failed to update course", error);
+        };
+    } catch (error: any) {
+      toast.error("Error saving course edit:", error);
     }
   };
 
