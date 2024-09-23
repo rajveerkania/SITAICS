@@ -9,6 +9,8 @@ interface AddCourseFormProps {
     courseId: string;
     courseName: string;
     isActive: boolean;
+    totalBatches: string;
+    totalSubjects: string;
   }) => void;
 }
 
@@ -57,9 +59,16 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({
       });
       const data = await response.json();
       if (response.ok) {
-        toast.success("Course added successfully"); 
+        toast.success("Course added successfully");
 
-        onAddCourseSuccess({ ...data, isActive: true });
+        // Create a complete course object
+        onAddCourseSuccess({
+          courseId: data.courseId, // Assuming the API returns courseId
+          courseName: data.courseName,
+          isActive: true,
+          totalBatches: "0", // Default value
+          totalSubjects: "0", // Default value
+        });
         setCourseName("");
       } else {
         toast.error(data.message);

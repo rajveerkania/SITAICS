@@ -19,6 +19,8 @@ import { toast } from "sonner";
 interface Course {
   courseId: string;
   courseName: string;
+  totalBatches: string;
+  totalSubjects: string;
   isActive: boolean;
 }
 
@@ -36,16 +38,24 @@ const CoursesTab = () => {
   const fetchCourses = async () => {
     setIsLoading(true);
     setError(null);
+
     try {
       const response = await fetch("/api/fetchCourses");
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch courses.");
+      }
+
       if (Array.isArray(data.courses)) {
         setCourses(data.courses);
+        console.log("This is useState", courses);
+        console.log(data.courses);
       } else {
-        throw new Error("Failed to fetch courses or invalid data structure");
+        throw new Error("Invalid data structure");
       }
-    } catch (error) {
-      setError("Failed to load courses. Please try again later.");
+    } catch (error: any) {
+      setError(error || "Failed to load courses. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +130,6 @@ const CoursesTab = () => {
   );
 
   const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
-
   const currentCourses = filteredCourses.slice(
     (currentPage - 1) * coursesPerPage,
     currentPage * coursesPerPage
@@ -138,12 +147,13 @@ const CoursesTab = () => {
     <>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
-          <TabsList className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+          <TabsList>
             <TabsTrigger value="manage">Manage Courses</TabsTrigger>
             <TabsTrigger value="create">Create Course</TabsTrigger>
           </TabsList>
           {activeTab === "manage" && (
             <Input
+              className="w-full sm:w-auto sm:ml-auto"
               type="text"
               placeholder="Search"
               value={searchQuery}
@@ -151,7 +161,6 @@ const CoursesTab = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full sm:w-auto sm:ml-auto"
             />
           )}
         </div>
@@ -163,6 +172,8 @@ const CoursesTab = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Course Name</TableHead>
+                  <TableHead>Total Batches</TableHead>
+                  <TableHead>Total Subjects</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -171,6 +182,8 @@ const CoursesTab = () => {
                   currentCourses.map((course) => (
                     <TableRow key={course.courseId}>
                       <TableCell>{course.courseName}</TableCell>
+                      <TableCell>{course.totalBatches}</TableCell>
+                      <TableCell>{course.totalSubjects}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Button
