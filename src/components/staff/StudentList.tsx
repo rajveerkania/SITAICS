@@ -42,7 +42,7 @@ const StudentList: React.FC = () => {
           placeholder="Search by name"
           value={searchTerm}
           onChange={handleSearchChange}
-          className="w-full sm:w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          className="w-full sm:w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-black focus:border-black"
         />
       </div>
 
@@ -65,7 +65,7 @@ const StudentList: React.FC = () => {
                 <td className="p-4 border-b">
                   <button
                     onClick={() => handleViewDetails(student)}
-                    className="bg-blue-500 text-white py-1 px-3 rounded-lg shadow-md hover:bg-blue-600 transition-transform transform hover:scale-105"
+                    className="bg-black text-white py-1 px-3 rounded-lg shadow-md hover:bg-black transition-transform transform hover:scale-105"
                   >
                     View
                   </button>
