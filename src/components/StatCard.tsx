@@ -5,6 +5,10 @@ import NumberTicker from "@/components/magicui/number-ticker";
 interface StatCardProps {
   title: string;
   value: string | number;
+  icon?: React.ReactNode;
+  description: string;
+
+
 }
 
 export const StatCard: React.FC<StatCardProps> = ({ title, value }) => (

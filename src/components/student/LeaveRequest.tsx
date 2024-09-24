@@ -8,7 +8,7 @@ interface Leave {
   status: string;
 }
 
-const LeaveManagement: React.FC = () => {
+const LeaveRequest: React.FC = () => {
   const [currentTab, setCurrentTab] = useState("apply_leave");
   const [leaveType, setLeaveType] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -134,4 +134,4 @@ const LeaveManagement: React.FC = () => {
   );
 };
 
-export default LeaveManagement;
+export default LeaveRequest;

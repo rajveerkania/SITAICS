@@ -6,7 +6,18 @@ interface NavigationProps {
 }
 
 const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
-  const tabs = ["Dashboard", "Notifications", "Leave", "Timetable", "Results", "Students", "Attendence"];
+  const tabs = [
+    "Dashboard",
+    "Notifications",
+    "Leave",
+    "Timetable",
+    "Results",
+    "Achievements",
+    "Students",
+    "Attendance",
+    "Profile"
+  ];
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -14,36 +25,12 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
   };
 
   return (
-    <nav className="bg-gray-800 text-white">
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        <button
-          className="block lg:hidden p-2 rounded-md hover:bg-gray-700"
-          onClick={toggleMobileMenu}
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16m-7 6h7"
-            />
-          </svg>
-        </button>
-
-        {/* Mobile Menu */}
-        <div
-          className={`${
-            isMobileMenuOpen ? "flex" : "hidden"
-          } lg:hidden flex-col bg-gray-800 absolute top-0 left-0 w-full h-full p-4 z-10 transition-all duration-300 ease-in-out`}
-        >
+    <nav className="bg-gray-100">
+      <div className="container mx-auto px-4 py-2">
+        {/* Mobile Menu Button */}
+        <div className="lg:hidden mb-4">
           <button
-            className="self-end p-2 rounded-md hover:bg-gray-700"
+            className="p-2 rounded-md bg-gray-200 hover:bg-gray-300"
             onClick={toggleMobileMenu}
           >
             <svg
@@ -57,49 +44,55 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
+                d="M4 6h16M4 12h16m-7 6h7"
               />
             </svg>
           </button>
+        </div>
 
-          <ul className="mt-6 space-y-4">
-            {tabs.map((item) => (
-              <li key={item} className="w-full">
+        {/* Mobile Navigation Menu */}
+        <div
+          className={`${
+            isMobileMenuOpen ? "block" : "hidden"
+          } lg:hidden bg-white rounded-md shadow-md mb-4`}
+        >
+          <ul className="py-2">
+            {tabs.map((tab) => (
+              <li key={tab} className="px-4 py-2">
                 <button
-                  className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105 ${
-                    activeTab === item.toLowerCase()
-                      ? "bg-gray-900"
-                      : "bg-gray-800 hover:bg-gray-700"
+                  className={`w-full text-left ${
+                    activeTab === tab.toLowerCase()
+                      ? "font-bold text-black"
+                      : "text-gray-700 hover:text-gray-600"
                   }`}
                   onClick={() => {
-                    setActiveTab(item.toLowerCase());
-                    toggleMobileMenu(); // Close menu after selection
+                    setActiveTab(tab.toLowerCase());
+                    toggleMobileMenu(); // Close the menu after selection
                   }}
                 >
-                  {item}
+                  {tab}
                 </button>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Desktop Menu */}
-        <ul className="hidden lg:flex lg:flex-row lg:space-x-4 py-2">
-          {tabs.map((item) => (
-            <li key={item} className="w-full lg:w-auto">
-              <button
-                className={`w-full lg:w-auto px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105 ${
-                  activeTab === item.toLowerCase()
-                    ? "bg-gray-900"
-                    : "bg-gray-800 hover:bg-gray-700"
-                }`}
-                onClick={() => setActiveTab(item.toLowerCase())}
-              >
-                {item}
-              </button>
-            </li>
+        {/* Desktop Navigation Menu */}
+        <div className="hidden lg:flex flex-wrap justify-start gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              className={`flex-grow basis-full sm:basis-1/2 md:basis-auto text-center px-4 py-2 rounded-md transition-colors ${
+                activeTab === tab.toLowerCase()
+                  ? "font-bold text-black bg-gray-200"
+                  : "text-gray-700 hover:text-gray-600"
+              }`}
+              onClick={() => setActiveTab(tab.toLowerCase())}
+            >
+              {tab}
+            </button>
           ))}
-        </ul>
+        </div>
       </div>
     </nav>
   );

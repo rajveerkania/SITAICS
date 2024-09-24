@@ -9,8 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FaTrashAlt } from "react-icons/fa";
-import { useToast } from "@/components/ui/use-toast";
+import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
+import { toast } from "sonner";
 import AddSubjectForm from "./AddSubjectForm";
 
 interface Subject {
@@ -24,7 +24,6 @@ interface Subject {
 const SubjectTab = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [activeTab, setActiveTab] = useState("manage");
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchSubjects();
@@ -39,44 +38,31 @@ const SubjectTab = () => {
       const data: Subject[] = await response.json();
       setSubjects(data);
     } catch (error) {
-      console.error("Error fetching subjects:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch subjects. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to fetch subject details");
     }
   };
 
   const handleDeleteSubject = async (subjectId: string) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this subject? This action cannot be undone."
-      )
-    ) {
-      try {
-        const response = await fetch(`/api/deleteSubject/${subjectId}`, {
-          method: "DELETE",
-        });
+    try {
+      const response = await fetch(`/api/deleteSubject/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ subjectId }),
+      });
 
-        if (!response.ok) {
-          throw new Error("Failed to delete subject");
-        }
-
-        // Remove the subject from the local state
-        setSubjects(subjects.filter((subject) => subject.subjectId !== subjectId));
-        toast({
-          title: "Success",
-          description: "Subject deleted successfully.",
-        });
-      } catch (error) {
-        console.error("Error deleting subject:", error);
-        toast({
-          title: "Error",
-          description: "Failed to delete subject. Please try again.",
-          variant: "destructive",
-        });
+      if (!response.ok) {
+        throw new Error("Failed to delete subject");
       }
+
+      setSubjects(
+        subjects.filter((subject) => subject.subjectId !== subjectId)
+      );
+      toast.success("Subject deleted successfully");
+    } catch (error) {
+      console.error("Error deleting subject:", error);
+      toast.error("Failed to delete subject");
     }
   };
 
@@ -115,11 +101,16 @@ const SubjectTab = () => {
                   <TableCell>{subject.semester}</TableCell>
                   <TableCell>{subject.courseName}</TableCell>
                   <TableCell>
-                    <Button
-                      onClick={() => handleDeleteSubject(subject.subjectId)}
-                    >
-                      <FaTrashAlt className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button>
+                        <FaRegEdit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteSubject(subject.subjectId)}
+                      >
+                        <FaTrashAlt className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
