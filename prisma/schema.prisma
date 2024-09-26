@@ -53,7 +53,7 @@ model StudentDetails {
 model StaffDetails {
   id                 String          @id
   email              String
-  username           String
+  username           String          @unique
   name               String
   isBatchCoordinator Boolean         @default(false)
   batchId            String?
@@ -69,15 +69,21 @@ model StaffDetails {
 }
 
 model Achievement {
-  id          String   @id @default(uuid())
+  id          String          @id @default(uuid())
   title       String
   description String
   date        DateTime
-  file        String?
-  student     StudentDetails? @relation(fields: [studentId], references: [id])
-  studentId   String?
-  staff       StaffDetails? @relation(fields: [staffId], references: [id])
-  staffId     String?
+  file        String?         // Optional field for file upload
+  name        String
+  personID    String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now()) @updatedAt
+  
+  // Relations with explicit foreign key mapping
+  student     StudentDetails? @relation(fields: [personID], references: [id])
+  staff       StaffDetails?   @relation(fields: [personID], references: [id])
+
+  @@index([personID]) // Index for faster lookup
 }
 
 model Subject {

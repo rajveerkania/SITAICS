@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { AiFillDelete } from "react-icons/ai"; // For delete icon
-import { FiFileText } from "react-icons/fi"; // For file icon
+import { AiFillDelete } from "react-icons/ai";
+import { FiFileText } from "react-icons/fi";
 
 interface Achievement {
   id: string;
@@ -36,7 +36,7 @@ const Achievements: React.FC = () => {
             description: newAchievement.description,
             date: newAchievement.date,
             file: newAchievement.pdfUrl,
-            userId: 1, // Replace with the actual user ID when available
+            personID: 1, // Replace with the actual login person ID
           }),
           headers: {
             "Content-Type": "application/json",
