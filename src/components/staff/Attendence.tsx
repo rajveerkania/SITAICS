@@ -147,7 +147,7 @@ const Attendance: React.FC = () => {
 
         <button
           type="submit"
-          className="w-full bg-black hover:bg-gray-100 text-white font-bold py-3 px-4 rounded-lg shadow"
+          className="w-full bg-white hover:bg-gray-100 text-blue-600 font-bold py-3 px-4 rounded-lg shadow"
         >
           Submit Attendance
         </button>

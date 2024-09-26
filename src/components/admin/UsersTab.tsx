@@ -17,6 +17,7 @@ import { UserDetailsDialog } from "./UserDetailsDialog";
 import LoadingSkeleton from "../LoadingSkeleton";
 import AccessDenied from "../accessDenied";
 import { toast } from "sonner";
+import { Input } from "../ui/input";
 
 interface User {
   id: string;
@@ -32,7 +33,7 @@ const UsersTab = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("view");
+  const [activeTab, setActiveTab] = useState("manage");
   const usersPerPage = 10;
 
   const fetchUsers = async () => {
@@ -42,7 +43,6 @@ const UsersTab = () => {
       const response = await fetch("/api/fetchUsers");
       const data = await response.json();
       if (response.status !== 200 && response.status !== 403) {
-        toast.error(data.message);
       }
       if (response.status === 403) {
         return <AccessDenied />;
@@ -67,7 +67,7 @@ const UsersTab = () => {
 
   const handleDeleteUser = async (id: string) => {
     try {
-      const response = await fetch("/api/deleteUser", {
+      const response = await fetch(`/api/deleteUser`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -115,29 +115,33 @@ const UsersTab = () => {
   }
 
   return (
-    <div>
-      <Tabs defaultValue="view" onValueChange={(value) => setActiveTab(value)}>
-        <TabsList className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
-          <div className="flex space-x-4">
-            <TabsTrigger value="view">View Users</TabsTrigger>
-            <TabsTrigger value="add">Add User</TabsTrigger>
-          </div>
-        </TabsList>
-        <TabsContent value="view">
+    <>
+      <Tabs
+        defaultValue="manage"
+        onValueChange={(value) => setActiveTab(value)}
+      >
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="manage">Manage Users</TabsTrigger>
+            <TabsTrigger value="create">Create User</TabsTrigger>
+          </TabsList>
+          {activeTab === "manage" && (
+            <Input
+              className="w-full sm:w-auto sm:ml-auto"
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          )}
+        </div>
+
+        <TabsContent value="manage">
           <div className="w-full overflow-auto">
             <div className="overflow-x-auto">
-              <div className="w-full sm:w-auto mt-1 flex items-center">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="flex-col-reverse sm:flex-grow-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 transition-all duration-300"
-                />
-              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -200,14 +204,16 @@ const UsersTab = () => {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="add">
+        <TabsContent value="create">
           <AddUserForm onAddUserSuccess={handleAddUserSuccess} />
         </TabsContent>
       </Tabs>
       <UserDetailsDialog
         open={showUserDetails}
-        onOpenChange={setShowUserDetails} userId={""}      />
-    </div>
+        onOpenChange={setShowUserDetails}
+        userId={""}
+      />
+    </>
   );
 };
 

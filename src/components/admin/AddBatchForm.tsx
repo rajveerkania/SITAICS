@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import axios from "axios";
 
 interface Course {
   courseName: string;
@@ -41,13 +40,13 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
     try {
       const response = await fetch("/api/fetchCourses");
       const data = await response.json();
-      if (response.status === 200) {
+      if (response.ok) {
         setCourses(data.courses);
       } else {
         toast.error(data.message);
       }
     } catch (error: any) {
-      toast.error(error);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -56,18 +55,29 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
   const handleAddBatch = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/api/addBatch", newBatch);
-      setNewBatch({
-        batchName: "",
-        courseName: "",
-        batchDuration: "",
-        currentSemester: "",
+      const response = await fetch("/api/addBatch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newBatch),
       });
-      onBatchAdded();
-      onTabChange("manage");
-      if (response.status === 200) toast.success("Batch added successfully");
+      const data = await response.json();
+      if (response.ok) {
+        setNewBatch({
+          batchName: "",
+          courseName: "",
+          batchDuration: "",
+          currentSemester: "",
+        });
+        onBatchAdded();
+        onTabChange("manage");
+        toast.success("Batch added successfully");
+      } else {
+        toast.error(data.message);
+      }
     } catch (error: any) {
-      toast.error(error);
+      toast.error(error.message);
     }
   };
 

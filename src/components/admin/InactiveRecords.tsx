@@ -19,7 +19,6 @@ import LoadingSkeleton from "../LoadingSkeleton";
 import AccessDenied from "../accessDenied";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
-import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 
 interface Record {
   id?: string;
@@ -185,14 +184,7 @@ const InactiveRecords = () => {
                     </TableCell>
                   ))}
                   <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button>
-                        <FaRegEdit className="h-4 w-4" />
-                      </Button>
-                      <Button>
-                        <FaTrashAlt className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button>Edit</Button>
                   </TableCell>
                 </TableRow>
               ))

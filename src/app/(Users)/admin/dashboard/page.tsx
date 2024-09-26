@@ -254,16 +254,13 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
               <StatCard
                 title="Total Students"
-                value={overviewStats?.studentCount || ""}
-              />
+                value={overviewStats?.studentCount || ""} description={""}              />
               <StatCard
                 title="Total Staff Members"
-                value={overviewStats?.staffCount || ""}
-              />
+                value={overviewStats?.staffCount || ""} description={""}              />
               <StatCard
                 title="Total Courses"
-                value={overviewStats?.totalCoursesCount || ""}
-              />
+                value={overviewStats?.totalCoursesCount || ""} description={""}              />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card>

@@ -2,13 +2,6 @@ import React, { useState, useEffect } from "react";
 import { IndianCalendar } from "../IndianCalendar";
 import { StatCard } from "../StatCard";
 
-const studentData = [
-  { course: "BTech", students: 120 },
-  { course: "MTech CS", students: 25 },
-  { course: "MTech AI/ML", students: 20 },
-  { course: "MSCDF", students: 30 },
-];
-
 const scheduleData = [
   { time: "11:00 PM", subject: "Data Structures", location: "Room 101" },
   { time: "11:00 PM", subject: "Database Management", location: "Lab 2" },
@@ -17,6 +10,27 @@ const scheduleData = [
 
 const Dashboard: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [totalStudents, setTotalStudents] = useState<number | null>(null);
+
+  // Fetch total number of students from API
+  useEffect(() => {
+    const fetchTotalStudents = async () => {
+      try {
+        const response = await fetch('/api/totalstudents');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        console.log('Fetched data:', data); // Debugging
+        setTotalStudents(data.totalStudents);
+      } catch (error) {
+        console.error('Error fetching total students:', error);
+        setTotalStudents(null); // Optionally handle error state
+      }
+    };
+
+    fetchTotalStudents();
+  }, []);
 
   // Update the current time every second
   useEffect(() => {
@@ -43,9 +57,9 @@ const Dashboard: React.FC = () => {
     <>
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-        <StatCard title="Total Subjects" value={3} />
-        <StatCard title="Total Students" value={42} />
-        <StatCard title="Approved Leaves" value={4} />
+        <StatCard title="Total Subjects" value={3} description={""} />
+        <StatCard title="Total Students" value={totalStudents !== null ? totalStudents : 'Loading...'} description={""} />
+        <StatCard title="Approved Leaves" value={4} description={""} />
       </div>
 
       {/* Schedule and Calendar */}

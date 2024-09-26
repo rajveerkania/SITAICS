@@ -8,7 +8,7 @@ interface Leave {
   status: string;
 }
 
-const LeaveManagement: React.FC = () => {
+const LeaveRequest: React.FC = () => {
   const [currentTab, setCurrentTab] = useState("apply_leave");
   const [leaveType, setLeaveType] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -36,15 +36,14 @@ const LeaveManagement: React.FC = () => {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-4">Leave Management</h2>
+    <div>
       <div className="flex space-x-4 mb-4">
         <button
           onClick={() => setCurrentTab("apply_leave")}
           className={`px-4 py-2 rounded-md transition-colors duration-300 ${
             currentTab === "apply_leave"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-800 text-white hover:bg-gray-700"
+              ? "bg-gray-200 text-black"
+              : "bg-black text-white hover:bg-gray-900"
           }`}
         >
           Apply for Leave
@@ -53,13 +52,14 @@ const LeaveManagement: React.FC = () => {
           onClick={() => setCurrentTab("view_leaves")}
           className={`px-4 py-2 rounded-md transition-colors duration-300 ${
             currentTab === "view_leaves"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-800 text-white hover:bg-gray-700"
+              ? "bg-gray-200 text-black"
+              : "bg-black text-white hover:bg-gray-900"
           }`}
         >
           View Leaves
         </button>
       </div>
+
       {currentTab === "apply_leave" && (
         <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
           <select
@@ -100,12 +100,13 @@ const LeaveManagement: React.FC = () => {
           />
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            className="w-full bg-black hover:bg-gray-900 text-white font-bold py-2 px-4 rounded"
           >
             Apply for Leave
           </button>
         </form>
       )}
+
       {currentTab === "view_leaves" && (
         <div className="mt-4">
           <table className="w-full border-collapse">
@@ -134,4 +135,4 @@ const LeaveManagement: React.FC = () => {
   );
 };
 
-export default LeaveManagement;
+export default LeaveRequest;

@@ -1,9 +1,10 @@
 "use client";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 interface AddStaffDetailsProps {
   id: string;
-  setShowAddStaffDetails: (value: boolean) => void;
+  setShowAddStaffDetails: React.Dispatch<React.SetStateAction<boolean>>;
   fetchUserDetails: () => void;
 }
 
@@ -12,231 +13,126 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   setShowAddStaffDetails,
   fetchUserDetails,
 }) => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [contactNo, setContactNo] = useState("");
+  const [numSubjects, setNumSubjects] = useState(0);
+  const [subjects, setSubjects] = useState<string[]>([]);
 
-  const [staffFormData, setStaffFormData] = useState({
-    id: id,
-    email: "",
-    username: "",
-    name: "",
-    isBatchCoordinator: false,
-    batchId: "",
-    subjects: "",
-    contactNumber: "",
-    achievements: "",
-  });
+  const handleNumSubjectsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const count = Number(e.target.value);
+    setNumSubjects(count);
+    setSubjects(Array(count).fill(""));
+  };
 
-  const [errors, setErrors] = useState({
-    email: "",
-    username: "",
-    name: "",
-    batchId: "",
-    subjects: "",
-    contactNumber: "",
-    achievements: "",
-  });
+  const handleSubjectChange = (index: number, value: string) => {
+    const updatedSubjects = [...subjects];
+    updatedSubjects[index] = value;
+    setSubjects(updatedSubjects);
+  };
 
-  const handleStaffInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setStaffFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-
-    let errorMessage = "";
-    switch (name) {
-      default:
-        break;
+  const handleSubmit = async () => {
+    if (!name || !email || !contactNo || subjects.some((subject) => !subject)) {
+      toast.error("Please fill in all the details");
+      return;
     }
 
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: errorMessage,
-    }));
-  };
-
-  const validateStep = () => {
-    let stepIsValid = true;
-    let stepErrors = { ...errors };
-
-    setErrors(stepErrors);
-    return stepIsValid;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     try {
-      const updatedStaffDetails = await fetch(`/api/addStaffDetails`, {
+      const response = await fetch("/api/submitStaffDetails", {
         method: "POST",
+        body: JSON.stringify({
+          id,
+          name,
+          email,
+          contactNo,
+          subjects,
+        }),
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(staffFormData),
       });
 
-      if (updatedStaffDetails.ok) {
-        console.log("Staff details added successfully.");
+      if (response.ok) {
+        toast.success("Details updated successfully!");
         setShowAddStaffDetails(false);
         fetchUserDetails();
       } else {
-        console.error("Failed to add staff details.");
+        toast.error("Failed to update details");
       }
     } catch (error) {
-      console.error("An error occurred:", error);
+      console.error("Error submitting staff details:", error);
+      toast.error("Error submitting details");
     }
-  };
-
-  const nextStep = () => {
-    if (validateStep()) {
-      setCurrentStep((prevStep) => prevStep + 1);
-    }
-  };
-
-  const previousStep = () => {
-    setCurrentStep((prevStep) => prevStep - 1);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          Add Staff Details
-        </h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {currentStep === 1 && (
-            <>
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={staffFormData.email}
-                onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              {errors.email && <p className="text-red-500">{errors.email}</p>}
-              <input
-                type="text"
-                name="username"
-                placeholder="Username"
-                value={staffFormData.username}
-                onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              {errors.username && (
-                <p className="text-red-500">{errors.username}</p>
-              )}
-              <input
-                type="text"
-                name="name"
-                placeholder="Full Name"
-                value={staffFormData.name}
-                onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              {errors.name && <p className="text-red-500">{errors.name}</p>}
-            </>
-          )}
-          {currentStep === 2 && (
-            <>
-              <input
-                type="checkbox"
-                name="isBatchCoordinator"
-                checked={staffFormData.isBatchCoordinator}
-                onChange={(e) =>
-                  setStaffFormData({
-                    ...staffFormData,
-                    isBatchCoordinator: e.target.checked,
-                  })
-                }
-                className="mr-2"
-              />
-              <label htmlFor="isBatchCoordinator">Batch Coordinator</label>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 className="text-2xl font-semibold mb-6">Complete Your Profile</h2>
 
-              <input
-                type="text"
-                name="batchId"
-                placeholder="Batch ID"
-                value={staffFormData.batchId}
-                onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
-              />
-              {errors.batchId && (
-                <p className="text-red-500">{errors.batchId}</p>
-              )}
-              <input
-                type="text"
-                name="subjects"
-                placeholder="Subjects"
-                value={staffFormData.subjects}
-                onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
-              />
-              {errors.subjects && (
-                <p className="text-red-500">{errors.subjects}</p>
-              )}
-            </>
-          )}
-          {currentStep === 3 && (
-            <>
-              <input
-                type="text"
-                name="contactNumber"
-                placeholder="Contact Number"
-                value={staffFormData.contactNumber}
-                onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
-              />
-              {errors.contactNumber && (
-                <p className="text-red-500">{errors.contactNumber}</p>
-              )}
-              <textarea
-                name="achievements"
-                placeholder="Achievements"
-                value={staffFormData.achievements}
-                onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
-              />
-              {errors.achievements && (
-                <p className="text-red-500">{errors.achievements}</p>
-              )}
-            </>
-          )}
+        <div className="mb-4">
+          <label className="block text-gray-700">Name</label>
+          <input
+            type="text"
+            className="w-full p-2 border border-gray-300 rounded-md"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
 
-          <div className="flex justify-between mt-6">
-            {currentStep > 1 && (
-              <button
-                type="button"
-                onClick={previousStep}
-                className="px-4 py-2 bg-gray-300 rounded"
-              >
-                Previous
-              </button>
-            )}
-            {currentStep < 3 ? (
-              <button
-                type="button"
-                onClick={nextStep}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                type="submit"
-                className="px-4 py-2 bg-green-500 text-white rounded"
-              >
-                Submit
-              </button>
-            )}
+        <div className="mb-4">
+          <label className="block text-gray-700">Email</label>
+          <input
+            type="email"
+            className="w-full p-2 border border-gray-300 rounded-md"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700">Contact Number</label>
+          <input
+            type="tel"
+            className="w-full p-2 border border-gray-300 rounded-md"
+            value={contactNo}
+            onChange={(e) => setContactNo(e.target.value)}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700">How many subjects do you teach?</label>
+          <select
+            className="w-full p-2 border border-gray-300 rounded-md"
+            value={numSubjects}
+            onChange={handleNumSubjectsChange}
+          >
+            {[...Array(10).keys()].map((i) => (
+              <option key={i + 1} value={i + 1}>
+                {i + 1}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {subjects.map((subject, index) => (
+          <div className="mb-4" key={index}>
+            <label className="block text-gray-700">Subject {index + 1} Name</label>
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              value={subject}
+              onChange={(e) => handleSubjectChange(index, e.target.value)}
+            />
           </div>
-        </form>
+        ))}
+
+        <button
+          onClick={handleSubmit}
+          className="w-full bg-blue-500 text-white py-2 px-4 rounded-md"
+        >
+          Submit
+        </button>
       </div>
     </div>
   );

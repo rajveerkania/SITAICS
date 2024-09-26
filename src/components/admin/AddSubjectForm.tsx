@@ -8,6 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+
 
 interface Course {
   courseName: string;
@@ -46,10 +48,12 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
       } else if (data && Array.isArray(data.courses)) {
         setCourses(data.courses);
       } else {
-        console.error("Unexpected response structure for courses:", data);
+        // console.error("Unexpected response structure for courses:", data);
+        toast.error("Unexpected response structure for courses:", data)
       }
-    } catch (error) {
-      console.error("Error fetching courses:", error);
+    } catch (error:any) {
+      // console.error("Error fetching courses:", error);
+      toast.error("Error fetching courses",error)
     } finally {
       setLoading(false);
     }
@@ -79,11 +83,13 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
         semester: "",
         courseId: "",
       });
+      toast.success("Subject added successfully")
       fetchCourses();
       onSubjectAdded();
       onTabChange("manage");
-    } catch (error) {
-      console.error("Error adding Subject:", error);
+    } catch (error:any) {
+      // console.error("Error adding Subject:", error);
+      toast.error("Error adding Subject",error)
     }
   };
 

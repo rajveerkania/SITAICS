@@ -1,54 +1,81 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
+"use client"
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
-import LoadingSkeleton from "@/components/LoadingSkeleton";
-import AddStudentDetails from "@/components/student/AddStudentDetails";
 import Dashboard from "@/components/student/Dashboard";
 import Timetable from "@/components/student/Timetable";
 import ExamResults from "@/components/student/ExamResults";
-import LeaveManagement from "@/components/student/LeaveManagement";
+import LeaveRequest from "@/components/student/LeaveRequest";
 import Achievement from "@/components/student/Achievement";
-import Feedback from "@/components/student/Feedback";
-import { Toaster, toast } from "sonner";
+import SubjectTab from "@/components/student/SubjectTab";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import AddStudentDetails from "@/components/student/AddStudentDetails";
+import {  toast } from "sonner";
+import Placement from "@/components/student/Placement";
+import AttendanceTab from "@/components/student/AttendanceTab";
 
-const StudentDashboard = () => {
-  const [userInfo, setUserInfo] = useState<any>({});
-  const [userRole, setUserRole] = useState("null");
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [loading, setLoading] = useState(true);
-  const [showAddStudentDetails, setShowAddStudentDetails] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+interface UserInfo {
+  id: string;
+  name: string;
+  isProfileCompleted: boolean;
+  email: string;
+  username: string;
+  fatherName: string;
+  motherName: string;
+  enrollmentNumber: string;
+  courseName: string;
+  batchName: string;
+  results: string | null;
+  bloodGroup: string;
+  dateOfBirth: string;
+  gender: string;
+  contactNo: string | null;
+  address: string;
+  city: string;
+  state: string;
+  pinCode: number;
+}
+
+const StudentDashboard: React.FC = () => {
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [userRole, setUserRole] = useState<string>("null");
+  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [showAddStudentDetails, setShowAddStudentDetails] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const tabs = [
-    "Dashboard",
+    "Overview",
     "Timetable",
+    "Subjects",
+    "Attendance",
+    "Leave Request",
     "Exam Results",
-    "Leave Management",
     "Achievements",
-    "Feedback",
+    "Placement",
   ];
 
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      try {
-        const response = await fetch(`/api/fetchUserDetails`);
-        const data = await response.json();
-        if (data.user.isProfileCompleted) {
-          setUserInfo(data.user);
-          setUserRole(data.role);
-        } else {
-          setUserInfo({ id: data.user.id });
-          setShowAddStudentDetails(true);
-        }
-      } catch (error) {
-        toast.error("Error fetching user details!");
-      } finally {
-        setLoading(false);
+  const fetchUserDetails = async () => {
+    try {
+      const response = await fetch(`/api/fetchUserDetails`);
+      const data = await response.json();
+      if (data.user.isProfileCompleted) {
+        setUserInfo(data.user);
+        setUserRole(data.role);
+      } else {
+        setUserInfo({ id: data.user.id, name: "", isProfileCompleted: false } as UserInfo);
+        setShowAddStudentDetails(true);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      toast.error("Error fetching user details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUserDetails();
   }, []);
 
@@ -60,140 +87,200 @@ const StudentDashboard = () => {
     return <LoadingSkeleton loadingText="Dashboard" />;
   }
 
+  if (showAddStudentDetails && userInfo) {
+    return (
+      <AddStudentDetails
+        id={userInfo.id}
+        setShowAddStudentDetails={setShowAddStudentDetails}
+        fetchUserDetails={fetchUserDetails}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
-      <Toaster />
-      {showAddStudentDetails ? (
-        <AddStudentDetails
-          id={userInfo.id}
-          setShowAddStudentDetails={setShowAddStudentDetails} fetchUserDetails={function (): void {
-            throw new Error("Function not implemented.");
-          } }        />
-      ) : (
-        <>
-          <Navbar name={userInfo.name} role={userRole} />
-          <div className="container mx-auto mt-8 px-4">
-            {/* Mobile Menu Button */}
-            <div className="lg:hidden mb-4">
-              <button
-                className="p-2 rounded-md bg-gray-200 hover:bg-gray-300 focus:bg-gray-300"
-                onClick={toggleMobileMenu}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {/* Mobile Navigation */}
-            <div
-              className={`${
-                isMobileMenuOpen ? "flex" : "hidden"
-              } lg:hidden flex-col bg-gray-800 absolute top-0 left-0 w-full h-full p-4 z-10 transition-all duration-300 ease-in-out`}
+      
+      <Navbar name={userInfo?.name || ""} role={userRole} />
+      <div className="container mx-auto mt-8 px-4">
+        <div className="lg:hidden mb-4">
+          <button
+            className="p-2 rounded-md bg-gray-200 hover:bg-gray-300"
+            onClick={toggleMobileMenu}
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <button
-                className="self-end p-2 rounded-md hover:bg-gray-700 focus:bg-gray-700"
-                onClick={toggleMobileMenu}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-
-              <ul className="mt-6 space-y-4">
-                {tabs.map((tab) => (
-                  <li key={tab} className="w-full">
-                    <button
-                      className={`w-full text-left px-4 py-2 rounded-md ${
-                        activeTab === tab.toLowerCase()
-                          ? "bg-gray-900 text-white"
-                          : "bg-gray-800 text-gray-300"
-                      }`}
-                      onClick={() => {
-                        setActiveTab(tab.toLowerCase());
-                        toggleMobileMenu();
-                      }}
-                    >
-                      {tab}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Desktop Tabs */}
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="space-y-6"
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16m-7 6h7"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          className={`${
+            isMobileMenuOpen ? "flex" : "hidden"
+          } lg:hidden flex-col bg-gray-800 absolute top-0 left-0 w-full h-full p-4 z-10 transition-all duration-300 ease-in-out`}
+        >
+          <button
+            className="self-end p-2 rounded-md hover:bg-gray-700"
+            onClick={toggleMobileMenu}
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <TabsList className="hidden lg:flex flex-wrap justify-start gap-2 mb-8">
-                {tabs.map((tab) => (
-                  <TabsTrigger
-                    key={tab}
-                    value={tab.toLowerCase()}
-                    className="flex-grow basis-full sm:basis-1/2 md:basis-auto text-center"
-                  >
-                    {tab}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+          <ul className="mt-6 space-y-4">
+            {tabs.map((tab) => (
+              <li key={tab} className="w-full">
+                <button
+                  className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105 ${
+                    activeTab === tab.toLowerCase()
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  }`}
+                  onClick={() => {
+                    setActiveTab(tab.toLowerCase());
+                    toggleMobileMenu();
+                  }}
+                >
+                  {tab}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-              {/* Dashboard Tab Content */}
-              <TabsContent value="dashboard">
-                <Dashboard studentInfo={userInfo} />
-              </TabsContent>
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+          defaultValue="overview"
+        >
+          <TabsList className="hidden lg:flex flex-wrap justify-start gap-2 mb-8 p-4 bg-white text-black rounded-lg shadow-md">
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab}
+                value={tab.toLowerCase()}
+                className={`
+                  flex-grow basis-full sm:basis-1/2 md:basis-auto
+                  text-center px-4 py-2 rounded-md
+                  font-medium text-sm
+                  transition-all duration-200 ease-in-out
+                  ${
+                    activeTab === tab.toLowerCase()
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "bg-gray-200 text-black hover:bg-gray-300"
+                  }
+                `}
+                onClick={() => setActiveTab(tab.toLowerCase())}
+              >
+                {tab}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-              {/* Timetable Tab Content */}
-              <TabsContent value="timetable">
+          <TabsContent value="overview">
+            {userInfo && <Dashboard studentInfo={userInfo} />}
+          </TabsContent>
+
+          <TabsContent value="timetable">
+            <Card>
+              <CardHeader>
+                <CardTitle>Timetable</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <Timetable timetableData={[]} />
-              </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              {/* Exam Results Tab Content */}
-              <TabsContent value="exam results">
+          <TabsContent value="subjects">
+            <Card>
+              <CardHeader>
+                <CardTitle>Subjects</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Add your subjects content here */}
+                <SubjectTab/>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="attendance">
+            <Card>
+              <CardHeader>
+                {/* <CardTitle>Attendance overview</CardTitle> */}
+              </CardHeader>
+              <CardContent>
+                {/* Add your attendance content here */}
+               <AttendanceTab/>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="leave request">
+            <Card>
+              <CardHeader>
+                <CardTitle>Leave Request</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LeaveRequest />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="exam results">
+            <Card>
+              <CardHeader>
+                <CardTitle>Exam Results</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <ExamResults />
-              </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              {/* Leave Management Tab Content */}
-              <TabsContent value="leave management">
-                <LeaveManagement />
-              </TabsContent>
-
-              {/* Achievements Tab Content */}
-              <TabsContent value="achievements">
+          <TabsContent value="achievements">
+            <Card>
+              <CardHeader>
+                <CardTitle>Achievements</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <Achievement />
-              </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              {/* Feedback Tab Content */}
-              <TabsContent value="feedback">
-                <Feedback />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </>
-      )}
+          <TabsContent value="placement">
+            <Card>
+              <CardHeader>
+                <CardTitle>Placement & Internships</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Placement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

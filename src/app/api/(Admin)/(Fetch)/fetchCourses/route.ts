@@ -6,9 +6,9 @@ export async function GET() {
   const decodedUser = verifyToken();
   const userRole = decodedUser?.role;
 
-  if (userRole !== "Admin") {
-    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
-  }
+  // if (userRole !== "Admin") {
+  //   return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+  // }
 
   try {
     const courses = await prisma.course.findMany();
@@ -17,8 +17,9 @@ export async function GET() {
       { status: 200 }
     );
   } catch (error) {
+    console.error("Error fetching courses:", error);
     return NextResponse.json(
-      { message: "Failed to fetch courses" },
+      { error: "Failed to fetch courses" },
       { status: 500 }
     );
   }
