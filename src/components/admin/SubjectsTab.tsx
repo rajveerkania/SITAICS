@@ -58,19 +58,11 @@ const SubjectTab = () => {
         },
         body: JSON.stringify({ subjectId }),
       });
-      });
 
       if (!response.ok) {
         throw new Error("Failed to delete subject");
       }
-      if (!response.ok) {
-        throw new Error("Failed to delete subject");
-      }
 
-      setSubjects(
-        subjects.filter((subject) => subject.subjectId !== subjectId)
-      );
-      toast.success("Subject deleted successfully");
       setSubjects(
         subjects.filter((subject) => subject.subjectId !== subjectId)
       );

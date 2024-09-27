@@ -19,8 +19,6 @@ import { toast } from "sonner";
 interface Course {
   courseId: string;
   courseName: string;
-  totalBatches: string;
-  totalSubjects: string;
   isActive: boolean;
   totalBatches: number;
   totalSubjects: number;
@@ -51,8 +49,6 @@ const CoursesTab: React.FC = () => {
 
       if (Array.isArray(data.courses)) {
         setCourses(data.courses);
-        console.log("This is useState", courses);
-        console.log(data.courses);
       } else {
         throw new Error("Invalid data structure");
       }
@@ -81,8 +77,6 @@ const CoursesTab: React.FC = () => {
         toast.success("Course deleted successfully");
         fetchCourses();
       }
-    } catch (error: any) {
-      toast.error("Error in deleting course", error);
     } catch (error: any) {
       toast.error("Error in deleting course", error);
     }
@@ -178,8 +172,6 @@ const CoursesTab: React.FC = () => {
                   <TableHead>Course Name</TableHead>
                   <TableHead>Total Batches</TableHead>
                   <TableHead>Total Subjects</TableHead>
-                  <TableHead>Total Batches</TableHead>
-                  <TableHead>Total Subjects</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -188,8 +180,6 @@ const CoursesTab: React.FC = () => {
                   currentCourses.map((course) => (
                     <TableRow key={course.courseId}>
                       <TableCell>{course.courseName}</TableCell>
-                      <TableCell>{course.totalBatches}</TableCell>
-                      <TableCell>{course.totalSubjects}</TableCell>
                       <TableCell>{course.totalBatches}</TableCell>
                       <TableCell>{course.totalSubjects}</TableCell>
                       <TableCell>
@@ -284,4 +274,3 @@ const CoursesTab: React.FC = () => {
 };
 
 export default CoursesTab;
-

@@ -9,8 +9,8 @@ interface AddCourseFormProps {
     courseId: string;
     courseName: string;
     isActive: boolean;
-    totalBatches: string;
-    totalSubjects: string;
+    totalBatches: number;
+    totalSubjects: number;
   }) => void;
 }
 
@@ -66,8 +66,8 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({
           courseId: data.courseId, // Assuming the API returns courseId
           courseName: data.courseName,
           isActive: true,
-          totalBatches: "0", // Default value
-          totalSubjects: "0", // Default value
+          totalBatches: 0,
+          totalSubjects: 0,
         });
         setCourseName("");
       } else {
@@ -101,4 +101,3 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({
 };
 
 export default AddCourseForm;
-
