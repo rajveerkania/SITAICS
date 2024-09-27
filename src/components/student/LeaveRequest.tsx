@@ -37,7 +37,7 @@ const LeaveRequest: React.FC = () => {
 
   return (
     <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-4">Leave Management</h2>
+      {/* <h2 className="text-2xl font-bold mb-4">Leave Management</h2> */}
       <div className="flex space-x-4 mb-4">
         <button
           onClick={() => setCurrentTab("apply_leave")}

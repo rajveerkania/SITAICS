@@ -31,7 +31,7 @@ const SubjectTab: React.FC = () => {
         <TableBody>
           {subjects.map((subject, index) => (
             <TableRow key={index}>
-              <TableCell className="font-medium">{subject.name}</TableCell>
+              <TableCell className="font-medium">{subject.name}</TableCell> 
               <TableCell>{subject.code}</TableCell>
               <TableCell>{subject.credits}</TableCell>
               <TableCell>{subject.professor}</TableCell>

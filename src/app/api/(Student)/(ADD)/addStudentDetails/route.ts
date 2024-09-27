@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
       city,
       state,
       pinCode,
+      
     } = reqBody;
 
     const parsedDateOfBirth = new Date(`${dateOfBirth}T00:00:00Z`);
