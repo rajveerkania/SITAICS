@@ -255,14 +255,17 @@ const AdminDashboard = () => {
               <StatCard
                 title="Total Students"
                 value={overviewStats?.studentCount || ""}
+                description={""}
               />
               <StatCard
                 title="Total Staff Members"
                 value={overviewStats?.staffCount || ""}
+                description={""}
               />
               <StatCard
                 title="Total Courses"
                 value={overviewStats?.totalCoursesCount || ""}
+                description={""}
               />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -370,3 +373,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+

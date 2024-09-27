@@ -1,114 +1,111 @@
 "use client";
-import React, { useState } from "react";
-import Image from "next/image";
-
-interface FacultyInfo {
-  name: string;
-  email: string;
-  employeeId: string;
-  department: string;
-  designation: string;
-  joinDate: string;
-  mobileNo: string;
-  address: string;
-  city: string;
-  state: string;
-  pinCode: string;
-}
-
-interface Notification {
-  recipient: string;
-  message: string;
-}
-
-interface LeaveRequest {
-  startDate: string;
-  endDate: string;
-  reason: string;
-}
-
-interface ResultReport {
-  course: string;
-  semester: string;
-  file: File | null;
-}
-
-interface Student {
-  name: string;
-  rollNumber: string;
-  present: boolean;
-}
-
-interface Attendance {
-  course: string;
-  date: string;
-  students: Student[];
-}
+import React, { useEffect, useState } from "react";
+import { Navbar } from "@/components/Navbar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Dashboard from "@/components/staff/Dashboard";
+import Result from "@/components/staff/Result";
+import Leave from "@/components/staff/Leave";
+import Notification from "@/components/staff/Notification";
+import Attendance from "@/components/staff/Attendence";
+import StudentList from "@/components/staff/StudentList";
+import Timetable from "@/components/staff/Timetable";
+import Profile from "@/components/staff/Profile";
+import Achievements from "@/components/staff/Achievement";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { group } from "console";
 
 const FacultyDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [isBatchCoordinator] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [userInfo, setUserInfo] = useState<any>({});
+  const [showAddStaffDetails, setShowAddStaffDetails] = useState(false);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch(`/api/fetchUserDetails`);
+        const data = await response.json();
+        if (data.user.isProfileCompleted) {
+          setUserInfo(data.user);
+        } else {
+          setUserInfo({ id: data.user.id });
+          setShowAddStaffDetails(true);
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
+
+  if (loading) {
+    return <LoadingSkeleton loadingText="Faculty Dashboard" />;
+  }
+
+  const tabs = [
+    { label: "Dashboard", value: "dashboard" },
+    { label: "Notifications", value: "notifications" },
+    { label: "Leave", value: "leave" },
+    { label: "Timetable", value: "timetable" },
+    { label: "Results", value: "results" },
+    { label: "Achievements", value: "achievements" },
+    { label: "Students", value: "students" },
+    { label: "Attendance", value: "attendance" },
+    { label: "Profile", value: "profile" },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-md">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <Image src="/logo.png" alt="SITAICS" width={50} height={50} />
-            <h1 className="ml-2 text-xl font-bold text-gray-700">SITAICS</h1>
-          </div>
-          <div className="flex items-center">
-            <span className="mr-2 text-gray-700">
-              Welcome {facultyInfo.name}
-            </span>
-            <Image
-              src="/profile.png"
-              alt="Profile"
-              width={40}
-              height={40}
-              className="rounded-full border-2 border-gray-300"
-            />
-          </div>
-        </div>
-      </header>
-
+      <Navbar />
       <div className="container mx-auto mt-8 px-4">
-        <nav className="bg-gray-800 text-white mb-8">
-          <ul className="flex flex-wrap">
-            {[
-              "Dashboard",
-              "Notifications",
-              "Leave",
-              "Results",
-              "Students",
-              "Attendance",
-              "Timetable",
-            ].map((item) => (
-              <li key={item}>
-                <button
-                  onClick={() => setActiveTab(item.toLowerCase())}
-                  className={`px-4 py-2 transition-all duration-300 ${
-                    activeTab === item.toLowerCase()
-                      ? "bg-gray-700"
-                      : "hover:bg-gray-600"
-                  }`}
-                >
-                  {item}
-                </button>
-              </li>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="flex flex-wrap gap-2 mb-8 p-4 bg-white rounded-lg shadow-md">
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className={`flex-grow text-center px-4 py-2 rounded-md font-medium text-sm transition-all ${
+                  activeTab === tab.value
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-200 hover:bg-gray-300"
+                }`}
+              >
+                {tab.label}
+              </TabsTrigger>
             ))}
-          </ul>
-        </nav>
+          </TabsList>
 
-        <main>
-          {activeTab === "dashboard" && renderDashboardContent()}
-          {activeTab === "notifications" && renderNotificationsForm()}
-          {activeTab === "leave" && renderLeaveRequestForm()}
-          {activeTab === "results" && renderResultReportForm()}
-          {activeTab === "students" && renderStudentList()}
-          {activeTab === "attendance" && renderAttendanceForm()}
-          {activeTab === "timetable" && renderTimetableUploadForm()}
-        </main>
+          <TabsContent value="dashboard">
+            <Dashboard />
+          </TabsContent>
+          <TabsContent value="notifications">
+            <Notification isBatchCoordinator={false} />
+          </TabsContent>
+          <TabsContent value="leave">
+            <Leave />
+          </TabsContent>
+          <TabsContent value="timetable">
+            <Timetable />
+          </TabsContent>
+          <TabsContent value="results">
+            <Result />
+          </TabsContent>
+          <TabsContent value="achievements">
+            <Achievements />
+          </TabsContent>
+          <TabsContent value="students">
+            <StudentList />
+          </TabsContent>
+          <TabsContent value="attendance">
+            <Attendance />
+          </TabsContent>
+          <TabsContent value="profile">
+            <Profile />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

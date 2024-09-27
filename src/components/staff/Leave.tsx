@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { FiCheck, FiX, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
 const Leave = () => {
   const [leaves, setLeaves] = useState([
@@ -44,13 +45,16 @@ const Leave = () => {
                   <TableCell className="p-4 border-b">{leave.reason}</TableCell>
                   <TableCell className="p-4 border-b">
                     <span
-                      className={`px-3 py-1 rounded-full text-white font-semibold ${
+                      className={`flex items-center space-x-2 px-3 py-1 rounded-full text-white font-semibold ${
                         leave.status === 'Pending' ? 'bg-yellow-500' :
                         leave.status === 'Approved' ? 'bg-green-500' :
                         'bg-red-500'
                       } transition-colors duration-300`}
                     >
-                      {leave.status}
+                      {leave.status === 'Pending' && <FiClock />}
+                      {leave.status === 'Approved' && <FiCheckCircle />}
+                      {leave.status === 'Denied' && <FiXCircle />}
+                      <span>{leave.status}</span>
                     </span>
                   </TableCell>
                   <TableCell className="p-4 border-b">
@@ -58,16 +62,16 @@ const Leave = () => {
                       <div className="flex space-x-2">
                         <Button
                           onClick={() => handleApprove(leave.id)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded-lg transition-transform transform hover:scale-105"
+                          className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded-lg transition-transform transform hover:scale-105"
                         >
-                          Approve
+                          <FiCheck />
                         </Button>
                         <Button
                           variant="destructive"
                           onClick={() => handleDeny(leave.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-lg transition-transform transform hover:scale-105"
+                          className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-lg transition-transform transform hover:scale-105"
                         >
-                          Deny
+                          <FiX />
                         </Button>
                       </div>
                     )}

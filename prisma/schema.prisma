@@ -71,7 +71,7 @@ model StaffDetails {
 model Subject {
   subjectId   String         @id @default(uuid())
   subjectName String
-  subjectCode String         @unique
+  subjectCode String
   semester    Int
   courseId    String
   course      Course         @relation(fields: [courseId], references: [courseId])

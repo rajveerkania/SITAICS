@@ -101,3 +101,4 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({
 };
 
 export default AddCourseForm;
+

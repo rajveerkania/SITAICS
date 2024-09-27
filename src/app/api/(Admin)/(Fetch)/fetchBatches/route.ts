@@ -5,7 +5,6 @@ import { verifyToken } from "@/utils/auth";
 const prisma = new PrismaClient();
 
 export async function GET(req: Request) {
-  // Verify the user role
   const decodedUser = verifyToken();
   const userRole = decodedUser?.role;
 
@@ -14,7 +13,6 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Fetch only active batches
     const batches = await prisma.batch.findMany({
       where: { isActive: true },
       include: {
@@ -27,7 +25,6 @@ export async function GET(req: Request) {
       },
     });
 
-    // Format the batches
     const formattedBatches = batches.map((batch) => ({
       batchId: batch.batchId,
       batchName: batch.batchName,

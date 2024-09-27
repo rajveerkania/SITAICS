@@ -1,39 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/utils/auth";
 
 export async function PUT(request: NextRequest) {
+  console.log('Received PUT request');
   try {
-    const decodedUser = verifyToken();
-    const userRole = decodedUser?.role;
+    const { batchId } = await request.json();
+    console.log('Received batchId:', batchId);
 
-    if (userRole !== "Admin") {
-      return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+    if (!batchId || typeof batchId !== 'string') {
+      return NextResponse.json({ error: 'Invalid batchId' }, { status: 400 });
     }
 
-    const { batchId } = await request.json();
-
-    const validBatch = await prisma.batch.update({
+    const updatedBatch = await prisma.batch.update({
       where: { batchId },
-      data: { isActive: false },
+      data: { isActive: false },  // Mark batch as inactive instead of deleting
     });
 
-    if (!validBatch) {
-      return NextResponse.json(
-        { message: "Subject not found" },
-        { status: 404 }
-      );
-    }
-
-    if (validBatch)
-      return NextResponse.json(
-        { message: "Batch deleted successfully" },
-        { status: 200 }
-      );
+    console.log('Batch updated:', updatedBatch);
+    return NextResponse.json(updatedBatch, { status: 200 });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to delete batch" },
-      { status: 500 }
-    );
+    console.error('Error deactivating batch:', error);
+    return NextResponse.json({ error: 'Failed to deactivate batch' }, { status: 500 });
   }
 }
