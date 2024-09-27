@@ -38,6 +38,7 @@ const SubjectTab = () => {
       const data: Subject[] = await response.json();
       setSubjects(data);
     } catch (error) {
+      console.log(error);
       toast.error("Failed to fetch subject details");
     }
   };
@@ -61,7 +62,6 @@ const SubjectTab = () => {
       );
       toast.success("Subject deleted successfully");
     } catch (error) {
-      console.error("Error deleting subject:", error);
       toast.error("Failed to delete subject");
     }
   };

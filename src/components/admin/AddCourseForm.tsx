@@ -3,12 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
+interface Course {
+  courseId: string;
+  courseName: string;
+  isActive: boolean;
+  totalBatches: number;
+  totalSubjects: number;
+}
+
 interface AddCourseFormProps {
-  onAddCourseSuccess: (newCourse: {
-    courseId: string;
-    courseName: string;
-    isActive: boolean;
-  }) => void;
+  onAddCourseSuccess: (newCourse: Course) => void;
 }
 
 const AddCourseForm: React.FC<AddCourseFormProps> = ({
@@ -30,7 +34,12 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({
       if (response.ok) {
         toast.success("Course added successfully");
 
-        onAddCourseSuccess({ ...data, isActive: true });
+        onAddCourseSuccess({
+          ...data,
+          isActive: true,
+          totalBatches: data.totalBatches ?? 0,
+          totalSubjects: data.totalSubjects ?? 0,
+        });
         setCourseName("");
       } else {
         toast.error(data.message);

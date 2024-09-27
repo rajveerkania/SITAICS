@@ -238,7 +238,7 @@ const AdminDashboard = () => {
         transition-all duration-200 ease-in-out
         ${
           activeTab === tab.toLowerCase()
-            ? "bg-gray-900 text-white shadow-sm"
+            ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative"
             : "bg-gray-200 text-black hover:bg-gray-300"
         }
       `}
@@ -254,13 +254,19 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
               <StatCard
                 title="Total Students"
-                value={overviewStats?.studentCount || ""} description={""}              />
+                value={overviewStats?.studentCount || ""}
+                description={""}
+              />
               <StatCard
                 title="Total Staff Members"
-                value={overviewStats?.staffCount || ""} description={""}              />
+                value={overviewStats?.staffCount || ""}
+                description={""}
+              />
               <StatCard
                 title="Total Courses"
-                value={overviewStats?.totalCoursesCount || ""} description={""}              />
+                value={overviewStats?.totalCoursesCount || ""}
+                description={""}
+              />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card>
