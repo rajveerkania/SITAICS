@@ -16,10 +16,6 @@ interface AddStudentDetailsProps {
   fetchUserDetails: () => void;
 }
 
-interface Course {
-  courseName: string;
-}
-
 const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   id,
   setShowAddStudentDetails,
@@ -99,7 +95,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
     const { name, value } = e.target;
     setStudentFormData((prevData) => ({
       ...prevData,
-      [name]: name === "pinCode" ? parseInt(value) || "" : value,
+      [name]: name === "pinCode" ? value : value,
     }));
 
     let errorMessage = "";
@@ -155,6 +151,12 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const updatedStudentData = {
+      ...studentFormData,
+      pinCode: parseInt(studentFormData.pinCode) || null,
+    };
+
     try {
       const updatedStudentDetails = await fetch(
         `/api/student/addStudentDetails`,
@@ -163,7 +165,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(studentFormData),
+          body: JSON.stringify(updatedStudentData),
         }
       );
 

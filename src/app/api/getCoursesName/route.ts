@@ -4,9 +4,11 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const courses = await prisma.course.findMany({
+      where: {
+        isActive: true,
+      },
       select: {
         courseName: true,
-        isActive: true,
       },
     });
     return NextResponse.json({ success: true, courses }, { status: 200 });

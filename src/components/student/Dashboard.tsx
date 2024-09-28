@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { IndianCalendar } from "@/components/IndianCalendar";
 import NumberTicker from "@/components/magicui/number-ticker";
+import { toast } from "sonner";
 
 interface StatCardProps {
   title: string;
@@ -43,7 +44,6 @@ const StatCard: React.FC<StatCardProps> = ({
   );
 };
 
-// Main Dashboard Component
 interface StudentInfoProps {
   id: string;
   email: string;
@@ -62,14 +62,13 @@ interface StudentInfoProps {
   address: string;
   city: string;
   state: string;
-  pinCode: number;
+  pinCode?: number; // Make pinCode optional
 }
 
 const Dashboard: React.FC<{ studentInfo: StudentInfoProps }> = ({
   studentInfo,
 }) => {
-  const [id, setId] = useState("");
-  const [totalSubjects, setTotalSubjects] = useState("");
+  const [totalSubjects, setTotalSubjects] = useState("0");
 
   const fetchStats = async () => {
     try {
@@ -78,9 +77,9 @@ const Dashboard: React.FC<{ studentInfo: StudentInfoProps }> = ({
       );
       const data = await response.json();
       const totalSubjects = data.subjects.length;
-      setTotalSubjects(totalSubjects);
+      if (totalSubjects !== 0) setTotalSubjects(totalSubjects);
     } catch (error) {
-      console.error("Failed to fetch subjects", error);
+      toast.error("Failed to fetch stats");
     }
   };
 
@@ -102,7 +101,6 @@ const Dashboard: React.FC<{ studentInfo: StudentInfoProps }> = ({
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="container mx-auto">
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
           <StatCard
             title="Pending Leaves"
@@ -118,15 +116,13 @@ const Dashboard: React.FC<{ studentInfo: StudentInfoProps }> = ({
           />
           <StatCard
             title="Overall Attendance"
-            value="92%"
+            value="92"
             icon={<Clock className="h-10 w-10" />}
             description="Across all subjects"
           />
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Student Information Card */}
           <Card className="lg:col-span-2 bg-white shadow-xl rounded-lg overflow-hidden transform transition-all hover:scale-[1.02]">
             <CardHeader className="bg-black text-white p-6">
               <CardTitle className="text-2xl font-bold flex items-center">
@@ -176,7 +172,7 @@ const Dashboard: React.FC<{ studentInfo: StudentInfoProps }> = ({
                   <InfoItem label="State" value={studentInfo.state} />
                   <InfoItem
                     label="PIN Code"
-                    value={studentInfo.pinCode.toString()}
+                    value={studentInfo.pinCode?.toString() || "NA"}
                   />
                 </InfoSection>
 
@@ -195,7 +191,6 @@ const Dashboard: React.FC<{ studentInfo: StudentInfoProps }> = ({
             </CardContent>
           </Card>
 
-          {/* Calendar Card */}
           <Card className="bg-white shadow-xl rounded-lg overflow-hidden transform transition-all hover:scale-[1.02]">
             <CardHeader className="bg-black text-white">
               <CardTitle className="text-xl font-semibold flex items-center">
@@ -208,7 +203,6 @@ const Dashboard: React.FC<{ studentInfo: StudentInfoProps }> = ({
           </Card>
         </div>
 
-        {/* Attendance Graph */}
         <Card className="mt-8 bg-white shadow-xl rounded-lg overflow-hidden transform transition-all hover:scale-[1.02]">
           <CardHeader className="bg-black text-white">
             <CardTitle className="text-xl font-semibold flex items-center">
