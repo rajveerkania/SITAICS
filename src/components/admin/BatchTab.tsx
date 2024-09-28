@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { toast } from "sonner";
+import LoadingSkeleton from "../LoadingSkeleton"; 
 
 interface Batch {
   batchId: string;
@@ -34,6 +35,7 @@ const BatchTab = () => {
   const [activeTab, setActiveTab] = useState("manage");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentBatch, setCurrentBatch] = useState<Batch | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchBatches();
@@ -41,6 +43,7 @@ const BatchTab = () => {
 
   const fetchBatches = async () => {
     try {
+      setIsLoading(true); // Start loading
       const response = await fetch("/api/fetchBatches");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -49,15 +52,17 @@ const BatchTab = () => {
       setBatches(data);
     } catch (error: any) {
       toast.error(`Error in fetching batches: ${error.message}`);
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
   const handleUpdateSemester = async (batchId: string, newSemester: number) => {
     try {
       const response = await fetch(`/api/UpdateBatchSemester/${batchId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ currentSemester: newSemester }),
       });
@@ -76,7 +81,7 @@ const BatchTab = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      // Handle the response data here
+
     } catch (error: any) {
       toast.error(`Error fetching student details: ${error.message}`);
     }
@@ -96,9 +101,9 @@ const BatchTab = () => {
 
     try {
       const response = await fetch(`/api/editBatch/${currentBatch.batchId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           batchName: currentBatch.batchName,
@@ -146,6 +151,10 @@ const BatchTab = () => {
     }
   };
 
+  if (isLoading) {
+    return <LoadingSkeleton loadingText="batches" />;
+  }
+
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList>
@@ -153,10 +162,7 @@ const BatchTab = () => {
         <TabsTrigger value="Create">Create Batch</TabsTrigger>
       </TabsList>
       <TabsContent value="Create">
-        <AddBatchForm
-          onBatchAdded={handleBatchAdded}
-          onTabChange={setActiveTab}
-        />
+        <AddBatchForm onBatchAdded={handleBatchAdded} onTabChange={setActiveTab} />
       </TabsContent>
       <TabsContent value="manage">
         <Table>

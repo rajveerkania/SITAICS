@@ -59,12 +59,12 @@
     };
 
     const openProfile = () => {
-      setProfileOpen(true); // Open profile modal
-      setDropdownOpen(false); // Close dropdown when profile is opened
+      setProfileOpen(true); 
+      setDropdownOpen(false); 
     };
 
     const closeProfile = () => {
-      setProfileOpen(false); // Close profile modal
+      setProfileOpen(false); 
     };
 
     return (

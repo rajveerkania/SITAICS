@@ -1,138 +1,280 @@
-"use client";
 import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface AddStaffDetailsProps {
-  id: string;
-  setShowAddStaffDetails: React.Dispatch<React.SetStateAction<boolean>>;
+  id: string,
+  setShowAddStaffDetails: (value: boolean) => void;
   fetchUserDetails: () => void;
 }
-
+ 
 const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   id,
   setShowAddStaffDetails,
   fetchUserDetails,
 }) => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [contactNo, setContactNo] = useState("");
-  const [numSubjects, setNumSubjects] = useState(0);
-  const [subjects, setSubjects] = useState<string[]>([]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [staffFormData, setStaffFormData] = useState({
+    id,
+    email: "",
+    name: "",
+    gender: "",
+    address: "",
+    city: "",
+    state: "",
+    pinCode: "",
+    contactNo: "",
+    dateOfBirth: "",
+  });
 
-  const handleNumSubjectsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const count = Number(e.target.value);
-    setNumSubjects(count);
-    setSubjects(Array(count).fill(""));
+  const [errors, setErrors] = useState({
+    email: "",
+    name: "",
+    gender: "",
+    address: "",
+    city: "",
+    state: "",
+    pinCode: "",
+    contactNo: "",
+    dateOfBirth: "",
+  });
+
+  const handleStaffInputChange = (
+    e: React.ChangeEvent<HTMLElement & { name?: string }>
+  ) => {
+    const { name, value } = e.target as HTMLInputElement;
+    setStaffFormData((prevData) => ({
+      ...prevData,
+      [name]: name === "pinCode" ? parseInt(value) || "" : value,
+    }));
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
+    }));
   };
 
-  const handleSubjectChange = (index: number, value: string) => {
-    const updatedSubjects = [...subjects];
-    updatedSubjects[index] = value;
-    setSubjects(updatedSubjects);
-  };
+  const validateStep = () => {
+    let stepIsValid = true;
+    let stepErrors = { ...errors };
 
-  const handleSubmit = async () => {
-    if (!name || !email || !contactNo || subjects.some((subject) => !subject)) {
-      toast.error("Please fill in all the details");
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/submitStaffDetails", {
-        method: "POST",
-        body: JSON.stringify({
-          id,
-          name,
-          email,
-          contactNo,
-          subjects,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        toast.success("Details updated successfully!");
-        setShowAddStaffDetails(false);
-        fetchUserDetails();
-      } else {
-        toast.error("Failed to update details");
+    if (currentStep === 1) {
+      if (!staffFormData.email) {
+        stepErrors.email = "Email is required.";
+        stepIsValid = false;
       }
-    } catch (error) {
-      console.error("Error submitting staff details:", error);
-      toast.error("Error submitting details");
+      if (!staffFormData.name) {
+        stepErrors.name = "Full Name is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.gender) {
+        stepErrors.gender = "Gender is required.";
+        stepIsValid = false;
+      }
     }
+
+    if (currentStep === 2) {
+      if (!staffFormData.address) {
+        stepErrors.address = "Address is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.city) {
+        stepErrors.city = "City is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.state) {
+        stepErrors.state = "State is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.pinCode) {
+        stepErrors.pinCode = "Pin Code is required.";
+        stepIsValid = false;
+      }
+    }
+
+    if (currentStep === 3) {
+      if (!staffFormData.contactNo) {
+        stepErrors.contactNo = "Contact Number is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.dateOfBirth) {
+        stepErrors.dateOfBirth = "Date of Birth is required.";
+        stepIsValid = false;
+      }
+    }
+
+    setErrors(stepErrors);
+    return stepIsValid;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateStep()) return;
+    try {
+    const udpdatedStaffDetails = await fetch(`/api/addStaffDetails`,{
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(staffFormData),
+    });
+
+    if (udpdatedStaffDetails.ok) {
+      toast.success("Staff details added successfully.");
+      setShowAddStaffDetails(false);
+      fetchUserDetails();
+    } else {
+      toast.error("Failed to add student details.");
+    }
+  } catch (error) {
+    console.error("An error occurred:", error);
+    toast.error("An unexpected error occurred. Please try again.");
+  }
+  };
+
+  const nextStep = () => {
+    if (validateStep()) {
+      setCurrentStep((prevStep) => prevStep + 1);
+    }
+  };
+
+  const previousStep = () => {
+    setCurrentStep((prevStep) => prevStep - 1);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-6">Complete Your Profile</h2>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Name</label>
-          <input
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Email</label>
-          <input
-            type="email"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Contact Number</label>
-          <input
-            type="tel"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={contactNo}
-            onChange={(e) => setContactNo(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">How many subjects do you teach?</label>
-          <select
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={numSubjects}
-            onChange={handleNumSubjectsChange}
-          >
-            {[...Array(10).keys()].map((i) => (
-              <option key={i + 1} value={i + 1}>
-                {i + 1}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {subjects.map((subject, index) => (
-          <div className="mb-4" key={index}>
-            <label className="block text-gray-700">Subject {index + 1} Name</label>
-            <input
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-md"
-              value={subject}
-              onChange={(e) => handleSubjectChange(index, e.target.value)}
-            />
+    <div className="relative min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-3xl font-bold mb-3 text-center">Staff Details</h1>
+        <p className="text-sm text-gray-400 text-center mb-6">
+          Enter staff details to continue
+        </p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {currentStep === 1 && (
+            <>
+              <Input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={staffFormData.email}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.email && <p className="text-red-500">{errors.email}</p>}
+              <Input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                maxLength={30}
+                value={staffFormData.name}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.name && <p className="text-red-500">{errors.name}</p>}
+              <Select
+                name="gender"
+                onValueChange={(value) =>
+                  handleStaffInputChange({
+                    target: { name: "gender", value },
+                  } as React.ChangeEvent<HTMLSelectElement>)
+                }
+                value={staffFormData.gender}
+                required
+              >
+                <SelectTrigger className="w-full">
+                  <span>{staffFormData.gender || "Gender"}</span>
+                </SelectTrigger>
+                <SelectContent>
+                  {["Male", "Female", "Other"].map((gender) => (
+                    <SelectItem key={gender} value={gender}>
+                      {gender}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.gender && <p className="text-red-500">{errors.gender}</p>}
+            </>
+          )}
+          {currentStep === 2 && (
+            <>
+              <Input
+                type="text"
+                name="address"
+                placeholder="Address"
+                maxLength={100}
+                value={staffFormData.address}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.address && <p className="text-red-500">{errors.address}</p>}
+              <Input
+                type="text"
+                name="city"
+                placeholder="City"
+                value={staffFormData.city}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.city && <p className="text-red-500">{errors.city}</p>}
+              <Input
+                type="text"
+                name="state"
+                placeholder="State"
+                value={staffFormData.state}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.state && <p className="text-red-500">{errors.state}</p>}
+              <Input
+                type="text"
+                name="pinCode"
+                placeholder="Pin Code"
+                value={staffFormData.pinCode}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.pinCode && <p className="text-red-500">{errors.pinCode}</p>}
+            </>
+          )}
+          {currentStep === 3 && (
+            <>
+              <Input
+                type="tel"
+                name="contactNo"
+                placeholder="Contact Number"
+                value={staffFormData.contactNo}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.contactNo && <p className="text-red-500">{errors.contactNo}</p>}
+              <Input
+                type="date"
+                name="dateOfBirth"
+                value={staffFormData.dateOfBirth}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.dateOfBirth && <p className="text-red-500">{errors.dateOfBirth}</p>}
+            </>
+          )}
+          <div className="flex justify-between mt-4">
+            {currentStep > 1 && (
+              <Button type="button" onClick={previousStep}>Previous</Button>
+            )}
+            {currentStep < 3 ? (
+              <Button type="button" onClick={nextStep}>Next</Button>
+            ) : (
+              <Button type="submit">Submit</Button>
+            )}
           </div>
-        ))}
-
-        <button
-          onClick={handleSubmit}
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-md"
-        >
-          Submit
-        </button>
+        </form>
       </div>
     </div>
   );

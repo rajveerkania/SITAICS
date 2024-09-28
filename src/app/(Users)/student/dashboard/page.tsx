@@ -39,7 +39,6 @@ interface UserInfo {
 
 const StudentDashboard: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [userRole, setUserRole] = useState<string>("null");
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [loading, setLoading] = useState<boolean>(true);
   const [showAddStudentDetails, setShowAddStudentDetails] = useState<boolean>(false);
@@ -62,7 +61,6 @@ const StudentDashboard: React.FC = () => {
       const data = await response.json();
       if (data.user.isProfileCompleted) {
         setUserInfo(data.user);
-        setUserRole(data.role);
       } else {
         setUserInfo({ id: data.user.id, name: "", isProfileCompleted: false } as UserInfo);
         setShowAddStudentDetails(true);
@@ -100,7 +98,7 @@ const StudentDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       
-      <Navbar name={userInfo?.name || ""} role={userRole} />
+      <Navbar name={userInfo?.name || ""} role="Student" />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button
@@ -218,7 +216,6 @@ const StudentDashboard: React.FC = () => {
                 <CardTitle>Subjects</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Add your subjects content here */}
                 <SubjectTab/>
               </CardContent>
             </Card>
@@ -227,10 +224,8 @@ const StudentDashboard: React.FC = () => {
           <TabsContent value="attendance">
             <Card>
               <CardHeader>
-                {/* <CardTitle>Attendance overview</CardTitle> */}
               </CardHeader>
               <CardContent>
-                {/* Add your attendance content here */}
                <AttendanceTab/>
               </CardContent>
             </Card>
