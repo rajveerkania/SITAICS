@@ -10,6 +10,7 @@ export async function GET(req: Request) {
       where: {
         course: {
           courseName: courseName || undefined,
+          isActive: true,
         },
       },
       select: {

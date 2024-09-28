@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Bar } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   Legend,
-} from "chart.js";
+  ResponsiveContainer,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatCard } from "@/components/StatCard";
@@ -28,25 +28,16 @@ import { Toaster, toast } from "sonner";
 import AccessDenied from "@/components/accessDenied";
 import InactiveRecords from "@/components/admin/InactiveRecords";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
 interface CourseData {
-  course: string;
-  students: number;
+  courseName: string;
+  Students: number;
 }
 
 interface Stats {
   studentCount: number;
   staffCount: number;
   totalCoursesCount: number;
-  formattedStudentData: CourseData[];
+  formattedCourseData: CourseData[];
 }
 
 const AdminDashboard = () => {
@@ -76,11 +67,14 @@ const AdminDashboard = () => {
         if (response.status !== 200)
           toast.error(data.message || "Error while fetching user data");
 
-        const overviewStats = await fetch(`/api/overviewStats`);
-        const stats = await overviewStats.json();
-        if (overviewStats.status !== 200 && overviewStats.status !== 403)
+        const overviewStatsResponse = await fetch(`/api/overviewStats`);
+        const stats = await overviewStatsResponse.json();
+        if (
+          overviewStatsResponse.status !== 200 &&
+          overviewStatsResponse.status !== 403
+        )
           toast.error(stats.message || "Error while fetching the stats");
-        else if (overviewStats.status === 403) {
+        else if (overviewStatsResponse.status === 403) {
           return <AccessDenied />;
         }
 
@@ -106,47 +100,6 @@ const AdminDashboard = () => {
       </div>
     );
   }
-
-  const chartData = {
-    labels:
-      overviewStats?.formattedStudentData.map((item) => item.course) || [],
-    datasets: [
-      {
-        label: "Number of Students",
-        data:
-          overviewStats?.formattedStudentData.map((item) => item.students) ||
-          [],
-        backgroundColor: "black",
-        borderColor: "rgba(0, 0, 0, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top" as const,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: "Number of Students",
-        },
-      },
-      x: {
-        title: {
-          display: true,
-          text: "Courses",
-        },
-      },
-    },
-  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -232,16 +185,16 @@ const AdminDashboard = () => {
                 key={tab}
                 value={tab.toLowerCase()}
                 className={`
-        flex-grow basis-full sm:basis-1/2 md:basis-auto
-        text-center px-4 py-2 rounded-md
-        font-medium text-sm
-        transition-all duration-200 ease-in-out
-        ${
-          activeTab === tab.toLowerCase()
-            ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative" // Active tab styles with top shadow
-            : "bg-gray-200 text-black hover:bg-gray-300"
-        }
-      `}
+                  flex-grow basis-full sm:basis-1/2 md:basis-auto
+                  text-center px-4 py-2 rounded-md
+                  font-medium text-sm
+                  transition-all duration-200 ease-in-out
+                  ${
+                    activeTab === tab.toLowerCase()
+                      ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative"
+                      : "bg-gray-200 text-black hover:bg-gray-300"
+                  }
+                `}
                 onClick={() => setActiveTab(tab.toLowerCase())}
               >
                 {tab}
@@ -275,7 +228,17 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="w-full h-[300px] sm:h-[400px]">
-                    <Bar data={chartData} options={chartOptions} />
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={overviewStats?.formattedCourseData || []}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="courseName" />
+                        response 
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="Students" fill="#000000" />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>
@@ -373,4 +336,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-

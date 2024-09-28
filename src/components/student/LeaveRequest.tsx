@@ -15,7 +15,13 @@ const LeaveRequest: React.FC = () => {
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
   const [leaves, setLeaves] = useState<Leave[]>([
-    { type: "Sick Leave", startDate: "2023-08-01", endDate: "2023-08-03", reason: "Fever", status: "Approved" },
+    {
+      type: "Sick Leave",
+      startDate: "2023-08-01",
+      endDate: "2023-08-03",
+      reason: "Fever",
+      status: "Approved",
+    },
   ]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -28,7 +34,6 @@ const LeaveRequest: React.FC = () => {
       status: "Pending",
     };
     setLeaves([...leaves, newLeave]);
-    // Reset form
     setLeaveType("");
     setStartDate("");
     setEndDate("");
@@ -42,8 +47,8 @@ const LeaveRequest: React.FC = () => {
           onClick={() => setCurrentTab("apply_leave")}
           className={`px-4 py-2 rounded-md transition-colors duration-300 ${
             currentTab === "apply_leave"
-              ? "bg-gray-200 text-black"
-              : "bg-black text-white hover:bg-gray-900"
+              ? "bg-black text-white hover:bg-gray-900"
+              : "bg-gray-200 text-black"
           }`}
         >
           Apply for Leave
@@ -52,8 +57,8 @@ const LeaveRequest: React.FC = () => {
           onClick={() => setCurrentTab("view_leaves")}
           className={`px-4 py-2 rounded-md transition-colors duration-300 ${
             currentTab === "view_leaves"
-              ? "bg-gray-200 text-black"
-              : "bg-black text-white hover:bg-gray-900"
+              ? "bg-black text-white hover:bg-gray-900"
+              : "bg-gray-200 text-black"
           }`}
         >
           View Leaves

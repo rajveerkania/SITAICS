@@ -39,7 +39,6 @@ interface UserInfo {
 
 const StudentDashboard: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [userRole, setUserRole] = useState<string>("null");
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [loading, setLoading] = useState<boolean>(true);
   const [showAddStudentDetails, setShowAddStudentDetails] =
@@ -63,7 +62,6 @@ const StudentDashboard: React.FC = () => {
       const data = await response.json();
       if (data.user.isProfileCompleted) {
         setUserInfo(data.user);
-        setUserRole(data.role);
       } else {
         setUserInfo({
           id: data.user.id,
@@ -73,7 +71,6 @@ const StudentDashboard: React.FC = () => {
         setShowAddStudentDetails(true);
       }
     } catch (error) {
-      console.error("Error fetching user details:", error);
       toast.error("Error fetching user details");
     } finally {
       setLoading(false);
@@ -104,7 +101,7 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar name={userInfo?.name || ""} role={userRole} />
+      <Navbar name={userInfo?.name || ""} role={"Student"} />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button
@@ -184,16 +181,16 @@ const StudentDashboard: React.FC = () => {
                 key={tab}
                 value={tab.toLowerCase()}
                 className={`
-                  flex-grow basis-full sm:basis-1/2 md:basis-auto
-                  text-center px-4 py-2 rounded-md
-                  font-medium text-sm
-                  transition-all duration-200 ease-in-out
-                  ${
-                    activeTab === tab.toLowerCase()
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "bg-gray-200 text-black hover:bg-gray-300"
-                  }
-                `}
+        flex-grow basis-full sm:basis-1/2 md:basis-auto
+        text-center px-4 py-2 rounded-md
+        font-medium text-sm
+        transition-all duration-200 ease-in-out
+        ${
+          activeTab === tab.toLowerCase()
+            ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative" // Active tab styles with top shadow
+            : "bg-gray-200 text-black hover:bg-gray-300"
+        }
+      `}
                 onClick={() => setActiveTab(tab.toLowerCase())}
               >
                 {tab}
@@ -222,19 +219,15 @@ const StudentDashboard: React.FC = () => {
                 <CardTitle>Subjects</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Add your subjects content here */}
-                <SubjectTab />
+                <SubjectTab studentId={userInfo?.id || ""} />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="attendance">
             <Card>
-              <CardHeader>
-                {/* <CardTitle>Attendance overview</CardTitle> */}
-              </CardHeader>
+              <CardHeader></CardHeader>
               <CardContent>
-                {/* Add your attendance content here */}
                 <AttendanceTab />
               </CardContent>
             </Card>

@@ -6,6 +6,7 @@ export async function GET() {
     const courses = await prisma.course.findMany({
       select: {
         courseName: true,
+        isActive: true,
       },
     });
     return NextResponse.json({ success: true, courses }, { status: 200 });

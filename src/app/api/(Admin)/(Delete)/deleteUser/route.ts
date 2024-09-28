@@ -35,6 +35,7 @@ export async function PUT(request: NextRequest) {
           where: { id },
           data: { isActive: false },
         });
+        break;
       default:
         return NextResponse.json(
           { message: "Role undefined" },
