@@ -4,7 +4,7 @@ import { User, Mail, Book, Calendar, Clock, BookOpen } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { IndianCalendar } from "@/components/IndianCalendar";
 
-// StatCard Component
+
 interface StatCardProps {
   title: string;
   value: string;

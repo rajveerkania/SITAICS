@@ -1,16 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatCard } from "@/components/StatCard";
@@ -27,15 +18,6 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Toaster, toast } from "sonner";
 import AccessDenied from "@/components/accessDenied";
 import InactiveRecords from "@/components/admin/InactiveRecords";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 interface CourseData {
   course: string;
@@ -106,47 +88,6 @@ const AdminDashboard = () => {
       </div>
     );
   }
-
-  const chartData = {
-    labels:
-      overviewStats?.formattedStudentData.map((item) => item.course) || [],
-    datasets: [
-      {
-        label: "Number of Students",
-        data:
-          overviewStats?.formattedStudentData.map((item) => item.students) ||
-          [],
-        backgroundColor: "black",
-        borderColor: "rgba(0, 0, 0, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top" as const,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: "Number of Students",
-        },
-      },
-      x: {
-        title: {
-          display: true,
-          text: "Courses",
-        },
-      },
-    },
-  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -232,16 +173,16 @@ const AdminDashboard = () => {
                 key={tab}
                 value={tab.toLowerCase()}
                 className={`
-        flex-grow basis-full sm:basis-1/2 md:basis-auto
-        text-center px-4 py-2 rounded-md
-        font-medium text-sm
-        transition-all duration-200 ease-in-out
-        ${
-          activeTab === tab.toLowerCase()
-            ? "bg-gray-900 text-white shadow-sm"
-            : "bg-gray-200 text-black hover:bg-gray-300"
-        }
-      `}
+                  flex-grow basis-full sm:basis-1/2 md:basis-auto
+                  text-center px-4 py-2 rounded-md
+                  font-medium text-sm
+                  transition-all duration-200 ease-in-out
+                  ${
+                    activeTab === tab.toLowerCase()
+                      ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative"
+                      : "bg-gray-200 text-black hover:bg-gray-300"
+                  }
+                `}
                 onClick={() => setActiveTab(tab.toLowerCase())}
               >
                 {tab}
@@ -254,13 +195,19 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
               <StatCard
                 title="Total Students"
-                value={overviewStats?.studentCount || ""} description={""}              />
+                value={overviewStats?.studentCount || ""}
+                description={""}
+              />
               <StatCard
                 title="Total Staff Members"
-                value={overviewStats?.staffCount || ""} description={""}              />
+                value={overviewStats?.staffCount || ""}
+                description={""}
+              />
               <StatCard
                 title="Total Courses"
-                value={overviewStats?.totalCoursesCount || ""} description={""}              />
+                value={overviewStats?.totalCoursesCount || ""}
+                description={""}
+              />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card>
@@ -269,7 +216,16 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="w-full h-[300px] sm:h-[400px]">
-                    <Bar data={chartData} options={chartOptions} />
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={overviewStats?.formattedStudentData || []}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="course" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="students" fill="#000000" />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>

@@ -15,7 +15,7 @@ model User {
   createdAt      DateTime        @default(now())
   role           Role
   updatedAt      DateTime        @updatedAt
-  username       String          @unique
+  username       String          @unique 
   isActive       Boolean         @default(true)
   studentDetails StudentDetails?
   staffDetails   StaffDetails?

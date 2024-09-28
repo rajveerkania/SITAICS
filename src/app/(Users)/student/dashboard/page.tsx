@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import Achievement from "@/components/student/Achievement";
 import SubjectTab from "@/components/student/SubjectTab";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import AddStudentDetails from "@/components/student/AddStudentDetails";
-import {  toast } from "sonner";
+import { toast } from "sonner";
 import Placement from "@/components/student/Placement";
 import AttendanceTab from "@/components/student/AttendanceTab";
 
@@ -42,7 +42,8 @@ const StudentDashboard: React.FC = () => {
   const [userRole, setUserRole] = useState<string>("null");
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [loading, setLoading] = useState<boolean>(true);
-  const [showAddStudentDetails, setShowAddStudentDetails] = useState<boolean>(false);
+  const [showAddStudentDetails, setShowAddStudentDetails] =
+    useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const tabs = [
@@ -64,7 +65,11 @@ const StudentDashboard: React.FC = () => {
         setUserInfo(data.user);
         setUserRole(data.role);
       } else {
-        setUserInfo({ id: data.user.id, name: "", isProfileCompleted: false } as UserInfo);
+        setUserInfo({
+          id: data.user.id,
+          name: "",
+          isProfileCompleted: false,
+        } as UserInfo);
         setShowAddStudentDetails(true);
       }
     } catch (error) {
@@ -99,7 +104,6 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      
       <Navbar name={userInfo?.name || ""} role={userRole} />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
@@ -151,7 +155,7 @@ const StudentDashboard: React.FC = () => {
             {tabs.map((tab) => (
               <li key={tab} className="w-full">
                 <button
-                  className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105 ${
+                  className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105  ${
                     activeTab === tab.toLowerCase()
                       ? "bg-gray-900 text-white"
                       : "bg-gray-800 text-gray-300 hover:bg-gray-700"
@@ -219,7 +223,7 @@ const StudentDashboard: React.FC = () => {
               </CardHeader>
               <CardContent>
                 {/* Add your subjects content here */}
-                <SubjectTab/>
+                <SubjectTab />
               </CardContent>
             </Card>
           </TabsContent>
@@ -231,7 +235,7 @@ const StudentDashboard: React.FC = () => {
               </CardHeader>
               <CardContent>
                 {/* Add your attendance content here */}
-               <AttendanceTab/>
+                <AttendanceTab />
               </CardContent>
             </Card>
           </TabsContent>

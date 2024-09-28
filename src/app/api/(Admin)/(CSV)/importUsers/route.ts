@@ -56,8 +56,9 @@ export async function POST(request: NextRequest) {
     });
 
     const validRoles = ["Admin", "Staff", "PO", "Student"];
-    const addedUsers: string[] = [];
+    var successRate = 0;
     const failedUsers: { email: string; reason: string }[] = [];
+    const duplicateUsers: { email: string; reason: string }[] = [];
 
     await prisma.$transaction(async (prisma) => {
       for (const user of results) {
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
           });
 
           if (existingUser) {
-            failedUsers.push({
+            duplicateUsers.push({
               email: user.email,
               reason: "User already exists",
             });
@@ -135,27 +136,22 @@ export async function POST(request: NextRequest) {
               },
             });
           }
-          addedUsers.push(user.email);
-          console.log("Added user: ", user.name);
+          successRate++;
         } catch (error: any) {
           failedUsers.push({ email: user.email, reason: error.message });
         }
       }
     });
 
-    const totalUsers = results.length;
-    const addedUsersLen = addedUsers.length;
-    const failedUsersLen = failedUsers.length;
-    console.log(`Total users processed: ${results.length}`);
-    console.log(`Users added successfully: ${addedUsers.length}`);
-    console.log(`Failed users: ${failedUsers.length}`);
+    const failureRate = failedUsers.length;
+    const duplicationRate = duplicateUsers.length;
 
     return NextResponse.json(
       {
         success: true,
-        addedUsersLen,
-        failedUsersLen,
-        totalProcessed: results.length,
+        successRate,
+        failureRate,
+        duplicationRate,
       },
       { status: 200 }
     );

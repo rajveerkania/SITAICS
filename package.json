@@ -23,6 +23,7 @@
     "@types/formidable": "^3.4.5",
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.4",
+    "checkbox": "^0.0.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "csv-parser": "^3.0.0",

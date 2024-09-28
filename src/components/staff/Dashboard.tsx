@@ -57,9 +57,9 @@ const Dashboard: React.FC = () => {
     <>
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-        <StatCard title="Total Subjects" value={3} />
-        <StatCard title="Total Students" value={totalStudents !== null ? totalStudents : 'Loading...'} />
-        <StatCard title="Approved Leaves" value={4} />
+        <StatCard title="Total Subjects" value={3} description={""} />
+        <StatCard title="Total Students" value={totalStudents !== null ? totalStudents : 'Loading...'} description={""} />
+        <StatCard title="Approved Leaves" value={4} description={""} />
       </div>
 
       {/* Schedule and Calendar */}

@@ -111,12 +111,26 @@ const Placement: React.FC = () => {
 
   return (
     <div>
-      {/* <h2 className="text-2xl font-bold mb-4">Placements & Internships</h2> */}
       <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
         <Tabs.List className="flex space-x-2 mb-4">
-          <Tabs.Trigger value="all" className="px-3 py-2 bg-gray-100 rounded-md">All</Tabs.Trigger>
-          <Tabs.Trigger value="placement" className="px-3 py-2 bg-gray-100 rounded-md">Placements</Tabs.Trigger>
-          <Tabs.Trigger value="internship" className="px-3 py-2 bg-gray-100 rounded-md">Internships</Tabs.Trigger>
+          <Tabs.Trigger
+            value="all"
+            className={`px-3 py-2 rounded-md ${activeTab === 'all' ? 'bg-gray-200 text-black' : 'bg-gray-100 text-black'}`}
+          >
+            All
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            value="placement"
+            className={`px-3 py-2 rounded-md ${activeTab === 'placement' ? 'bg-gray-200 text-black' : 'bg-gray-100 text-black'}`}
+          >
+            Placements
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            value="internship"
+            className={`px-3 py-2 rounded-md ${activeTab === 'internship' ? 'bg-gray-200 text-black' : 'bg-gray-100 text-black'}`}
+          >
+            Internships
+          </Tabs.Trigger>
         </Tabs.List>
       </Tabs.Root>
       <div className="space-y-4 max-h-[600px] overflow-y-auto">
