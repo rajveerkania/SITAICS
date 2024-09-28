@@ -206,16 +206,6 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
               {errors.contactNumber && (
                 <p className="text-red-500">{errors.contactNumber}</p>
               )}
-              <textarea
-                name="achievements"
-                placeholder="Achievements"
-                value={staffFormData.achievements}
-                onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
-              />
-              {errors.achievements && (
-                <p className="text-red-500">{errors.achievements}</p>
-              )}
             </>
           )}
           <div className="flex justify-between mt-6">

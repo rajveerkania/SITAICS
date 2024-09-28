@@ -8,9 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+import ImportButton from "../ImportButton";
 
 interface Course {
   courseName: string;
+}
+
+interface CSVData {
+  [key: string]: string;
 }
 
 interface AddSubjectFormProps {
@@ -31,6 +37,31 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const [csvData, setCSVData] = useState<CSVData[]>([]);
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      const text = await file.text();
+      const result = parseCSV(text);
+      setCSVData(result);
+    } catch (error: any) {
+      toast.error(error);
+    }
+  };
+
+  const parseCSV = (text: string): CSVData[] => {
+    const lines = text.split("\n");
+    const headers = lines[0].split(",").map((header) => header.trim());
+
+    return lines.slice(1).map((line) => {
+      const values = line.split(",").map((value) => value.trim());
+      return headers.reduce((obj, header, index) => {
+        obj[header] = values[index] || "";
+        return obj;
+      }, {} as CSVData);
+    });
+  };
+
   useEffect(() => {
     fetchCourses();
   }, []);
@@ -46,10 +77,10 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
       } else if (data && Array.isArray(data.courses)) {
         setCourses(data.courses);
       } else {
-        console.error("Unexpected response structure for courses:", data);
+        toast.error("Unexpected response structure for courses:", data);
       }
-    } catch (error) {
-      console.error("Error fetching courses:", error);
+    } catch (error: any) {
+      toast.error("Error fetching courses", error);
     } finally {
       setLoading(false);
     }
@@ -58,10 +89,9 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
   const handleAddSubject = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Convert semester to integer before submitting
     const subjectData = {
       ...newSubject,
-      semester: parseInt(newSubject.semester, 10), // Convert to integer
+      semester: parseInt(newSubject.semester, 10),
     };
 
     try {
@@ -72,18 +102,18 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
         },
         body: JSON.stringify(subjectData),
       });
-      const result = await response.json();
       setNewSubject({
         subjectName: "",
         subjectCode: "",
         semester: "",
         courseId: "",
       });
+      toast.success("Subject added successfully");
       fetchCourses();
       onSubjectAdded();
       onTabChange("manage");
-    } catch (error) {
-      console.error("Error adding Subject:", error);
+    } catch (error: any) {
+      toast.error("Error adding Subject", error);
     }
   };
 
@@ -141,9 +171,15 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
           )}
         </SelectContent>
       </Select>
-      <Button type="submit" className="flex items-center">
-        Create Subject
-      </Button>
+      <div className="flex justify-between pt-5">
+        <Button type="submit">Create Subject</Button>
+        <ImportButton
+          type="button"
+          onFileUpload={handleFileUpload}
+          fileCategory="importSubjects"
+          buttonText="Import CSV"
+        />
+      </div>
     </form>
   );
 };

@@ -10,9 +10,8 @@ export async function POST(request: NextRequest) {
       username,
       name,
       isBatchCoordinator,
-      batchId, // batchId can be null
-      contactNumber, // contactNumber can be null
-      achievements, // achievements can be null
+      batchId, 
+      contactNumber,
       isProfileCompleted,
     } = reqBody;
 
@@ -39,7 +38,6 @@ export async function POST(request: NextRequest) {
           isBatchCoordinator,
           batchId: batchId || null,
           contactNumber: contactNumber || null,
-          achievements: achievements || null,
           isProfileCompleted,
         },
       });
@@ -53,7 +51,6 @@ export async function POST(request: NextRequest) {
           isBatchCoordinator,
           batchId: batchId || null,
           contactNumber: contactNumber || null,
-          achievements: achievements || null,
           isProfileCompleted,
         },
       });

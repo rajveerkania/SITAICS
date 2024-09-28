@@ -70,10 +70,10 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch('/api/fetchCourses', {
-          method: 'GET',
+        const response = await fetch("/api/fetchCourses", {
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
 

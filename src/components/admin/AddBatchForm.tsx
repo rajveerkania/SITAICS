@@ -9,10 +9,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import axios from "axios";
+import ImportButton from "../ImportButton";
 
 interface Course {
   courseName: string;
+}
+
+interface CSVData {
+  [key: string]: string;
 }
 
 interface AddBatchFormProps {
@@ -33,6 +37,31 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const [csvData, setCSVData] = useState<CSVData[]>([]);
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      const text = await file.text();
+      const result = parseCSV(text);
+      setCSVData(result);
+    } catch (error: any) {
+      toast.error(error);
+    }
+  };
+
+  const parseCSV = (text: string): CSVData[] => {
+    const lines = text.split("\n");
+    const headers = lines[0].split(",").map((header) => header.trim());
+
+    return lines.slice(1).map((line) => {
+      const values = line.split(",").map((value) => value.trim());
+      return headers.reduce((obj, header, index) => {
+        obj[header] = values[index] || "";
+        return obj;
+      }, {} as CSVData);
+    });
+  };
+
   useEffect(() => {
     fetchCourses();
   }, []);
@@ -41,13 +70,13 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
     try {
       const response = await fetch("/api/fetchCourses");
       const data = await response.json();
-      if (response.status === 200) {
+      if (response.ok) {
         setCourses(data.courses);
       } else {
         toast.error(data.message);
       }
     } catch (error: any) {
-      toast.error(error);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -56,18 +85,29 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
   const handleAddBatch = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/api/addBatch", newBatch);
-      setNewBatch({
-        batchName: "",
-        courseName: "",
-        batchDuration: "",
-        currentSemester: "",
+      const response = await fetch("/api/addBatch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newBatch),
       });
-      onBatchAdded();
-      onTabChange("manage");
-      if (response.status === 200) toast.success("Batch added successfully");
+      const data = await response.json();
+      if (response.ok) {
+        setNewBatch({
+          batchName: "",
+          courseName: "",
+          batchDuration: "",
+          currentSemester: "",
+        });
+        onBatchAdded();
+        onTabChange("manage");
+        toast.success("Batch added successfully");
+      } else {
+        toast.error(data.message);
+      }
     } catch (error: any) {
-      toast.error(error);
+      toast.error(error.message);
     }
   };
 
@@ -127,9 +167,15 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
         }
         required
       />
-      <Button type="submit" className="flex items-center">
-        Create Batch
-      </Button>
+      <div className="flex justify-between pt-5">
+        <Button type="submit">Create Batch</Button>
+        <ImportButton
+          type="button"
+          onFileUpload={handleFileUpload}
+          fileCategory="importBatches"
+          buttonText="Import CSV"
+        />
+      </div>
     </form>
   );
 };
