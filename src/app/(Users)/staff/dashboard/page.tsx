@@ -47,7 +47,7 @@ const FacultyDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <>
+      {/* <>
           <Navbar />
           <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
           <main className="container mx-auto mt-8 px-4">
@@ -61,8 +61,8 @@ const FacultyDashboard: React.FC = () => {
             {activeTab === "attendance" && <Attendance />}
             {activeTab === "profile" && <Profile />}
           </main>
-        </>
-      {/* {showAddStaffDetails ? (
+        </> */}
+      {showAddStaffDetails ? (
         <AddStaffDetails
           id={userInfo.id}
           setShowAddStaffDetails={setShowAddStaffDetails}
@@ -84,7 +84,7 @@ const FacultyDashboard: React.FC = () => {
             {activeTab === "profile" && <Profile />}
           </main>
         </>
-      )} */}
+      )}
     </div>
   );
 };
