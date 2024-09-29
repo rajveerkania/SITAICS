@@ -37,6 +37,8 @@ export async function GET() {
       isActive: true,
     }));
 
+    console.log(formattedCourses);
+
     return NextResponse.json(
       { message: "Courses fetched", courses: formattedCourses },
       { status: 200 }

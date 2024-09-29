@@ -108,7 +108,9 @@ export async function POST(request: NextRequest) {
     });
 
     const failureRate = failedCourses.length;
+    if (failureRate) console.log(failedCourses);
     const duplicationRate = duplicateCourses.length;
+    if (duplicationRate) console.log(duplicateCourses);
 
     return NextResponse.json(
       {
