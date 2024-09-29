@@ -54,7 +54,16 @@ export default function ImportButton({
       }
 
       if (data.success) {
-        toast.success("File imported successfully");
+        if (data.failureRate !== 0 || data.duplicationRate !== 0) {
+          toast.success(`Success Records: ${data.successRate}`);
+          toast.error(`
+              Failed Records: ${data.failureRate}`);
+          toast.warning(`
+              Duplicate Records: ${data.duplicationRate}`);
+        } else {
+          toast.success("File imported successfully");
+          toast.success(`${data.successRate} records added successfully`);
+        }
       }
     } catch (error: any) {
       toast.error(error);

@@ -80,7 +80,6 @@ export async function GET(request: NextRequest) {
           user = await prisma.staffDetails.findUnique({
             where: { id },
             select: {
-              id: true,
               email: true,
               username: true,
               name: true,
@@ -89,7 +88,6 @@ export async function GET(request: NextRequest) {
               batchId: true,
               subjects: true,
               achievements: true,
-              isProfileCompleted: true,
             },
           });
           return NextResponse.json({ user, role: "Staff" }, { status: 200 });

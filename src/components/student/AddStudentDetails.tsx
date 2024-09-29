@@ -70,10 +70,10 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch('/api/fetchCourses', {
-          method: 'GET',
+        const response = await fetch("/api/fetchCourses", {
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
 
@@ -156,13 +156,16 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const updatedStudentDetails = await fetch(`/api/addStudentDetails`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(studentFormData),
-      });
+      const updatedStudentDetails = await fetch(
+        `/api/student/addStudentDetails`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(studentFormData),
+        }
+      );
 
       if (updatedStudentDetails.ok) {
         toast.success("Student details added successfully.");

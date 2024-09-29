@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { toast } from "sonner";
-import LoadingSkeleton from "../LoadingSkeleton"; 
+import LoadingSkeleton from "../LoadingSkeleton";
 
 interface Batch {
   batchId: string;
@@ -35,13 +35,13 @@ const BatchTab = () => {
   const [activeTab, setActiveTab] = useState("manage");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentBatch, setCurrentBatch] = useState<Batch | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchBatches();
-  }, []);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const batchesPerPage = 5;
   const fetchBatches = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       setIsLoading(true); // Start loading
       const response = await fetch("/api/fetchBatches");
@@ -51,11 +51,15 @@ const BatchTab = () => {
       const data = await response.json();
       setBatches(data);
     } catch (error: any) {
-      toast.error(`Error in fetching batches: ${error.message}`);
+      setError("Failed to load courses. Please try again later.");
     } finally {
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchBatches();
+  }, []);
 
   const handleUpdateSemester = async (batchId: string, newSemester: number) => {
     try {
@@ -81,7 +85,6 @@ const BatchTab = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
     } catch (error: any) {
       toast.error(`Error fetching student details: ${error.message}`);
     }
@@ -151,8 +154,19 @@ const BatchTab = () => {
     }
   };
 
+  const totalBatches = batches.length;
+  const totalPages = Math.ceil(totalBatches / batchesPerPage);
+  const currentBatches = batches.slice(
+    (currentPage - 1) * batchesPerPage,
+    currentPage * batchesPerPage
+  );
+
   if (isLoading) {
     return <LoadingSkeleton loadingText="batches" />;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
   }
 
   return (
@@ -176,7 +190,7 @@ const BatchTab = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {batches.map((batch) => (
+            {currentBatches.map((batch) => (
               <TableRow key={batch.batchId}>
                 <TableCell>
                   <Button
@@ -213,6 +227,28 @@ const BatchTab = () => {
             ))}
           </TableBody>
         </Table>
+
+        {totalPages > 1 && (
+          <div className="pagination mt-4 flex justify-center items-center space-x-4">
+            <Button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="pagination-button"
+            >
+              Previous
+            </Button>
+            <span className="pagination-info">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="pagination-button"
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </TabsContent>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

@@ -23,15 +23,18 @@ export async function GET(request: NextRequest) {
       where: { isActive: true },
     });
 
-    const studentData = await prisma.studentDetails.groupBy({
-      by: ["courseName"],
-      _count: { courseName: true },
+    const courseData = await prisma.course.findMany({
       where: { isActive: true },
+      include: {
+        StudentDetails: {
+          where: { isActive: true },
+        },
+      },
     });
 
-    const formattedStudentData = studentData.map((item) => ({
-      course: item.courseName,
-      students: item._count.courseName,
+    const formattedCourseData = courseData.map((course) => ({
+      courseName: course.courseName,
+      Students: course.StudentDetails.length,
     }));
 
     return NextResponse.json(
@@ -39,7 +42,7 @@ export async function GET(request: NextRequest) {
         studentCount,
         staffCount,
         totalCoursesCount,
-        formattedStudentData,
+        formattedCourseData,
       },
       { status: 200 }
     );

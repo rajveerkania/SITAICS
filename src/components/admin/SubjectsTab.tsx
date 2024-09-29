@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 import { toast } from "sonner";
 import AddSubjectForm from "./AddSubjectForm";
+import LoadingSkeleton from "../LoadingSkeleton";
 
 interface Subject {
   subjectId: string;
@@ -23,11 +24,11 @@ interface Subject {
 
 const SubjectTab = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("manage");
-
-  useEffect(() => {
-    fetchSubjects();
-  }, []);
+  const [currentPage, setCurrentPage] = useState(1);
+  const subjectsPerPage = 5;
 
   const fetchSubjects = async () => {
     try {
@@ -37,10 +38,16 @@ const SubjectTab = () => {
       }
       const data: Subject[] = await response.json();
       setSubjects(data);
-    } catch (error) {
-      toast.error("Failed to fetch subject details");
+    } catch (error: any) {
+      setError(error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
 
   const handleDeleteSubject = async (subjectId: string) => {
     try {
@@ -65,6 +72,20 @@ const SubjectTab = () => {
       toast.error("Failed to delete subject");
     }
   };
+
+  const totalPages = Math.ceil(subjects.length / subjectsPerPage);
+  const currentSubjects = subjects.slice(
+    (currentPage - 1) * subjectsPerPage,
+    currentPage * subjectsPerPage
+  );
+
+  if (isLoading) {
+    return <LoadingSkeleton loadingText="subjects" />;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -94,7 +115,7 @@ const SubjectTab = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {subjects.map((subject) => (
+              {currentSubjects.map((subject) => (
                 <TableRow key={subject.subjectId}>
                   <TableCell>{subject.subjectName}</TableCell>
                   <TableCell>{subject.subjectCode}</TableCell>
@@ -116,6 +137,25 @@ const SubjectTab = () => {
               ))}
             </TableBody>
           </Table>
+          {totalPages > 1 && (
+            <div className="pagination mt-4 flex justify-center items-center space-x-4">
+              <Button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+              >
+                Previous
+              </Button>
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

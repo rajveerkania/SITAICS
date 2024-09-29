@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import Achievement from "@/components/student/Achievement";
 import SubjectTab from "@/components/student/SubjectTab";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import AddStudentDetails from "@/components/student/AddStudentDetails";
-import {  toast } from "sonner";
+import { toast } from "sonner";
 import Placement from "@/components/student/Placement";
 import AttendanceTab from "@/components/student/AttendanceTab";
 
@@ -41,7 +41,8 @@ const StudentDashboard: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [loading, setLoading] = useState<boolean>(true);
-  const [showAddStudentDetails, setShowAddStudentDetails] = useState<boolean>(false);
+  const [showAddStudentDetails, setShowAddStudentDetails] =
+    useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const tabs = [
@@ -62,11 +63,14 @@ const StudentDashboard: React.FC = () => {
       if (data.user.isProfileCompleted) {
         setUserInfo(data.user);
       } else {
-        setUserInfo({ id: data.user.id, name: "", isProfileCompleted: false } as UserInfo);
+        setUserInfo({
+          id: data.user.id,
+          name: "",
+          isProfileCompleted: false,
+        } as UserInfo);
         setShowAddStudentDetails(true);
       }
     } catch (error) {
-      console.error("Error fetching user details:", error);
       toast.error("Error fetching user details");
     } finally {
       setLoading(false);
@@ -97,8 +101,7 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      
-      <Navbar name={userInfo?.name || ""} role="Student" />
+      <Navbar name={userInfo?.name || ""} role={"Student"} />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button
@@ -149,7 +152,7 @@ const StudentDashboard: React.FC = () => {
             {tabs.map((tab) => (
               <li key={tab} className="w-full">
                 <button
-                  className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105 ${
+                  className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105  ${
                     activeTab === tab.toLowerCase()
                       ? "bg-gray-900 text-white"
                       : "bg-gray-800 text-gray-300 hover:bg-gray-700"
@@ -178,16 +181,16 @@ const StudentDashboard: React.FC = () => {
                 key={tab}
                 value={tab.toLowerCase()}
                 className={`
-                  flex-grow basis-full sm:basis-1/2 md:basis-auto
-                  text-center px-4 py-2 rounded-md
-                  font-medium text-sm
-                  transition-all duration-200 ease-in-out
-                  ${
-                    activeTab === tab.toLowerCase()
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "bg-gray-200 text-black hover:bg-gray-300"
-                  }
-                `}
+        flex-grow basis-full sm:basis-1/2 md:basis-auto
+        text-center px-4 py-2 rounded-md
+        font-medium text-sm
+        transition-all duration-200 ease-in-out
+        ${
+          activeTab === tab.toLowerCase()
+            ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative" // Active tab styles with top shadow
+            : "bg-gray-200 text-black hover:bg-gray-300"
+        }
+      `}
                 onClick={() => setActiveTab(tab.toLowerCase())}
               >
                 {tab}
@@ -200,14 +203,7 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="timetable">
-            <Card>
-              <CardHeader>
-                <CardTitle>Timetable</CardTitle>
-              </CardHeader>
-              <CardContent>
                 <Timetable timetableData={[]} />
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="subjects">
@@ -216,17 +212,16 @@ const StudentDashboard: React.FC = () => {
                 <CardTitle>Subjects</CardTitle>
               </CardHeader>
               <CardContent>
-                <SubjectTab/>
+                <SubjectTab studentId={userInfo?.id || ""} />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="attendance">
             <Card>
-              <CardHeader>
-              </CardHeader>
+              <CardHeader></CardHeader>
               <CardContent>
-               <AttendanceTab/>
+                <AttendanceTab />
               </CardContent>
             </Card>
           </TabsContent>
@@ -254,16 +249,8 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="achievements">
-            <Card>
-              <CardHeader>
-                <CardTitle>Achievements</CardTitle>
-              </CardHeader>
-              <CardContent>
                 <Achievement />
-              </CardContent>
-            </Card>
           </TabsContent>
-
           <TabsContent value="placement">
             <Card>
               <CardHeader>

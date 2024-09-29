@@ -34,7 +34,7 @@ const UsersTab = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("manage");
-  const usersPerPage = 10;
+  const usersPerPage = 5;
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -86,8 +86,7 @@ const UsersTab = () => {
         toast.success(data.message);
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
-      alert("An error occurred while deleting the user");
+      toast.error("Error while deleting user!");
     }
   };
 

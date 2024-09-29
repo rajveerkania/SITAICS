@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
+  const decodedUser = verifyToken();
+  const userRole = decodedUser?.role;
+
+  if (userRole !== "Student") {
+    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+  }
+
   try {
     const reqBody = await request.json();
     const {
