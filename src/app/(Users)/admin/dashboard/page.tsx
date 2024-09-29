@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatCard } from "@/components/StatCard";
@@ -20,15 +29,15 @@ import AccessDenied from "@/components/accessDenied";
 import InactiveRecords from "@/components/admin/InactiveRecords";
 
 interface CourseData {
-  course: string;
-  students: number;
+  courseName: string;
+  Students: number;
 }
 
 interface Stats {
   studentCount: number;
   staffCount: number;
   totalCoursesCount: number;
-  formattedStudentData: CourseData[];
+  formattedCourseData: CourseData[];
 }
 
 const AdminDashboard = () => {
@@ -58,11 +67,14 @@ const AdminDashboard = () => {
         if (response.status !== 200)
           toast.error(data.message || "Error while fetching user data");
 
-        const overviewStats = await fetch(`/api/overviewStats`);
-        const stats = await overviewStats.json();
-        if (overviewStats.status !== 200 && overviewStats.status !== 403)
+        const overviewStatsResponse = await fetch(`/api/overviewStats`);
+        const stats = await overviewStatsResponse.json();
+        if (
+          overviewStatsResponse.status !== 200 &&
+          overviewStatsResponse.status !== 403
+        )
           toast.error(stats.message || "Error while fetching the stats");
-        else if (overviewStats.status === 403) {
+        else if (overviewStatsResponse.status === 403) {
           return <AccessDenied />;
         }
 
@@ -217,13 +229,14 @@ const AdminDashboard = () => {
                 <CardContent>
                   <div className="w-full h-[300px] sm:h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={overviewStats?.formattedStudentData || []}>
+                      <BarChart data={overviewStats?.formattedCourseData || []}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="course" />
+                        <XAxis dataKey="courseName" />
+                        response 
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="students" fill="#000000" />
+                        <Bar dataKey="Students" fill="#000000" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

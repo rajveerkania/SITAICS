@@ -144,8 +144,9 @@ export async function POST(request: NextRequest) {
     });
 
     const failureRate = failedSubjects.length;
+    if (failureRate) console.log(failedSubjects);
     const duplicationRate = duplicateSubjects.length;
-    console.log(failedSubjects);
+    if (duplicationRate) console.log(duplicateSubjects);
 
     return NextResponse.json(
       {

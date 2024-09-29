@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     const formattedCourseData = courseData.map((course) => ({
       courseName: course.courseName,
-      activeStudentCount: course.StudentDetails.length,
+      Students: course.StudentDetails.length,
     }));
 
     return NextResponse.json(

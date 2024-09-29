@@ -1,40 +1,95 @@
-import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import React, { useEffect, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import LoadingSkeleton from "../LoadingSkeleton";
 
-interface Subject {
+interface Staff {
+  id: string;
   name: string;
-  code: string;
-  credits: number;
-  professor: string;
+  email: string;
 }
 
-const SubjectTab: React.FC = () => {
-  // This is example data. In a real application, you'd fetch this data from an API or pass it as props.
-  const subjects: Subject[] = [
-    { name: "Introduction to Computer Science", code: "CS101", credits: 3, professor: "Dr. Jane Smith" },
-    { name: "Calculus I", code: "MATH201", credits: 4, professor: "Prof. John Doe" },
-    { name: "Physics for Engineers", code: "PHY150", credits: 4, professor: "Dr. Alice Johnson" },
-    { name: "English Composition", code: "ENG101", credits: 3, professor: "Prof. Robert Brown" },
-  ];
+interface Subject {
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string;
+  semester: number;
+  staff: Staff[] | "NA";
+}
+
+interface SubjectsData {
+  studentId: string;
+  courseName: string;
+  batchName: string;
+  subjects: Subject[];
+}
+
+interface SubjectProps {
+  studentId: string;
+}
+
+const SubjectTab: React.FC<SubjectProps> = ({ studentId }) => {
+  const [subjectsData, setSubjectsData] = useState<SubjectsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const response = await fetch(
+          `/api/student/fetchSubjects?studentId=${studentId}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch subjects");
+        }
+        const data: SubjectsData = await response.json();
+        if (data.subjects.length === 0) {
+          setError("No subjects found");
+        }
+        setSubjectsData(data);
+      } catch (err) {
+        setError("Error fetching subjects. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSubjects();
+  }, [studentId]);
+
+  if (loading) return <LoadingSkeleton loadingText="subjects" />;
+  if (error) return <div>{error}</div>;
+  if (!subjectsData) return null;
 
   return (
     <div className="w-full">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[25%]">Subject Name</TableHead>
-            <TableHead className="w-[20%]">Subject Code</TableHead>
-            <TableHead className="w-[15%]">Credits</TableHead>
-            <TableHead className="w-[40%]">Professor</TableHead>
+            <TableHead>Subject Name</TableHead>
+            <TableHead>Subject Code</TableHead>
+            <TableHead>Semester</TableHead>
+            <TableHead>Staff</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {subjects.map((subject, index) => (
-            <TableRow key={index}>
-              <TableCell className="font-medium">{subject.name}</TableCell> 
-              <TableCell>{subject.code}</TableCell>
-              <TableCell>{subject.credits}</TableCell>
-              <TableCell>{subject.professor}</TableCell>
+          {subjectsData.subjects.map((subject) => (
+            <TableRow key={subject.subjectId}>
+              <TableCell className="font-medium">
+                {subject.subjectName}
+              </TableCell>
+              <TableCell>{subject.subjectCode}</TableCell>
+              <TableCell>{subject.semester}</TableCell>
+              <TableCell>
+                {subject.staff === "NA"
+                  ? "Not Assigned"
+                  : subject.staff.map((s) => s.name).join(", ")}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

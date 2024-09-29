@@ -1,89 +1,106 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { AiFillDelete } from "react-icons/ai"; // For delete icon
-import { FiFileText } from "react-icons/fi"; // For file icon
+import React, { useState, useEffect } from "react";
+import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 
 interface Achievement {
-  id: string;
+  id: number;
   title: string;
   description: string;
-  pdfUrl?: string;
+  date: string;
+  category: string;
 }
 
-const Achievements: React.FC = () => {
+const Achievement: React.FC = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [newAchievement, setNewAchievement] = useState({ title: "", description: "", pdfUrl: "", date: "" });
-  const [activeTab, setActiveTab] = useState("view");
-  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState("");
+  const [category, setCategory] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("All");
+  const [activeTab, setActiveTab] = useState<"view" | "add">("view");
 
-  const fetchAchievements = async () => {
-    // Fetch achievements from the backend (if needed)
+  const categories = ["Academic", "Sports", "Extracurricular", "Professional", "Other"];
+
+  useEffect(() => {
+    const storedAchievements = localStorage.getItem("achievements");
+    if (storedAchievements) {
+      setAchievements(JSON.parse(storedAchievements));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("achievements", JSON.stringify(achievements));
+  }, [achievements]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingId !== null) {
+      setAchievements(
+        achievements.map((ach) =>
+          ach.id === editingId ? { ...ach, title, description, date, category } : ach
+        )
+      );
+      setEditingId(null);
+    } else {
+      const newAchievement: Achievement = {
+        id: Date.now(),
+        title,
+        description,
+        date,
+        category,
+      };
+      setAchievements([...achievements, newAchievement]);
+    }
+    setTitle("");
+    setDescription("");
+    setDate("");
+    setCategory("");
   };
 
-  const handleAddAchievement = async () => {
-    if (newAchievement.title && newAchievement.description && newAchievement.date) {
-      try {
-        const formData = new FormData();
-        formData.append("title", newAchievement.title);
-        formData.append("description", newAchievement.description);
-        formData.append("date", newAchievement.date);
-        if (file) formData.append("file", file);
-
-        const res = await fetch("/api/achievements", {
-          method: "POST",
-          body: JSON.stringify({
-            title: newAchievement.title,
-            description: newAchievement.description,
-            date: newAchievement.date,
-            file: newAchievement.pdfUrl,
-            userId: 1, // Replace with the actual user ID when available
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          setAchievements([...achievements, data.achievement]);
-          setNewAchievement({ title: "", description: "", pdfUrl: "", date: "" });
-          setFile(null);
-        } else {
-          console.error("Failed to add achievement:", data.message);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-      }
+  const handleEdit = (id: number) => {
+    const achievementToEdit = achievements.find((ach) => ach.id === id);
+    if (achievementToEdit) {
+      setTitle(achievementToEdit.title);
+      setDescription(achievementToEdit.description);
+      setDate(achievementToEdit.date);
+      setCategory(achievementToEdit.category);
+      setEditingId(id);
+      setActiveTab("add");
     }
   };
 
-  const handleDeleteAchievement = (id: string) => {
-    setAchievements((prev) => prev.filter((ach) => ach.id !== id));
+  const handleDelete = (id: number) => {
+    setAchievements(achievements.filter((ach) => ach.id !== id));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      const url = URL.createObjectURL(selectedFile);
-      setNewAchievement((prev) => ({ ...prev, pdfUrl: url }));
-    }
-  };
+  const filteredAchievements = achievements
+    .filter(
+      (ach) =>
+        ach.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ach.description.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((ach) => filterCategory === "All" || ach.category === filterCategory);
 
   return (
-    <div className="bg-gray-100 p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">Achievements</h2>
+    <div className="bg-white shadow-md rounded-lg p-6 md:p-8 max-w-10xl mx-auto">
+      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">Achievements</h2>
 
-      <div className="mb-6">
+      {/* Tab Navigation */}
+      <div className="flex flex-col md:flex-row mb-4 border-b border-gray-300">
         <button
+          className={`p-2 flex-1 ${
+            activeTab === "view" ? "bg-black text-white" : "bg-gray-200 text-gray-700"
+          } md:rounded-tl-lg`}
           onClick={() => setActiveTab("view")}
-          className={`mr-4 py-2 px-4 rounded-t-lg ${activeTab === "view" ? "bg-black text-white" : "bg-gray-200"}`}
         >
           View Achievements
         </button>
         <button
+          className={`p-2 flex-1 ${
+            activeTab === "add" ? "bg-black text-white" : "bg-gray-200 text-gray-700"
+          } md:rounded-tr-lg`}
           onClick={() => setActiveTab("add")}
-          className={`py-2 px-4 rounded-t-lg ${activeTab === "add" ? "bg-black text-white" : "bg-gray-200"}`}
         >
           Add Achievement
         </button>
@@ -91,97 +108,105 @@ const Achievements: React.FC = () => {
 
       {activeTab === "view" && (
         <div>
-          <h3 className="text-2xl font-semibold text-gray-800 mb-4">Your Achievements</h3>
+          {/* Top Bar with Search and Filter */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 md:space-x-4">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search achievements..."
+              className="p-2 border rounded w-full md:w-1/2 lg:w-1/3"
+            />
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="p-2 border rounded w-full md:w-1/4 lg:w-1/5"
+            >
+              <option value="All">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Achievement Cards */}
           <div className="space-y-4">
-            {achievements.length > 0 ? (
-              achievements.map((achievement) => (
-                <motion.div
-                  key={achievement.id}
-                  className="bg-white p-4 rounded-lg shadow-md flex items-center space-x-4"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="flex-grow">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-xl font-semibold text-gray-800">{achievement.title}</h4>
-                      <button
-                        onClick={() => handleDeleteAchievement(achievement.id)}
-                        className="text-red-600 hover:text-red-800 font-semibold"
-                      >
-                        <AiFillDelete size={20} />
-                      </button>
-                    </div>
-                    <p className="text-gray-600">{achievement.description}</p>
-                    {achievement.pdfUrl && (
-                      <iframe
-                        src={achievement.pdfUrl}
-                        className="w-full h-48 mt-4 border rounded-lg"
-                        style={{ border: "none" }}
-                        title="PDF Viewer"
-                      ></iframe>
-                    )}
-                  </div>
-                  {achievement.pdfUrl && (
-                    <a
-                      href={achievement.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-black hover:text-black"
-                    >
-                      <FiFileText size={24} />
-                    </a>
-                  )}
-                </motion.div>
-              ))
-            ) : (
-              <p className="text-gray-600">No achievements yet. Add some to get started!</p>
-            )}
+            {filteredAchievements.map((achievement) => (
+              <div key={achievement.id} className="border p-4 rounded shadow-md">
+                <h3 className="text-xl font-semibold">{achievement.title}</h3>
+                <p className="text-gray-600">{achievement.description}</p>
+                <p className="text-sm text-gray-500">
+                  Date: {achievement.date} | Category: {achievement.category}
+                </p>
+                <div className="mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  <button
+                    onClick={() => handleEdit(achievement.id)}
+                    className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 w-full sm:w-auto flex items-center justify-center"
+                  >
+                    <FaRegEdit className="mr-2" /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(achievement.id)}
+                    className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 w-full sm:w-auto flex items-center justify-center"
+                  >
+                    <FaTrashAlt className="mr-2" /> Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {activeTab === "add" && (
-        <div className="mb-8">
-          <h3 className="text-2xl font-semibold text-gray-800 mb-4">Add New Achievement</h3>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <input
-              type="text"
-              placeholder="Title"
-              value={newAchievement.title}
-              onChange={(e) => setNewAchievement({ ...newAchievement, title: e.target.value })}
-              className="w-full p-3 mb-2 border border-gray-300 rounded-lg"
-            />
-            <textarea
-              placeholder="Description"
-              value={newAchievement.description}
-              onChange={(e) => setNewAchievement({ ...newAchievement, description: e.target.value })}
-              className="w-full p-3 mb-2 border border-gray-300 rounded-lg"
-              rows={3}
-            />
-            <input
-              type="date"
-              value={newAchievement.date}
-              onChange={(e) => setNewAchievement({ ...newAchievement, date: e.target.value })}
-              className="w-full p-3 mb-2 border border-gray-300 rounded-lg"
-            />
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={handleFileUpload}
-              className="w-full p-3 mb-4 border border-gray-300 rounded-lg"
-            />
-            <button
-              onClick={handleAddAchievement}
-              className="bg-black text-white py-2 px-6 rounded-lg hover:bg-gray-900"
-            >
-              Add Achievement
-            </button>
-          </div>
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Achievement Title"
+            className="w-full p-2 border rounded"
+            required
+          />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description"
+            className="w-full p-2 border rounded"
+            required
+          />
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          >
+            <option value="">Select Category</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            className="w-full bg-black text-white p-2 rounded hover:bg-gray-800"
+          >
+            {editingId !== null ? "Update Achievement" : "Add Achievement"}
+          </button>
+        </form>
       )}
     </div>
   );
 };
 
-export default Achievements;
+export default Achievement;
