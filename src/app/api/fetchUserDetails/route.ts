@@ -88,6 +88,7 @@ export async function GET(request: NextRequest) {
               city: true,    // Add city
               state: true,   // Add state
               pinCode: true, // Add pin
+              isProfileCompleted: true
             },
           });
           return NextResponse.json({ user, role: "Staff" }, { status: 200 });
