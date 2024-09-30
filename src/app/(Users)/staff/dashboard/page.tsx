@@ -38,7 +38,6 @@ const FacultyDashboard: React.FC = () => {
       if (response.status !== 200) {
         toast.error(data.message || "Error fetching user data");
       }
-      console.log(data.user);
       if (data.user.isProfileCompleted) {
         setUserInfo(data.user);
       } else {
@@ -187,7 +186,7 @@ const FacultyDashboard: React.FC = () => {
             <Result />
           </TabsContent>
           <TabsContent value="achievement">
-            <Achievements />
+            <Achievements userId={userInfo.id} userRole="Staff" />
           </TabsContent>
           <TabsContent value="attendance">
             <Attendance />

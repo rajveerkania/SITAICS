@@ -17,13 +17,17 @@ export async function POST(request: NextRequest) {
     const staffDetails = await prisma.staffDetails.findUnique({
       where: { id: userId },
     });
-    console.log(staffDetails)
     if (!staffDetails) {
-      return NextResponse.json({ error: "Staff details not found!" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Staff details not found!" },
+        { status: 404 }
+      );
     }
 
     // Parse the existing achievements (if it's stored as a JSON string)
-    const currentAchievements = staffDetails.achievements ? JSON.parse(staffDetails.achievements) : [];
+    const currentAchievements = staffDetails.achievements
+      ? JSON.parse(staffDetails.achievements)
+      : [];
 
     const newAchievement = {
       title,
@@ -40,9 +44,15 @@ export async function POST(request: NextRequest) {
       data: { achievements: JSON.stringify(updatedAchievements) },
     });
 
-    return NextResponse.json({ message: "Achievement added!", achievements: updatedStaff.achievements });
+    return NextResponse.json({
+      message: "Achievement added!",
+      achievements: updatedStaff.achievements,
+    });
   } catch (error) {
     console.error("Error adding achievement:", error);
-    return NextResponse.json({ error: "Something went wrong!" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Something went wrong!" },
+      { status: 500 }
+    );
   }
 }

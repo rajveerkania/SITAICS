@@ -1,55 +1,54 @@
-  generator client {
-    provider = "prisma-client-js"
-  }
+generator client {
+  provider = "prisma-client-js"
+}
 
-  datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
-  }
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
-  model User {
-    id             String          @id @default(uuid())
-    email          String          @unique
-    password       String
-    name           String
-    createdAt      DateTime        @default(now())
-    role           Role
-    updatedAt      DateTime        @updatedAt
-    username       String          @unique
-    isActive       Boolean         @default(true)
-    studentDetails StudentDetails?
-    staffDetails   StaffDetails?
-  }
-  
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  password       String
+  name           String
+  createdAt      DateTime        @default(now())
+  role           Role
+  updatedAt      DateTime        @updatedAt
+  username       String          @unique
+  isActive       Boolean         @default(true)
+  studentDetails StudentDetails?
+  staffDetails   StaffDetails?
+}
 
-  model StudentDetails {
-    id                 String    @id
-    email              String
-    username           String    @unique
-    name               String
-    fatherName         String?
-    motherName         String?
-    enrollmentNumber   String?   @unique
-    courseName         String?
-    batchName          String?
-    dateOfBirth        DateTime?
-    gender             String?
-    bloodGroup         String?
-    contactNo          String?
-    address            String?
-    city               String?
-    state              String?
-    pinCode            Int?
-    achievements       String?
-    results            Json?
-    isActive           Boolean   @default(true)
-    createdAt          DateTime  @default(now())
-    updatedAt          DateTime  @updatedAt
-    isProfileCompleted Boolean   @default(false)
-    user               User      @relation(fields: [id], references: [id])
-    course             Course?   @relation(fields: [courseName], references: [courseName])
-    batch              Batch?    @relation(fields: [batchName], references: [batchName])
-  }
+model StudentDetails {
+  id                 String    @id
+  email              String
+  username           String    @unique
+  name               String
+  fatherName         String?
+  motherName         String?
+  enrollmentNumber   String?   @unique
+  courseName         String?
+  batchName          String?
+  dateOfBirth        DateTime?
+  gender             String?
+  bloodGroup         String?
+  contactNo          String?
+  address            String?
+  city               String?
+  state              String?
+  pinCode            Int?
+  achievements       String?
+  results            Json?
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  isProfileCompleted Boolean   @default(false)
+  user               User      @relation(fields: [id], references: [id])
+  course             Course?   @relation(fields: [courseName], references: [courseName])
+  batch              Batch?    @relation(fields: [batchName], references: [batchName])
+}
 
 model StaffDetails {
   id                 String    @id
@@ -62,7 +61,7 @@ model StaffDetails {
   gender             String?
   subjects           Subject[]
   contactNumber      String?
-  achievements       Json?     // Use 'Json?' type to store achievements as an array of JSON objects
+  achievements       Json?
   address            String?
   city               String?
   state              String?
@@ -75,61 +74,59 @@ model StaffDetails {
   batch              Batch?    @relation(fields: [batchId], references: [batchId])
 }
 
+model Subject {
+  subjectId   String         @id @default(uuid())
+  subjectName String
+  subjectCode String
+  semester    Int
+  courseId    String
+  course      Course         @relation(fields: [courseId], references: [courseId])
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  staff       StaffDetails[]
+  batches     BatchSubject[]
+}
 
+model Course {
+  courseId       String           @id @default(uuid())
+  courseName     String           @unique
+  subjects       Subject[]
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  batches        Batch[]
+  StudentDetails StudentDetails[]
+}
 
-  model Subject {
-    subjectId   String         @id @default(uuid())
-    subjectName String
-    subjectCode String
-    semester    Int
-    courseId    String
-    course      Course         @relation(fields: [courseId], references: [courseId])
-    isActive    Boolean        @default(true)
-    createdAt   DateTime       @default(now())
-    updatedAt   DateTime       @updatedAt
-    staff       StaffDetails[]
-    batches     BatchSubject[]
-  }
+model Batch {
+  batchId         String           @id @default(uuid())
+  batchName       String           @unique
+  courseId        String
+  batchDuration   Int
+  currentSemester Int
+  students        StudentDetails[]
+  staffMembers    StaffDetails[]
+  subjects        BatchSubject[]
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  course          Course           @relation(fields: [courseId], references: [courseId])
+}
 
-  model Course {
-    courseId       String           @id @default(uuid())
-    courseName     String           @unique
-    subjects       Subject[]
-    isActive       Boolean          @default(true)
-    createdAt      DateTime         @default(now())
-    updatedAt      DateTime         @updatedAt
-    batches        Batch[]
-    StudentDetails StudentDetails[]
-  }
+model BatchSubject {
+  batchId   String
+  subjectId String
+  semester  Int
+  batch     Batch   @relation(fields: [batchId], references: [batchId])
+  subject   Subject @relation(fields: [subjectId], references: [subjectId])
 
-  model Batch {
-    batchId         String           @id @default(uuid())
-    batchName       String           @unique
-    courseId        String
-    batchDuration   Int
-    currentSemester Int
-    students        StudentDetails[]
-    staffMembers    StaffDetails[]
-    subjects        BatchSubject[]
-    isActive        Boolean          @default(true)
-    createdAt       DateTime         @default(now())
-    updatedAt       DateTime         @updatedAt
-    course          Course           @relation(fields: [courseId], references: [courseId])
-  }
+  @@id([batchId, subjectId])
+}
 
-  model BatchSubject {
-    batchId   String
-    subjectId String
-    semester  Int
-    batch     Batch   @relation(fields: [batchId], references: [batchId])
-    subject   Subject @relation(fields: [subjectId], references: [subjectId])
-
-    @@id([batchId, subjectId])
-  }
-
-  enum Role {
-    Admin
-    Staff
-    PO
-    Student
-  }
+enum Role {
+  Admin
+  Staff
+  PO
+  Student
+}

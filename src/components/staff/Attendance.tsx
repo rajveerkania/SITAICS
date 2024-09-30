@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
-// Mock attendance data
 const mockAttendanceData = [
   {
     id: 1,
@@ -28,10 +27,8 @@ const mockAttendanceData = [
     subject: "Data Structures",
     attendance: {},
   },
-  // More student data...
 ];
 
-// Mock attendance records
 const mockAttendanceRecords = [
   {
     id: 1,
@@ -45,10 +42,8 @@ const mockAttendanceRecords = [
       "2024-09-03": "Present",
     },
   },
-  // More record data...
 ];
 
-// Mark Attendance Tab
 const MarkAttendanceTab = ({ attendanceData, setAttendanceData }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
@@ -66,7 +61,7 @@ const MarkAttendanceTab = ({ attendanceData, setAttendanceData }) => {
 
   const handleAttendanceChange = (studentId: number, status: string) => {
     setAttendanceData((prevData: any[]) =>
-      prevData.map((student: { id: number; attendance: any; }) => {
+      prevData.map((student: { id: number; attendance: any }) => {
         if (student.id === studentId) {
           const newAttendance = {
             ...student.attendance,
@@ -85,14 +80,21 @@ const MarkAttendanceTab = ({ attendanceData, setAttendanceData }) => {
     setSelectedDate("");
   };
 
-  const filteredData = attendanceData.filter((entry: { name: string; course: string; batch: string; subject: string; }) => {
-    return (
-      entry.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (selectedCourse === null || entry.course === selectedCourse) &&
-      (selectedBatch === null || entry.batch === selectedBatch) &&
-      (selectedSubject === null || entry.subject === selectedSubject)
-    );
-  });
+  const filteredData = attendanceData.filter(
+    (entry: {
+      name: string;
+      course: string;
+      batch: string;
+      subject: string;
+    }) => {
+      return (
+        entry.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        (selectedCourse === null || entry.course === selectedCourse) &&
+        (selectedBatch === null || entry.batch === selectedBatch) &&
+        (selectedSubject === null || entry.subject === selectedSubject)
+      );
+    }
+  );
 
   return (
     <div className="p-4 sm:p-6 md:p-8 bg-white rounded-lg shadow-md">
@@ -105,7 +107,10 @@ const MarkAttendanceTab = ({ attendanceData, setAttendanceData }) => {
             placeholder="Search by name"
             className="px-4 py-2 border border-gray-300 rounded-md mb-2 sm:mb-0 sm:w-64"
           />
-          <Select onValueChange={setSelectedCourse} value={selectedCourse || ""}>
+          <Select
+            onValueChange={setSelectedCourse}
+            value={selectedCourse || ""}
+          >
             <SelectTrigger className="w-[200px]">
               {selectedCourse || "Select Course"}
             </SelectTrigger>
@@ -127,7 +132,10 @@ const MarkAttendanceTab = ({ attendanceData, setAttendanceData }) => {
               <SelectItem value="2022-2026">2022-2026</SelectItem>
             </SelectContent>
           </Select>
-          <Select onValueChange={setSelectedSubject} value={selectedSubject || ""}>
+          <Select
+            onValueChange={setSelectedSubject}
+            value={selectedSubject || ""}
+          >
             <SelectTrigger className="w-[200px]">
               {selectedSubject || "Select Subject"}
             </SelectTrigger>
@@ -180,35 +188,101 @@ const MarkAttendanceTab = ({ attendanceData, setAttendanceData }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredData.map((entry: { id: React.Key | null | undefined; name: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; course: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; batch: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; subject: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; attendance: { [x: string]: any; }; }) => (
-            <TableRow key={entry.id} className="hover:bg-gray-100 transition-all">
-              <TableCell>{entry.name}</TableCell>
-              <TableCell>{entry.course}</TableCell>
-              <TableCell>{entry.batch}</TableCell>
-              <TableCell>{entry.subject}</TableCell>
-              <TableCell>
-                <Select
-                  onValueChange={(status) => handleAttendanceChange(entry.id, status)}
-                  value={entry.attendance[parseDate(selectedDate)] || ""}
-                  disabled={!selectedDate}
-                >
-                  <SelectTrigger className="w-[120px]">
-                    {entry.attendance[parseDate(selectedDate)] || "Mark"}
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Present">Present</SelectItem>
-                    <SelectItem value="Absent">Absent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </TableCell>
-            </TableRow>
-          ))}
+          {filteredData.map(
+            (entry: {
+              id: React.Key | null | undefined;
+              name:
+                | string
+                | number
+                | bigint
+                | boolean
+                | React.ReactElement<
+                    any,
+                    string | React.JSXElementConstructor<any>
+                  >
+                | Iterable<React.ReactNode>
+                | React.ReactPortal
+                | Promise<React.AwaitedReactNode>
+                | null
+                | undefined;
+              course:
+                | string
+                | number
+                | bigint
+                | boolean
+                | React.ReactElement<
+                    any,
+                    string | React.JSXElementConstructor<any>
+                  >
+                | Iterable<React.ReactNode>
+                | React.ReactPortal
+                | Promise<React.AwaitedReactNode>
+                | null
+                | undefined;
+              batch:
+                | string
+                | number
+                | bigint
+                | boolean
+                | React.ReactElement<
+                    any,
+                    string | React.JSXElementConstructor<any>
+                  >
+                | Iterable<React.ReactNode>
+                | React.ReactPortal
+                | Promise<React.AwaitedReactNode>
+                | null
+                | undefined;
+              subject:
+                | string
+                | number
+                | bigint
+                | boolean
+                | React.ReactElement<
+                    any,
+                    string | React.JSXElementConstructor<any>
+                  >
+                | Iterable<React.ReactNode>
+                | React.ReactPortal
+                | Promise<React.AwaitedReactNode>
+                | null
+                | undefined;
+              attendance: { [x: string]: any };
+            }) => (
+              <TableRow
+                key={entry.id}
+                className="hover:bg-gray-100 transition-all"
+              >
+                <TableCell>{entry.name}</TableCell>
+                <TableCell>{entry.course}</TableCell>
+                <TableCell>{entry.batch}</TableCell>
+                <TableCell>{entry.subject}</TableCell>
+                <TableCell>
+                  <Select
+                    onValueChange={(status) =>
+                      handleAttendanceChange(entry.id, status)
+                    }
+                    value={entry.attendance[parseDate(selectedDate)] || ""}
+                    disabled={!selectedDate}
+                  >
+                    <SelectTrigger className="w-[120px]">
+                      {entry.attendance[parseDate(selectedDate)] || "Mark"}
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Present">Present</SelectItem>
+                      <SelectItem value="Absent">Absent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+              </TableRow>
+            )
+          )}
         </TableBody>
       </Table>
     </div>
   );
 };
- 
+
 const RecordsTab = ({ attendanceRecords }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
@@ -219,18 +293,29 @@ const RecordsTab = ({ attendanceRecords }) => {
     setSearchQuery(event.target.value);
   };
 
-  const filteredRecords = attendanceRecords.filter((record: { name: string; course: string; batch: string; subject: string; }) => {
-    return (
-      record.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (selectedCourse === null || record.course === selectedCourse) &&
-      (selectedBatch === null || record.batch === selectedBatch) &&
-      (selectedSubject === null || record.subject === selectedSubject)
-    );
-  });
+  const filteredRecords = attendanceRecords.filter(
+    (record: {
+      name: string;
+      course: string;
+      batch: string;
+      subject: string;
+    }) => {
+      return (
+        record.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        (selectedCourse === null || record.course === selectedCourse) &&
+        (selectedBatch === null || record.batch === selectedBatch) &&
+        (selectedSubject === null || record.subject === selectedSubject)
+      );
+    }
+  );
 
-  const calculateAttendance = (attendance: { [s: string]: unknown; } | ArrayLike<unknown>) => {
+  const calculateAttendance = (
+    attendance: { [s: string]: unknown } | ArrayLike<unknown>
+  ) => {
     const totalDays = Object.keys(attendance).length;
-    const presentDays = Object.values(attendance).filter(status => status === "Present").length;
+    const presentDays = Object.values(attendance).filter(
+      (status) => status === "Present"
+    ).length;
     return `${presentDays} present out of ${totalDays}`;
   };
 
@@ -245,7 +330,10 @@ const RecordsTab = ({ attendanceRecords }) => {
             placeholder="Search by name"
             className="px-4 py-2 border border-gray-300 rounded-md mb-2 sm:mb-0 sm:w-64"
           />
-          <Select onValueChange={setSelectedCourse} value={selectedCourse || ""}>
+          <Select
+            onValueChange={setSelectedCourse}
+            value={selectedCourse || ""}
+          >
             <SelectTrigger className="w-[200px]">
               {selectedCourse || "Select Course"}
             </SelectTrigger>
@@ -267,7 +355,10 @@ const RecordsTab = ({ attendanceRecords }) => {
               <SelectItem value="2022-2026">2022-2026</SelectItem>
             </SelectContent>
           </Select>
-          <Select onValueChange={setSelectedSubject} value={selectedSubject || ""}>
+          <Select
+            onValueChange={setSelectedSubject}
+            value={selectedSubject || ""}
+          >
             <SelectTrigger className="w-[200px]">
               {selectedSubject || "Select Subject"}
             </SelectTrigger>
@@ -291,17 +382,79 @@ const RecordsTab = ({ attendanceRecords }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredRecords.map((record: { id: React.Key | null | undefined; name: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; course: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; batch: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; subject: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; attendance: any; }) => (
-            <TableRow key={record.id} className="hover:bg-gray-100 transition-all">
-              <TableCell>{record.name}</TableCell>
-              <TableCell>{record.course}</TableCell>
-              <TableCell>{record.batch}</TableCell>
-              <TableCell>{record.subject}</TableCell>
-              <TableCell>
-                {calculateAttendance(record.attendance)}
-              </TableCell>
-            </TableRow>
-          ))}
+          {filteredRecords.map(
+            (record: {
+              id: React.Key | null | undefined;
+              name:
+                | string
+                | number
+                | bigint
+                | boolean
+                | React.ReactElement<
+                    any,
+                    string | React.JSXElementConstructor<any>
+                  >
+                | Iterable<React.ReactNode>
+                | React.ReactPortal
+                | Promise<React.AwaitedReactNode>
+                | null
+                | undefined;
+              course:
+                | string
+                | number
+                | bigint
+                | boolean
+                | React.ReactElement<
+                    any,
+                    string | React.JSXElementConstructor<any>
+                  >
+                | Iterable<React.ReactNode>
+                | React.ReactPortal
+                | Promise<React.AwaitedReactNode>
+                | null
+                | undefined;
+              batch:
+                | string
+                | number
+                | bigint
+                | boolean
+                | React.ReactElement<
+                    any,
+                    string | React.JSXElementConstructor<any>
+                  >
+                | Iterable<React.ReactNode>
+                | React.ReactPortal
+                | Promise<React.AwaitedReactNode>
+                | null
+                | undefined;
+              subject:
+                | string
+                | number
+                | bigint
+                | boolean
+                | React.ReactElement<
+                    any,
+                    string | React.JSXElementConstructor<any>
+                  >
+                | Iterable<React.ReactNode>
+                | React.ReactPortal
+                | Promise<React.AwaitedReactNode>
+                | null
+                | undefined;
+              attendance: any;
+            }) => (
+              <TableRow
+                key={record.id}
+                className="hover:bg-gray-100 transition-all"
+              >
+                <TableCell>{record.name}</TableCell>
+                <TableCell>{record.course}</TableCell>
+                <TableCell>{record.batch}</TableCell>
+                <TableCell>{record.subject}</TableCell>
+                <TableCell>{calculateAttendance(record.attendance)}</TableCell>
+              </TableRow>
+            )
+          )}
         </TableBody>
       </Table>
     </div>
@@ -310,8 +463,10 @@ const RecordsTab = ({ attendanceRecords }) => {
 
 const AttendanceTab = () => {
   const [attendanceData, setAttendanceData] = useState(mockAttendanceData);
-  const [attendanceRecords, setAttendanceRecords] = useState(mockAttendanceRecords);
-  const [activeTab, setActiveTab] = useState('mark');
+  const [attendanceRecords, setAttendanceRecords] = useState(
+    mockAttendanceRecords
+  );
+  const [activeTab, setActiveTab] = useState("mark");
 
   return (
     <div className="p-15 mx-auto max-w-10xl">
@@ -320,26 +475,34 @@ const AttendanceTab = () => {
 
         <div className="mb-4">
           <Button
-            onClick={() => setActiveTab('mark')}
-            className={`mr-2 ${activeTab === 'mark' ? 'bg-black text-white' : 'bg-gray-200 text-black'} py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
+            onClick={() => setActiveTab("mark")}
+            className={`mr-2 ${
+              activeTab === "mark"
+                ? "bg-black text-white"
+                : "bg-gray-200 text-black"
+            } py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
           >
             Mark Attendance
           </Button>
           <Button
-            onClick={() => setActiveTab('records')}
-            className={`${activeTab === 'records' ? 'bg-black text-white' : 'bg-gray-200 text-black'} py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
+            onClick={() => setActiveTab("records")}
+            className={`${
+              activeTab === "records"
+                ? "bg-black text-white"
+                : "bg-gray-200 text-black"
+            } py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
           >
             Records
           </Button>
         </div>
 
-        {activeTab === 'mark' && (
+        {activeTab === "mark" && (
           <MarkAttendanceTab
             attendanceData={attendanceData}
             setAttendanceData={setAttendanceData}
           />
         )}
-        {activeTab === 'records' && (
+        {activeTab === "records" && (
           <RecordsTab attendanceRecords={attendanceRecords} />
         )}
       </div>

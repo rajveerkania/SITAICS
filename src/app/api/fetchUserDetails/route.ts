@@ -80,6 +80,7 @@ export async function GET(request: NextRequest) {
           user = await prisma.staffDetails.findUnique({
             where: { id },
             select: {
+              id: true,
               email: true,
               username: true,
               name: true,
