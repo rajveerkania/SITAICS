@@ -1,11 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import axios from "axios";
+import { toast } from "sonner";
 
 interface Student {
   username: string;
@@ -25,20 +44,21 @@ const StudentList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 5;
 
-  // Fetch students from API
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get("/api/fetchStudentDetails");
-        const studentsData = response.data.students;
+        const response = await fetch(`/api/fetchStudentDetails`);
+        const data = await response.json();
+        if (response.status !== 200)
+          toast.error(data.message || "Error while fetching user data");
+        else {
+          setStudents(data.students);
+        }
 
-        // Set students in state
-        setStudents(studentsData);
+        const uniqueBatches: string[] = Array.from(
+          new Set(students.map((student: Student) => student.batchName))
+        );
 
-        // Get unique batches
-        const uniqueBatches: string[] = Array.from(new Set(studentsData.map((student: Student) => student.batchName)));
-
-        // Set batches with "all" as a filter option
         setBatches(["all", ...uniqueBatches]);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -48,26 +68,26 @@ const StudentList: React.FC = () => {
     fetchStudents();
   }, []);
 
-  // Search term handler
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
-  // Batch selection handler
   const handleBatchChange = (value: string) => {
     setSelectedBatch(value);
   };
 
-  // Filter students based on search term and selected batch
-  const filteredStudents = students.filter((student) =>
-    (selectedBatch === "all" || student.batchName === selectedBatch) &&
-    student.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredStudents = students.filter(
+    (student) =>
+      (selectedBatch === "all" || student.batchName === selectedBatch) &&
+      student.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Pagination logic
   const indexOfLastStudent = currentPage * studentsPerPage;
   const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
-  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+  const currentStudents = filteredStudents.slice(
+    indexOfFirstStudent,
+    indexOfLastStudent
+  );
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
@@ -125,7 +145,10 @@ const StudentList: React.FC = () => {
                   {/* View Details Dialog */}
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" onClick={() => setSelectedStudent(student)}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setSelectedStudent(student)}
+                      >
                         View Details
                       </Button>
                     </DialogTrigger>
@@ -138,7 +161,8 @@ const StudentList: React.FC = () => {
                           <strong>Name:</strong> {student.name}
                         </p>
                         <p className="text-gray-700 mb-2">
-                          <strong>Enrollment Number:</strong> {student.enrollmentNumber}
+                          <strong>Enrollment Number:</strong>{" "}
+                          {student.enrollmentNumber}
                         </p>
                         <p className="text-gray-700 mb-2">
                           <strong>Email ID:</strong> {student.email}
@@ -158,7 +182,11 @@ const StudentList: React.FC = () => {
         {/* Pagination Controls */}
         <div className="mt-4">
           {Array.from({ length: totalPages }, (_, index) => (
-            <Button key={index + 1} onClick={() => paginate(index + 1)} variant="outline">
+            <Button
+              key={index + 1}
+              onClick={() => paginate(index + 1)}
+              variant="outline"
+            >
               {index + 1}
             </Button>
           ))}
