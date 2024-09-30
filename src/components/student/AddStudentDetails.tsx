@@ -120,11 +120,16 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
 
   const fetchBatches = async (courseName: string) => {
     try {
-      const response = await fetch(
-        `/api/getBatchesName?courseName=${courseName}`
-      );
+      const response = await fetch("/api/course-batches", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ courseName: "B.Tech CS&E (CS)" }),
+      });
+
       const data = await response.json();
-      setBatches(data.batches);
+      setBatches(data.batchNames);
     } catch (error) {
       toast.error("An error occurred while fetching courses.");
     }
@@ -208,7 +213,6 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
         const response = await fetch(`/api/fetchUserDetails`);
         const data = await response.json();
         setUserName(data.user.name);
-        console.log(data.user.name);
       } catch (error) {
         toast.error("Something went wrong. Please try again later");
       }
