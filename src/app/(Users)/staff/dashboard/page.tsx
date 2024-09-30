@@ -5,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Dashboard from "@/components/staff/Dashboard";
 import Result from "@/components/staff/Result";
-import Attendance from "@/components/staff/Attendence";
+import Attendance from "@/components/staff/Attendance";
 import StudentList from "@/components/staff/StudentList";
 import Timetable from "@/components/staff/Timetable";
 import Achievements from "@/components/staff/Achievement";
@@ -19,7 +19,7 @@ const FacultyDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [ShowAddStaffDetails, setShowAddStaffDetails] = useState(false)
+  const [ShowAddStaffDetails, setShowAddStaffDetails] = useState(false);
 
   const tabs = [
     "Overview",
@@ -28,7 +28,7 @@ const FacultyDashboard: React.FC = () => {
     "Result",
     "Achievement",
     "Attendance",
-    "Leave"
+    "Leave",
   ];
 
   const fetchUserDetails = async () => {
@@ -38,7 +38,7 @@ const FacultyDashboard: React.FC = () => {
       if (response.status !== 200) {
         toast.error(data.message || "Error fetching user data");
       }
-      console.log(data.user)
+      console.log(data.user);
       if (data.user.isProfileCompleted) {
         setUserInfo(data.user);
       } else {
@@ -64,19 +64,22 @@ const FacultyDashboard: React.FC = () => {
     return <LoadingSkeleton loadingText="Faculty Dashboard" />;
   }
 
-  if(ShowAddStaffDetails){
+  if (ShowAddStaffDetails) {
     return (
-      <AddStaffDetails id={userInfo.id} setShowAddStaffDetails={setShowAddStaffDetails} fetchUserDetails={function (): void {
-        throw new Error("Function not implemented.");
-      } } />
-    )
+      <AddStaffDetails
+        id={userInfo.id}
+        setShowAddStaffDetails={setShowAddStaffDetails}
+        fetchUserDetails={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+      />
+    );
   }
-
 
   return (
     <div className="min-h-screen bg-gray-100">
       <Toaster />
-      <Navbar name={userInfo?.name || "Loading..."} role="Faculty" />
+      <Navbar name={userInfo?.name || ""} role="Faculty" />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button
@@ -148,7 +151,11 @@ const FacultyDashboard: React.FC = () => {
         </div>
 
         {/* Tab Navigation */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList className="hidden lg:flex flex-wrap justify-start gap-2 mb-8 p-4 bg-white text-black rounded-lg shadow-md">
             {tabs.map((tab) => (
               <TabsTrigger

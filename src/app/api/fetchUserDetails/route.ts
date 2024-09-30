@@ -83,16 +83,17 @@ export async function GET(request: NextRequest) {
               email: true,
               username: true,
               name: true,
-              gender: true, // Add this field if needed
-              address: true, // Add address
-              city: true,    // Add city
-              state: true,   // Add state
-              pinCode: true, // Add pin
-              isProfileCompleted: true
+              gender: true,
+              address: true,
+              city: true,
+              state: true,
+              pinCode: true,
+              isProfileCompleted: true,
             },
           });
           return NextResponse.json({ user, role: "Staff" }, { status: 200 });
         } catch (error) {
+          console.log(error);
           return NextResponse.json(
             { message: "Error while fetching user data!" },
             { status: 500 }
