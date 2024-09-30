@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 
 interface Achievement {
   id: number;
@@ -82,14 +83,14 @@ const Achievement: React.FC = () => {
     .filter((ach) => filterCategory === "All" || ach.category === filterCategory);
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6 md:p-8 max-w-6xl mx-auto">
+    <div className="bg-white shadow-md rounded-lg p-6 md:p-8 max-w-10xl mx-auto">
       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">Achievements</h2>
 
       {/* Tab Navigation */}
       <div className="flex flex-col md:flex-row mb-4 border-b border-gray-300">
         <button
           className={`p-2 flex-1 ${
-            activeTab === "view" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+            activeTab === "view" ? "bg-black text-white" : "bg-gray-200 text-gray-700"
           } md:rounded-tl-lg`}
           onClick={() => setActiveTab("view")}
         >
@@ -97,7 +98,7 @@ const Achievement: React.FC = () => {
         </button>
         <button
           className={`p-2 flex-1 ${
-            activeTab === "add" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+            activeTab === "add" ? "bg-black text-white" : "bg-gray-200 text-gray-700"
           } md:rounded-tr-lg`}
           onClick={() => setActiveTab("add")}
         >
@@ -142,15 +143,15 @@ const Achievement: React.FC = () => {
                 <div className="mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                   <button
                     onClick={() => handleEdit(achievement.id)}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-full sm:w-auto"
+                    className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 w-full sm:w-auto flex items-center justify-center"
                   >
-                    Edit
+                    <FaRegEdit className="mr-2" /> Edit
                   </button>
                   <button
                     onClick={() => handleDelete(achievement.id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full sm:w-auto"
+                    className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 w-full sm:w-auto flex items-center justify-center"
                   >
-                    Delete
+                    <FaTrashAlt className="mr-2" /> Delete
                   </button>
                 </div>
               </div>
@@ -198,7 +199,7 @@ const Achievement: React.FC = () => {
           </select>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+            className="w-full bg-black text-white p-2 rounded hover:bg-gray-800"
           >
             {editingId !== null ? "Update Achievement" : "Add Achievement"}
           </button>

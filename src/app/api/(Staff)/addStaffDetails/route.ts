@@ -3,116 +3,70 @@ import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
+  const decodedUser = verifyToken();
+  const userRole = decodedUser?.role;
+  const userId = decodedUser?.id
+
+  if (userRole !== "Staff") {
+    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+  }
+
   try {
-    // Parse the request body
     const reqBody = await request.json();
     const {
       email,
-      username,
       name,
-      isBatchCoordinator,
-      batchId,
+      gender,
+      address,
+      city,
+      state,
+      pinCode,
       contactNumber,
-      isProfileCompleted,
+      dateOfBirth,
     } = reqBody;
 
-    const decodedUser = verifyToken(); // Assuming verifyToken reads the token and returns decoded user details
-    const staffId = decodedUser?.id;
-    console.log(staffId)
-    // Check if required fields are present
-    if (!staffId) {
-      return NextResponse.json(
-        { error: "Staff ID is required" },
-        { status: 400 }
-      );
-    }
+    const parsedDateOfBirth = new Date(`${dateOfBirth}T00:00:00Z`);
 
-    // Check if the batchId exists in the database
-    let batchRecord = null;
-    if (batchId) {
-      batchRecord = await prisma.batch.findUnique({
-        where: { batchId },
-        select: { batchId: true },
-      });
-
-      if (!batchRecord) {
-        return NextResponse.json(
-          { error: `Batch with ID '${batchId}' does not exist` },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Check if the staff member already exists
     const existingStaff = await prisma.staffDetails.findUnique({
-      where: { id: staffId },
+      where: { id: userId },
     });
 
     let staffDetails;
-    // Update or create staff details based on the existence check
+
     if (existingStaff) {
-      staffDetails = await prisma.staffDetails.update({
-        where: { id: staffId },
-        data: {
-          email,
-          username,
-          name,
-          isBatchCoordinator,
-          batchId: batchRecord?.batchId || null,
-          contactNumber: contactNumber || null,
-          isProfileCompleted,
-        },
-      });
-    } else {
-      staffDetails = await prisma.staffDetails.create({
-        data: {
-          id: staffId,
-          email,
-          username,
-          name,
-          isBatchCoordinator,
-          batchId: batchRecord?.batchId || null,
-          contactNumber: contactNumber || null,
-          isProfileCompleted : true,
-        },
-      });
-    }
-
-    // Update the batch if batchRecord exists
-    let updatedBatch = null;
-    if (batchRecord) {
-      updatedBatch = await prisma.batch.update({
-        where: { batchId: batchRecord.batchId },
-        data: {
-          staffMembers: {
-            connect: { id: staffId },
+      staffDetails = await prisma.$transaction([
+        prisma.staffDetails.update({
+          where: { id: userId },
+          data: {
+            name,
+            email,
+            gender,
+            address,
+            city,
+            state,
+            pinCode,
+            contactNumber,
+            dateOfBirth : parsedDateOfBirth,
+            isProfileCompleted: true,
           },
-        },
-      });
+        })
+      ]);
     }
 
-    // Log the result in the server console
     console.log(
-      (existingStaff ? "Updated" : "Created") + " staff details:",
+      (existingStaff ? "Updated" : "Created") + " student details:",
       staffDetails
     );
-    if (updatedBatch) {
-      console.log("Updated batch:", updatedBatch);
-    }
 
-    // Return a success response
     return NextResponse.json({
-      message: `Staff Details ${existingStaff ? "updated" : "created"} successfully`,
+      message: `Student Details ${
+        existingStaff ? "updated" : "created"
+      } successfully`,
       success: true,
-      staffDetails,
-      updatedBatch,
+      staffDetails
     });
   } catch (error: any) {
-    // Handle and log errors
     console.error("Error:", error);
-    return NextResponse.json(
-      { error: error.message || "An unexpected error occurred" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

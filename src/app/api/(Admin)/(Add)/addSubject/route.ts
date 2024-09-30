@@ -11,13 +11,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const {
-      subjectName,
-      subjectCode,
-      semester,
-      courseId: providedCourseId,
-    } = await req.json();
+    const { subjectName, subjectCode, semester, courseId: providedCourseId } = await req.json();
 
+    // Validate required fields
     if (!subjectName || !subjectCode || !semester || !providedCourseId) {
       return NextResponse.json(
         { error: "All fields are required" },
@@ -25,6 +21,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // Ensure the semester is an integer
     const semesterInt = parseInt(semester, 10);
     if (isNaN(semesterInt)) {
       return NextResponse.json(
@@ -33,11 +30,13 @@ export async function POST(req: Request) {
       );
     }
 
+    // Check if the course exists
     let course = await prisma.course.findUnique({
       where: { courseId: providedCourseId },
     });
 
     if (!course) {
+      // If course is not found by ID, try to find it by name
       course = await prisma.course.findUnique({
         where: { courseName: providedCourseId },
       });
@@ -50,11 +49,12 @@ export async function POST(req: Request) {
       }
     }
 
+    // Check if subject already exists for the course
     const existingSubject = await prisma.subject.findFirst({
-      where: {
+      where: { 
         subjectName,
         subjectCode,
-        courseId: course.courseId,
+        courseId: course.courseId
       },
     });
 
@@ -65,6 +65,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // Create the new subject
     const subject = await prisma.subject.create({
       data: {
         subjectName,
@@ -76,12 +77,10 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(subject, { status: 201 });
-  } catch (error: any) {
+  } catch (error:any) {
+    console.error("Error adding subject:", error);
     return NextResponse.json(
-      {
-        message: "An error occurred while adding the subject",
-        error: error.message,
-      },
+      { message: "An error occurred while adding the subject", error: error.message },
       { status: 500 }
     );
   }

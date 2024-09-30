@@ -19,12 +19,12 @@ import { toast } from "sonner";
 interface Course {
   courseId: string;
   courseName: string;
-  totalBatches: string;
-  totalSubjects: string;
   isActive: boolean;
+  totalBatches: number;
+  totalSubjects: number;
 }
 
-const CoursesTab = () => {
+const CoursesTab: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +49,6 @@ const CoursesTab = () => {
 
       if (Array.isArray(data.courses)) {
         setCourses(data.courses);
-        console.log("This is useState", courses);
-        console.log(data.courses);
       } else {
         throw new Error("Invalid data structure");
       }
@@ -75,6 +73,7 @@ const CoursesTab = () => {
         body: JSON.stringify({ courseId }),
       });
       if (response.ok) {
+        toast.success("Course deleted successfully");
         toast.success("Course deleted successfully");
         fetchCourses();
       }
@@ -167,7 +166,6 @@ const CoursesTab = () => {
 
         <TabsContent value="manage">
           <div className="w-full overflow-auto">
-            <div className="flex items-center space-x-2 w-full sm:w-auto"></div>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -206,7 +204,7 @@ const CoursesTab = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={2} className="text-center">
+                    <TableCell colSpan={4} className="text-center">
                       No courses found
                     </TableCell>
                   </TableRow>

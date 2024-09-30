@@ -83,10 +83,11 @@ export async function GET(request: NextRequest) {
               email: true,
               username: true,
               name: true,
-              contactNumber: true,
-              isBatchCoordinator: true,
-              batchId: true,
-              subjects: true
+              gender: true, // Add this field if needed
+              address: true, // Add address
+              city: true,    // Add city
+              state: true,   // Add state
+              pinCode: true, // Add pin
             },
           });
           return NextResponse.json({ user, role: "Staff" }, { status: 200 });

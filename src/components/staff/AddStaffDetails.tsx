@@ -1,91 +1,113 @@
-"use client";
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface AddStaffDetailsProps {
-  id: string;
+  id: string,
   setShowAddStaffDetails: (value: boolean) => void;
   fetchUserDetails: () => void;
 }
-
-interface StaffFormData {
-  id: string;
-  email: string;
-  username: string;
-  name: string;
-  isBatchCoordinator: boolean;
-  batchId?: string; // Optional
-  contactNumber?: string; // Optional
-  achievements?: string; // Optional
-}
-
+ 
 const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   id,
   setShowAddStaffDetails,
   fetchUserDetails,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [staffFormData, setStaffFormData] = useState<StaffFormData>({
-    id: id, 
+  const [staffFormData, setStaffFormData] = useState({
+    id,
     email: "",
-    username: "",
     name: "",
-    isBatchCoordinator: false,
-    batchId: "",
-    contactNumber: "",
-    achievements: "",
+    gender: "",
+    address: "",
+    city: "",
+    state: "",
+    pinCode: "",
+    contactNo: "",
+    dateOfBirth: "",
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof StaffFormData, string>>>({
+  const [errors, setErrors] = useState({
     email: "",
-    username: "",
     name: "",
-    batchId: "",
-    contactNumber: "",
-    achievements: "",
+    gender: "",
+    address: "",
+    city: "",
+    state: "",
+    pinCode: "",
+    contactNo: "",
+    dateOfBirth: "",
   });
-
-  const router = useRouter();
 
   const handleStaffInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLElement & { name?: string }>
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target as HTMLInputElement;
     setStaffFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: name === "pinCode" ? parseInt(value) || "" : value,
     }));
-    validateField(name as keyof StaffFormData, value);
-  };
-
-  const validateField = (name: keyof StaffFormData, value: string) => {
-    let errorMessage = "";
-    if (!value && ["email", "username", "name"].includes(name)) {
-      errorMessage = `${name} is required`;
-    } else if (name === "email" && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)) {
-      errorMessage = "Invalid email address";
-    } else if (name === "contactNumber" && !/^\d{10}$/.test(value)) {
-      errorMessage = "Invalid contact number";
-    }
 
     setErrors((prevErrors) => ({
       ...prevErrors,
-      [name]: errorMessage,
+      [name]: "",
     }));
   };
 
   const validateStep = () => {
     let stepIsValid = true;
-    let stepErrors: Partial<Record<keyof StaffFormData, string>> = { ...errors };
+    let stepErrors = { ...errors };
 
     if (currentStep === 1) {
-      ["email", "username", "name"].forEach((field) => {
-        const key = field as keyof StaffFormData;
-        if (!staffFormData[key]) {
-          stepErrors[key] = `${field} is required`;
-          stepIsValid = false;
-        }
-      });
+      if (!staffFormData.email) {
+        stepErrors.email = "Email is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.name) {
+        stepErrors.name = "Full Name is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.gender) {
+        stepErrors.gender = "Gender is required.";
+        stepIsValid = false;
+      }
+    }
+
+    if (currentStep === 2) {
+      if (!staffFormData.address) {
+        stepErrors.address = "Address is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.city) {
+        stepErrors.city = "City is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.state) {
+        stepErrors.state = "State is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.pinCode) {
+        stepErrors.pinCode = "Pin Code is required.";
+        stepIsValid = false;
+      }
+    }
+
+    if (currentStep === 3) {
+      if (!staffFormData.contactNo) {
+        stepErrors.contactNo = "Contact Number is required.";
+        stepIsValid = false;
+      }
+      if (!staffFormData.dateOfBirth) {
+        stepErrors.dateOfBirth = "Date of Birth is required.";
+        stepIsValid = false;
+      }
     }
 
     setErrors(stepErrors);
@@ -94,27 +116,27 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateStep()) {
-      try {
-        const response = await fetch(`/api/addStaffDetails`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(staffFormData),
-        });
+    if (!validateStep()) return;
+    try {
+    const udpdatedStaffDetails = await fetch(`/api/addStaffDetails`,{
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(staffFormData),
+    });
 
-        if (response.ok) {
-          setShowAddStaffDetails(false);
-          fetchUserDetails();
-          router.push("/staff/dashboard");
-        } else {
-          console.error("Failed to add staff details.");
-        }
-      } catch (error) {
-        console.error("An error occurred:", error);
-      }
+    if (udpdatedStaffDetails.ok) {
+      toast.success("Staff details added successfully.");
+      setShowAddStaffDetails(false);
+      fetchUserDetails();
+    } else {
+      toast.error("Failed to add student details.");
     }
+  } catch (error) {
+    console.error("An error occurred:", error);
+    toast.error("An unexpected error occurred. Please try again.");
+  }
   };
 
   const nextStep = () => {
@@ -128,111 +150,128 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md relative">
-        <h1 className="text-2xl font-bold mb-6 text-center">Add Staff Details</h1>
+    <div className="relative min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-3xl font-bold mb-3 text-center">Staff Details</h1>
+        <p className="text-sm text-gray-400 text-center mb-6">
+          Enter staff details to continue
+        </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           {currentStep === 1 && (
             <>
-              <input
+              <Input
                 type="email"
                 name="email"
                 placeholder="Email"
                 value={staffFormData.email}
                 onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
                 required
               />
               {errors.email && <p className="text-red-500">{errors.email}</p>}
-              <input
-                type="text"
-                name="username"
-                placeholder="Username"
-                value={staffFormData.username}
-                onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              {errors.username && (
-                <p className="text-red-500">{errors.username}</p>
-              )}
-              <input
+              <Input
                 type="text"
                 name="name"
                 placeholder="Full Name"
+                maxLength={30}
                 value={staffFormData.name}
                 onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
                 required
               />
               {errors.name && <p className="text-red-500">{errors.name}</p>}
+              <Select
+                name="gender"
+                onValueChange={(value) =>
+                  handleStaffInputChange({
+                    target: { name: "gender", value },
+                  } as React.ChangeEvent<HTMLSelectElement>)
+                }
+                value={staffFormData.gender}
+                required
+              >
+                <SelectTrigger className="w-full">
+                  <span>{staffFormData.gender || "gender"}</span>
+                </SelectTrigger>
+                <SelectContent>
+                  {["Male", "Female", "Other"].map((gender) => (
+                    <SelectItem key={gender} value={gender}>
+                      {gender}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.gender && <p className="text-red-500">{errors.gender}</p>}
             </>
           )}
           {currentStep === 2 && (
             <>
-              <input
-                type="checkbox"
-                name="isBatchCoordinator"
-                checked={staffFormData.isBatchCoordinator}
-                onChange={(e) =>
-                  setStaffFormData({
-                    ...staffFormData,
-                    isBatchCoordinator: e.target.checked,
-                  })
-                }
-                className="mr-2"
-              />
-              <label htmlFor="isBatchCoordinator">Batch Coordinator</label>
-
-              <input
+              <Input
                 type="text"
-                name="batchId"
-                placeholder="Batch ID"
-                value={staffFormData.batchId}
+                name="address"
+                placeholder="Address"
+                maxLength={100}
+                value={staffFormData.address}
                 onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
+                required
               />
-              {errors.batchId && (
-                <p className="text-red-500">{errors.batchId}</p>
-              )}
-              <input
-                type="tel"
-                name="contactNumber"
-                placeholder="Contact Number"
-                value={staffFormData.contactNumber}
+              {errors.address && <p className="text-red-500">{errors.address}</p>}
+              <Input
+                type="text"
+                name="city"
+                placeholder="City"
+                value={staffFormData.city}
                 onChange={handleStaffInputChange}
-                className="w-full p-2 border rounded"
+                required
               />
-              {errors.contactNumber && (
-                <p className="text-red-500">{errors.contactNumber}</p>
-              )}
+              {errors.city && <p className="text-red-500">{errors.city}</p>}
+              <Input
+                type="text"
+                name="state"
+                placeholder="State"
+                value={staffFormData.state}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.state && <p className="text-red-500">{errors.state}</p>}
+              <Input
+                type="text"
+                name="pinCode"
+                placeholder="Pin Code"
+                value={staffFormData.pinCode}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.pinCode && <p className="text-red-500">{errors.pinCode}</p>}
             </>
           )}
-          <div className="flex justify-between mt-6">
+          {currentStep === 3 && (
+            <>
+              <Input
+                type="text"
+                name="contactNo"
+                placeholder="Contact Number"
+                value={staffFormData.contactNo}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.contactNo && <p className="text-red-500">{errors.contactNo}</p>}
+              <Input
+                type="date"
+                name="dateOfBirth"
+                value={staffFormData.dateOfBirth}
+                onChange={handleStaffInputChange}
+                required
+              />
+              {errors.dateOfBirth && <p className="text-red-500">{errors.dateOfBirth}</p>}
+            </>
+          )}
+          <div className="flex justify-between mt-4">
             {currentStep > 1 && (
-              <button
-                type="button"
-                onClick={previousStep}
-                className="bg-gray-200 p-2 rounded"
-              >
-                Back
-              </button>
+              <Button type="button" onClick={previousStep}>Previous</Button>
             )}
-            {currentStep < 2 ? (
-              <button
-                type="button"
-                onClick={nextStep}
-                className="bg-blue-500 text-white p-2 rounded"
-              >
-                Next
-              </button>
+            {currentStep < 3 ? (
+              <Button type="button" onClick={nextStep}>Next</Button>
             ) : (
-              <button
-                type="submit"
-                className="bg-green-500 text-white p-2 rounded"
-              >
-                Submit
-              </button>
+              <Button type="submit">Submit</Button>
             )}
           </div>
         </form>

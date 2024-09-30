@@ -43,6 +43,7 @@ const BatchTab = () => {
     setIsLoading(true);
     setError(null);
     try {
+      setIsLoading(true); // Start loading
       const response = await fetch("/api/fetchBatches");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -175,10 +176,7 @@ const BatchTab = () => {
         <TabsTrigger value="Create">Create Batch</TabsTrigger>
       </TabsList>
       <TabsContent value="Create">
-        <AddBatchForm
-          onBatchAdded={handleBatchAdded}
-          onTabChange={setActiveTab}
-        />
+        <AddBatchForm onBatchAdded={handleBatchAdded} onTabChange={setActiveTab} />
       </TabsContent>
       <TabsContent value="manage">
         <Table>

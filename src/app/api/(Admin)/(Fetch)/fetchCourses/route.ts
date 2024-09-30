@@ -11,6 +11,9 @@ export async function GET() {
 
   try {
     const courses = await prisma.course.findMany({
+      where: {
+        isActive: true,
+      },
       include: {
         batches: {
           select: {
@@ -31,7 +34,10 @@ export async function GET() {
       courseName: course.courseName,
       totalBatches: course.batches.length,
       totalSubjects: course.subjects.length,
+      isActive: true,
     }));
+
+    console.log(formattedCourses);
 
     return NextResponse.json(
       { message: "Courses fetched", courses: formattedCourses },
