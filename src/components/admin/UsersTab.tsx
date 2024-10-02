@@ -10,14 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
+import { FaRegEdit, FaTrashAlt, FaEye } from "react-icons/fa";
 import AddUserForm from "./AddUserForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { UserDetailsDialog } from "./UserDetailsDialog";
 import LoadingSkeleton from "../LoadingSkeleton";
 import AccessDenied from "../accessDenied";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -27,9 +27,10 @@ interface User {
 }
 
 const UsersTab = () => {
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
-  const [showUserDetails, setShowUserDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,20 +43,16 @@ const UsersTab = () => {
     try {
       const response = await fetch("/api/fetchUsers");
       const data = await response.json();
-      if (response.status !== 200 && response.status !== 403) {
-      }
       if (response.status === 403) {
         return <AccessDenied />;
       }
-
-      if (data.success && Array.isArray(data.users)) {
-        setUsers(data.users);
-      } else {
-        toast.error("An unexpected error occurred");
+      if (response.status !== 200) {
+        throw new Error(data.message || "Failed to fetch users");
       }
+      setUsers(data.users);
     } catch (error) {
-      toast.error("An unexpected error occurred");
       setError("Failed to load users. Please try again later.");
+      toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +63,7 @@ const UsersTab = () => {
   }, []);
 
   const handleDeleteUser = async (id: string) => {
+    setIsDeleting(true);
     try {
       const response = await fetch(`/api/deleteUser`, {
         method: "PUT",
@@ -75,23 +73,27 @@ const UsersTab = () => {
         body: JSON.stringify({ id }),
       });
       const data = await response.json();
-      if (response.status != 200 && response.status !== 403) {
-        toast.error(data.message);
-      }
       if (response.status === 403) {
         return <AccessDenied />;
       }
-      if (data.success) {
-        setUsers(users.filter((user) => user.id !== id));
-        toast.success(data.message);
+      if (response.status !== 200) {
+        throw new Error(data.message || "Failed to delete user");
       }
+      setUsers(users.filter((user) => user.id !== id));
+      toast.success(data.message);
     } catch (error) {
       toast.error("Error while deleting user!");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const handleAddUserSuccess = async () => {
     await fetchUsers();
+  };
+
+  const handleViewDetails = (userId: string) => {
+    router.push(`/admin/dashboard/user/${userId}`);
   };
 
   const filteredUsers = users.filter((user) =>
@@ -104,6 +106,12 @@ const UsersTab = () => {
     (currentPage - 1) * usersPerPage,
     currentPage * usersPerPage
   );
+
+  const handleChangePage = (newPage: number) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
 
   if (isLoading) {
     return <LoadingSkeleton loadingText="users" />;
@@ -132,7 +140,7 @@ const UsersTab = () => {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setCurrentPage(1);
+                setCurrentPage(1);  
               }}
             />
           )}
@@ -159,10 +167,13 @@ const UsersTab = () => {
                         <TableCell>{user.role}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Button onClick={() => setShowUserDetails(true)}>
-                              <FaRegEdit className="h-4 w-4" />
+                            <Button onClick={() => handleViewDetails(user.id)}>
+                              <FaEye className="h-4 w-4" />
                             </Button>
-                            <Button onClick={() => handleDeleteUser(user.id)}>
+                            <Button
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={isDeleting}
+                            >
                               <FaTrashAlt className="h-4 w-4" />
                             </Button>
                           </div>
@@ -181,11 +192,10 @@ const UsersTab = () => {
             </div>
 
             {filteredUsers.length > usersPerPage && (
-              <div className="pagination mt-4 flex justify-center items-center space-x-4 mb-">
+              <div className="pagination mt-4 flex justify-center items-center space-x-4 mb-4">
                 <Button
                   disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  className="pagination-button"
+                  onClick={() => handleChangePage(currentPage - 1)}
                 >
                   Previous
                 </Button>
@@ -194,8 +204,7 @@ const UsersTab = () => {
                 </span>
                 <Button
                   disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  className="pagination-button"
+                  onClick={() => handleChangePage(currentPage + 1)}
                 >
                   Next
                 </Button>
@@ -203,15 +212,11 @@ const UsersTab = () => {
             )}
           </div>
         </TabsContent>
+
         <TabsContent value="create">
           <AddUserForm onAddUserSuccess={handleAddUserSuccess} />
         </TabsContent>
       </Tabs>
-      <UserDetailsDialog
-        open={showUserDetails}
-        onOpenChange={setShowUserDetails}
-        userId={""}
-      />
     </>
   );
 };

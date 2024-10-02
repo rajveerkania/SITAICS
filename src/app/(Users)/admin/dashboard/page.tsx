@@ -15,7 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatCard } from "@/components/StatCard";
 import { IndianCalendar } from "@/components/IndianCalendar";
-import { UserDetailsDialog } from "@/components/admin/UserDetailsDialog";
 import { Navbar } from "@/components/Navbar";
 import UsersTab from "@/components/admin/UsersTab";
 import CoursesTab from "@/components/admin/CoursesTab";
@@ -325,12 +324,6 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-
-      <UserDetailsDialog
-        open={showUserDetails}
-        onOpenChange={setShowUserDetails}
-        userId={""}
-      />
     </div>
   );
 };
