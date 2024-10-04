@@ -1,6 +1,6 @@
 "use client";
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,8 +23,8 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Book, Layers, Edit3, ArrowLeft } from 'lucide-react';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
-// Type definitions
 interface Course {
   courseId: string;
   courseName: string;
@@ -49,85 +49,96 @@ interface Subject {
   courseName: string;
 }
 
-// Dummy data
-const dummyCourse: Course = {
-  courseId: "cs-101",
-  courseName: "Bachelor of Computer Science",
-  totalBatches: 3,
-  totalSubjects: 8
-};
-
-const dummyBatches: Batch[] = [
-  {
-    batchId: "batch-1",
-    batchName: "CS 2024",
-    courseName: "Bachelor of Computer Science",
-    batchDuration: 4,
-    currentSemester: 1,
-    studentCount: 45
-  },
-  {
-    batchId: "batch-2",
-    batchName: "CS 2023",
-    courseName: "Bachelor of Computer Science",
-    batchDuration: 4,
-    currentSemester: 3,
-    studentCount: 42
-  },
-  {
-    batchId: "batch-3",
-    batchName: "CS 2022",
-    courseName: "Bachelor of Computer Science",
-    batchDuration: 4,
-    currentSemester: 5,
-    studentCount: 38
-  }
-];
-
-const dummySubjects: Subject[] = [
-  {
-    subjectId: "sub-1",
-    subjectName: "Introduction to Programming",
-    subjectCode: "CS101",
-    semester: 1,
-    courseName: "Bachelor of Computer Science"
-  },
-  {
-    subjectId: "sub-2",
-    subjectName: "Data Structures and Algorithms",
-    subjectCode: "CS201",
-    semester: 2,
-    courseName: "Bachelor of Computer Science"
-  },
-  {
-    subjectId: "sub-3",
-    subjectName: "Database Management Systems",
-    subjectCode: "CS301",
-    semester: 3,
-    courseName: "Bachelor of Computer Science"
-  }
-];
-
 const CourseEditPage = () => {
+  const { id } = useParams();
   const router = useRouter();
-  const [course, setCourse] = useState<Course>(dummyCourse);
-  const [batches] = useState<Batch[]>(dummyBatches);
-  const [subjects] = useState<Subject[]>(dummySubjects);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedCourseName, setEditedCourseName] = useState(dummyCourse.courseName);
+  const [editedCourseName, setEditedCourseName] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleSave = () => {
-    setCourse({
-      ...course,
-      courseName: editedCourseName
-    });
-    toast.success("Course updated successfully");
-    setIsEditing(false);
+  
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      try {
+        const courseResponse = await fetch('/api/fetchCourses');
+        const courseData = await courseResponse.json();
+        const currentCourse = courseData.courses.find(
+          (c: Course) => c.courseId === id
+        );
+        
+        if (currentCourse) {
+          setCourse(currentCourse);
+          setEditedCourseName(currentCourse.courseName);
+        }
+
+        // Fetch batches
+        const batchResponse = await fetch('/api/fetchBatches');
+        const batchData = await batchResponse.json();
+        const courseBatches = batchData.filter(
+          (batch: Batch) => batch.courseName === currentCourse?.courseName
+        );
+        setBatches(courseBatches);
+
+        // Fetch subjects
+        const subjectResponse = await fetch('/api/fetchSubjects');
+        const subjectData = await subjectResponse.json();
+        const courseSubjects = subjectData.filter(
+          (subject: Subject) => subject.courseName === currentCourse?.courseName
+        );
+        setSubjects(courseSubjects);
+      } catch (error) {
+        toast.error("Error fetching course data");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourseData();
+  }, [id]);
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch(`/api/updateCourse`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId: id,
+          courseName: editedCourseName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update course');
+      }
+
+      setCourse(prev => prev ? { ...prev, courseName: editedCourseName } : null);
+      toast.success("Course updated successfully");
+      setIsEditing(false);
+    } catch (error) {
+      toast.error("Failed to update course");
+      console.error(error);
+    }
   };
 
   const handleBackClick = () => {
     router.push('/admin/dashboard');
   };
+
+  if (isLoading) {
+    return <LoadingSkeleton loadingText="course details" />;
+  }
+  
+
+  if (!course) {
+    return <div>Course not found</div>
+    ;
+  }
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -232,14 +243,22 @@ const CourseEditPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {batches.map((batch) => (
-                    <TableRow key={batch.batchId}>
-                      <TableCell>{batch.batchName}</TableCell>
-                      <TableCell>{batch.batchDuration}</TableCell>
-                      <TableCell>{batch.currentSemester}</TableCell>
-                      <TableCell>{batch.studentCount}</TableCell>
+                  {batches.length > 0 ? (
+                    batches.map((batch) => (
+                      <TableRow key={batch.batchId}>
+                        <TableCell>{batch.batchName}</TableCell>
+                        <TableCell>{batch.batchDuration}</TableCell>
+                        <TableCell>{batch.currentSemester}</TableCell>
+                        <TableCell>{batch.studentCount}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center">
+                        No batches found
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -264,13 +283,21 @@ const CourseEditPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {subjects.map((subject) => (
-                    <TableRow key={subject.subjectId}>
-                      <TableCell>{subject.subjectName}</TableCell>
-                      <TableCell>{subject.subjectCode}</TableCell>
-                      <TableCell>{subject.semester}</TableCell>
+                  {subjects.length > 0 ? (
+                    subjects.map((subject) => (
+                      <TableRow key={subject.subjectId}>
+                        <TableCell>{subject.subjectName}</TableCell>
+                        <TableCell>{subject.subjectCode}</TableCell>
+                        <TableCell>{subject.semester}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center">
+                        No subjects found
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
