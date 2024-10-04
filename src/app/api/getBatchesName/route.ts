@@ -1,30 +1,50 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const courseName = url.searchParams.get("courseName");
+    const body = await request.json();
+    const { courseName } = body;
 
-    const batches = await prisma.batch.findMany({
+    if (!courseName) {
+      return NextResponse.json(
+        { error: "Course name is required" },
+        { status: 400 }
+      );
+    }
+
+    const course = await prisma.course.findFirst({
       where: {
-        course: {
-          courseName: courseName || undefined,
+        courseName: {
+          contains: courseName,
+          mode: "insensitive",
         },
       },
-      select: {
-        batchName: true,
+      include: {
+        batches: {
+          select: {
+            batchName: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json({ success: true, batches }, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching batches:", error);
+    if (!course) {
+      return NextResponse.json(
+        { message: "Course not found", searchedFor: courseName },
+        { status: 404 }
+      );
+    }
+
+    const batchNames = course.batches.map(
+      (batch: { batchName: any }) => batch.batchName
+    );
+
+    return NextResponse.json({ courseName: course.courseName, batchNames });
+  } catch (error: any) {
     return NextResponse.json(
-      { error: "Failed to fetch batches" },
+      { message: "Internal server error", details: error.message },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
