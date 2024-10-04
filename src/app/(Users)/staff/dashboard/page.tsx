@@ -14,6 +14,7 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Toaster, toast } from "sonner";
 import AddStaffDetails from "@/components/staff/AddStaffDetails";
 
+
 const FacultyDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
@@ -28,7 +29,7 @@ const FacultyDashboard: React.FC = () => {
     "Result",
     "Achievement",
     "Attendance",
-    "Leave"
+    "Leave",
   ];
 
   const fetchUserDetails = async () => {

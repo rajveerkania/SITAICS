@@ -140,6 +140,7 @@ const AddUserForm = ({
           type="button"
           onFileUpload={handleFileUpload}
           fileCategory="importUsers"
+          onSuccess={onAddUserSuccess}
           buttonText="Import CSV"
         />
       </div>

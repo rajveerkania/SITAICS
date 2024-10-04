@@ -75,6 +75,11 @@ const SubjectTab = () => {
     }
   };
 
+  const onAddSubjectSuccess = () =>{
+    fetchSubjects()
+    setActiveTab("manage")
+  }
+
   const filteredSubjects = subjects.filter((subject) =>
     subject.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     subject.subjectCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -118,11 +123,7 @@ const SubjectTab = () => {
         </div>
         <TabsContent value="create">
           <AddSubjectForm
-            onSubjectAdded={() => {
-              fetchSubjects();
-              setActiveTab("manage");
-            }}
-            onTabChange={setActiveTab}
+            onAddSubjectSuccess={onAddSubjectSuccess}
           />
         </TabsContent>
         <TabsContent value="manage">

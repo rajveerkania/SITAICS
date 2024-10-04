@@ -94,6 +94,7 @@ const BatchTab = () => {
 
   const handleBatchAdded = () => {
     fetchBatches();
+    setActiveTab("manage")
   };
 
   const handleOpenEditDialog = (batch: Batch) => {

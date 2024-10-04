@@ -13,43 +13,38 @@ export async function POST(req: Request) {
   try {
     const { subjectName, subjectCode, semester, courseId: providedCourseId } = await req.json();
 
-    // Validate required fields
     if (!subjectName || !subjectCode || !semester || !providedCourseId) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { message: "All fields are required" },
         { status: 400 }
       );
     }
 
-    // Ensure the semester is an integer
     const semesterInt = parseInt(semester, 10);
     if (isNaN(semesterInt)) {
       return NextResponse.json(
-        { error: "Semester must be a valid number" },
+        { message: "Semester must be a valid number" },
         { status: 400 }
       );
     }
 
-    // Check if the course exists
     let course = await prisma.course.findUnique({
       where: { courseId: providedCourseId },
     });
 
     if (!course) {
-      // If course is not found by ID, try to find it by name
       course = await prisma.course.findUnique({
         where: { courseName: providedCourseId },
       });
 
       if (!course) {
         return NextResponse.json(
-          { error: "Course not found. Please check the course ID or name." },
+          { message: "Course not found. Please check the course ID or name." },
           { status: 404 }
         );
       }
     }
 
-    // Check if subject already exists for the course
     const existingSubject = await prisma.subject.findFirst({
       where: { 
         subjectName,
@@ -60,12 +55,11 @@ export async function POST(req: Request) {
 
     if (existingSubject) {
       return NextResponse.json(
-        { error: "Subject already exists for this course" },
+        { message: "Subject already exists for this course" },
         { status: 400 }
       );
     }
 
-    // Create the new subject
     const subject = await prisma.subject.create({
       data: {
         subjectName,
@@ -76,7 +70,7 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(subject, { status: 201 });
+    return NextResponse.json(subject,   {status: 200} );
   } catch (error:any) {
     console.error("Error adding subject:", error);
     return NextResponse.json(

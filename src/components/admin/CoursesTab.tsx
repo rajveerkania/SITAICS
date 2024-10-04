@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,11 +12,11 @@ import {
 } from "@/components/ui/table";
 import { FaTrashAlt, FaEdit } from "react-icons/fa";
 import AddCourseForm from "./AddCourseForm";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSkeleton from "../LoadingSkeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Course {
   courseId: string;
@@ -25,14 +27,13 @@ interface Course {
 }
 
 const CoursesTab: React.FC = () => {
+  const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("manage");
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editCourse, setEditCourse] = useState<Course | null>(null);
   const coursesPerPage = 5;
 
   const fetchCourses = async () => {
@@ -53,7 +54,7 @@ const CoursesTab: React.FC = () => {
         throw new Error("Invalid data structure");
       }
     } catch (error: any) {
-      setError(error || "Failed to load courses. Please try again later.");
+      setError(error.message || "Failed to load courses. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -69,56 +70,24 @@ const CoursesTab: React.FC = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-        }, 
+        },
         body: JSON.stringify({ courseId }),
       });
       if (response.ok) {
         toast.success("Course deleted successfully");
-        toast.success("Course deleted successfully");
         fetchCourses();
       }
     } catch (error: any) {
-      toast.error("Error in deleting course", error);
+      toast.error("Error in deleting course");
     }
   };
 
   const handleEditCourse = (course: Course) => {
-    setEditCourse(course);
-    setEditDialogOpen(true);
+    router.push(`/admin/dashboard/course/${course.courseId}`);
   };
 
-  const handleSaveCourseEdit = async () => {
-    if (!editCourse) return;
-
-    try {
-      const response = await fetch(`/api/editCourse/${editCourse.courseId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ courseName: editCourse.courseName }),
-      });
-
-      if (response.ok) {
-        await fetchCourses();
-        setEditDialogOpen(false);
-      } else
-        (error: any) => {
-          toast.error("Failed to update course", error);
-        };
-    } catch (error: any) {
-      toast.error("Error saving course edit:", error);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (editCourse) {
-      setEditCourse({ ...editCourse, [e.target.name]: e.target.value });
-    }
-  };
-
-  const handleAddCourseSuccess = (newCourse: Course) => {
-    setCourses((prevCourses) => [...prevCourses, newCourse]);
+  const handleAddCourseSuccess = () => {
+    fetchCourses();
     setActiveTab("manage");
   };
 
@@ -238,37 +207,6 @@ const CoursesTab: React.FC = () => {
           <AddCourseForm onAddCourseSuccess={handleAddCourseSuccess} />
         </TabsContent>
       </Tabs>
-
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Course</DialogTitle>
-          </DialogHeader>
-          {editCourse ? (
-            <div>
-              <Input
-                type="text"
-                name="courseName"
-                value={editCourse.courseName}
-                onChange={handleInputChange}
-                placeholder="Course Name"
-                className="mb-2"
-              />
-              <div className="flex justify-end space-x-2 mt-4">
-                <Button
-                  variant="secondary"
-                  onClick={() => setEditDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveCourseEdit}>Save Changes</Button>
-              </div>
-            </div>
-          ) : (
-            <p>Loading...</p>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
