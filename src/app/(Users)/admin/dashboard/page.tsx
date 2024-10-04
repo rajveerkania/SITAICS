@@ -232,7 +232,7 @@ const AdminDashboard = () => {
                       <BarChart data={overviewStats?.formattedCourseData || []}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="courseName" />
-                        response 
+                        response
                         <YAxis />
                         <Tooltip />
                         <Legend />
