@@ -17,7 +17,7 @@ import LoadingSkeleton from "../LoadingSkeleton";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import bcryptjs from 'bcryptjs';
+
 
 interface Course {
   courseId: string;
@@ -25,7 +25,6 @@ interface Course {
   isActive: boolean;
   totalBatches: number;
   totalSubjects: number;
-  encryptedId?: string;
 }
 
 const CoursesTab: React.FC = () => {
@@ -37,13 +36,6 @@ const CoursesTab: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("manage");
   const coursesPerPage = 5;
-
-  // Function to encrypt courseId
-  const encryptCourseId = async (courseId: string): Promise<string> => {
-    const salt = await bcryptjs.genSalt(10);
-    const hashedId = await bcryptjs.hash(courseId, salt);
-    return hashedId;
-  };
 
   const fetchCourses = async () => {
     setIsLoading(true);
@@ -58,14 +50,7 @@ const CoursesTab: React.FC = () => {
       }
 
       if (Array.isArray(data.courses)) {
-        // Encrypt all courseIds
-        const coursesWithEncryption = await Promise.all(
-          data.courses.map(async (course: { courseId: string; }) => ({
-            ...course,
-            encryptedId: await encryptCourseId(course.courseId)
-          }))
-        );
-        setCourses(coursesWithEncryption);
+        setCourses(data.courses);
       } else {
         throw new Error("Invalid data structure");
       }
@@ -82,17 +67,13 @@ const CoursesTab: React.FC = () => {
 
   const handleDeleteCourse = async (courseId: string) => {
     try {
-      // Encrypt courseId before sending to API
-      const encryptedId = await encryptCourseId(courseId);
-      
       const response = await fetch("/api/deleteCourse", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ courseId: encryptedId }),
+        body: JSON.stringify({ courseId }),
       });
-      
       if (response.ok) {
         toast.success("Course deleted successfully");
         fetchCourses();
@@ -102,10 +83,8 @@ const CoursesTab: React.FC = () => {
     }
   };
 
-  const handleEditCourse = async (course: Course) => {
-    // Encrypt courseId before navigation
-    const encryptedId = course.encryptedId || await encryptCourseId(course.courseId);
-    router.push(`/admin/dashboard/course/${encryptedId}`);
+  const handleEditCourse = (course: Course) => {
+    router.push(`/admin/dashboard/course/${course.courseId}`);
   };
 
   const handleAddCourseSuccess = () => {
@@ -169,7 +148,7 @@ const CoursesTab: React.FC = () => {
               <TableBody>
                 {currentCourses.length > 0 ? (
                   currentCourses.map((course) => (
-                    <TableRow key={course.encryptedId || course.courseId}>
+                    <TableRow key={course.courseId}>
                       <TableCell>{course.courseName}</TableCell>
                       <TableCell>{course.totalBatches}</TableCell>
                       <TableCell>{course.totalSubjects}</TableCell>
