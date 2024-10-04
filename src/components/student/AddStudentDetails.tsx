@@ -66,7 +66,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch("/api/fetchCourses", {
+        const response = await fetch("/api/getCoursesName", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -120,16 +120,19 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
 
   const fetchBatches = async (courseName: string) => {
     try {
-      const response = await fetch("/api/course-batches", {
+      const response = await fetch("/api/getBatchesName/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ courseName: "B.Tech CS&E (CS)" }),
+        body: JSON.stringify({ courseName: courseName }),
       });
 
       const data = await response.json();
-      setBatches(data.batchNames);
+      const formattedBatches = data.batchNames.map((batch: string) => ({
+        batchName: batch,
+      }));
+      setBatches(formattedBatches);
     } catch (error) {
       toast.error("An error occurred while fetching courses.");
     }
@@ -324,9 +327,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
               >
                 <SelectTrigger className="w-full">
                   <span
-                    className={
-                      studentFormData.batchName ? "" : "text-gray-500 "
-                    }
+                    className={studentFormData.batchName ? "" : "text-gray-500"}
                   >
                     {studentFormData.batchName || "Select Batch"}
                   </span>
