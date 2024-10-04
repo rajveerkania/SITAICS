@@ -20,13 +20,11 @@ interface CSVData {
 }
 
 interface AddSubjectFormProps {
-  onSubjectAdded: () => void;
-  onTabChange: (tab: string) => void;
+  onAddSubjectSuccess: () => void;
 }
 
 const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
-  onSubjectAdded,
-  onTabChange,
+  onAddSubjectSuccess,
 }) => {
   const [newSubject, setNewSubject] = useState({
     subjectName: "",
@@ -71,7 +69,6 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
     try {
       const response = await fetch("/api/fetchCourses");
       const data = await response.json();
-      console.log("API Response for courses:", data);
       if (Array.isArray(data)) {
         setCourses(data);
       } else if (data && Array.isArray(data.courses)) {
@@ -102,16 +99,20 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
         },
         body: JSON.stringify(subjectData),
       });
+      const data = await response.json();
       setNewSubject({
         subjectName: "",
         subjectCode: "",
         semester: "",
         courseId: "",
       });
+      if(response.ok){
       toast.success("Subject added successfully");
-      fetchCourses();
-      onSubjectAdded();
-      onTabChange("manage");
+      onAddSubjectSuccess();
+    }
+    else{
+      toast.error(data.message)
+    }
     } catch (error: any) {
       toast.error("Error adding Subject", error);
     }
@@ -175,6 +176,7 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
         <Button type="submit">Create Subject</Button>
         <ImportButton
           type="button"
+          onSuccess={onAddSubjectSuccess}
           onFileUpload={handleFileUpload}
           fileCategory="importSubjects"
           buttonText="Import CSV"

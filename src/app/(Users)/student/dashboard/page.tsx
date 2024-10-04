@@ -203,14 +203,7 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="timetable">
-            <Card>
-              <CardHeader>
-                <CardTitle>Timetable</CardTitle>
-              </CardHeader>
-              <CardContent>
                 <Timetable timetableData={[]} />
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="subjects">
@@ -256,16 +249,8 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="achievements">
-            <Card>
-              <CardHeader>
-                <CardTitle>Achievements</CardTitle>
-              </CardHeader>
-              <CardContent>
                 <Achievement />
-              </CardContent>
-            </Card>
           </TabsContent>
-
           <TabsContent value="placement">
             <Card>
               <CardHeader>

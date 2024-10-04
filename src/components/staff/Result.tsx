@@ -1,79 +1,168 @@
-import React, { useState } from "react";
+"use client";
 
-// Interface for representing each uploaded result
+import React, { useState } from "react";
+import { Eye } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+
 interface UploadedResult {
+  id: number;
   studentName: string;
-  course: string;
   semester: string;
   fileName: string;
   url: string;
 }
 
-// Sample data for uploaded results (simulate fetching from a server or database)
 const initialResults: UploadedResult[] = [
-  {
-    studentName: "John Doe",
-    course: "B.Tech Computer Science",
-    semester: "Semester 1",
-    fileName: "result1.pdf",
-    url: "path/to/result1.pdf",
-  },
-  {
-    studentName: "Jane Smith",
-    course: "M.Tech AI/ML",
-    semester: "Semester 2",
-    fileName: "result2.pdf",
-    url: "path/to/result2.pdf",
-  },
+  { id: 1, studentName: "John Doe", semester: "Semester 1", fileName: "result1.pdf", url: "path/to/result1.pdf" },
+  { id: 2, studentName: "Jane Smith", semester: "Semester 2", fileName: "result2.pdf", url: "path/to/result2.pdf" },
+  { id: 3, studentName: "Alice Johnson", semester: "Semester 3", fileName: "result3.pdf", url: "path/to/result3.pdf" },
+  { id: 4, studentName: "Bob Brown", semester: "Semester 1", fileName: "result4.pdf", url: "path/to/result4.pdf" },
+  { id: 5, studentName: "Charlie White", semester: "Semester 4", fileName: "result5.pdf", url: "path/to/result5.pdf" },
+  { id: 6, studentName: "David Green", semester: "Semester 2", fileName: "result6.pdf", url: "path/to/result6.pdf" },
+  { id: 7, studentName: "Eve Black", semester: "Semester 1", fileName: "result7.pdf", url: "path/to/result7.pdf" },
+  { id: 8, studentName: "Frank Blue", semester: "Semester 2", fileName: "result8.pdf", url: "path/to/result8.pdf" },
 ];
 
+const semesters = ["All", "Semester 1", "Semester 2", "Semester 3", "Semester 4"];
+const itemsPerPage = 5;
+
 const Result: React.FC = () => {
-
   const [uploadedResults, setUploadedResults] = useState<UploadedResult[]>(initialResults);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedSemester, setSelectedSemester] = useState<string>("All");
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const handleRemoveFile = (fileName: string) => {
-    setUploadedResults(uploadedResults.filter((result) => result.fileName !== fileName));
+  const filteredResults = uploadedResults.filter((result) => {
+    const matchesSearch = result.studentName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSemester = selectedSemester === "All" || result.semester === selectedSemester;
+    return matchesSearch && matchesSemester;
+  });
+
+  const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
+  const currentResults = filteredResults.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const handleNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSelectedSemester("All");
+    setCurrentPage(1);
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-center">Student Uploaded Results</h2>
-      <div className="overflow-x-auto">
-        <h3 className="text-lg font-semibold mb-4">Results List</h3>
-        {uploadedResults.length > 0 ? (
-          <div className="border rounded-lg overflow-hidden">
-            {uploadedResults.map((result) => (
-              <div key={result.fileName} className="border-b last:border-b-0 p-3 hover:bg-gray-50">
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    <p className="font-medium">{result.studentName}</p>
-                    <p className="text-sm text-gray-500">
-                      {result.course} - {result.semester}
-                    </p>
-                  </div>
-                  <div className="flex space-x-4">
-                    <a
-                      href={result.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                    >
-                      View
-                    </a>
-                    <button
-                      onClick={() => handleRemoveFile(result.fileName)}
-                      className="text-red-500 hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-600">{result.fileName}</div>
-              </div>
-            ))}
+    <div className="p-4 sm:p-6 md:p-8 bg-white rounded-lg shadow-md">
+      <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">Student Uploaded Results</h2>
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 flex-grow items-center">
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search"
+              className="w-full sm:w-48"
+            />
+            <Select onValueChange={setSelectedSemester} value={selectedSemester}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                {selectedSemester || "Select Semester"}
+              </SelectTrigger>
+              <SelectContent>
+                {semesters.map((semester) => (
+                  <SelectItem key={semester} value={semester}>
+                    {semester}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={handleClearFilters}>
+              Clear
+            </Button>
           </div>
-        ) : (
-          <p className="text-gray-500">No results uploaded by students yet.</p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Student Name</TableHead>
+                <TableHead>Semester</TableHead>
+                <TableHead>File Name</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {currentResults.length > 0 ? (
+                currentResults.map((result) => (
+                  <TableRow key={result.id} className="hover:bg-gray-100 transition-all">
+                    <TableCell className="font-medium">{result.studentName}</TableCell>
+                    <TableCell>{result.semester}</TableCell>
+                    <TableCell>{result.fileName}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-start ml-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                          onClick={() => window.open(result.url, "_blank")}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">
+                    No results found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {filteredResults.length > itemsPerPage && (
+          <div className="pagination mt-4 flex justify-center items-center space-x-4 mb-">
+            <Button
+              disabled={currentPage === 1}
+              onClick={handlePrevPage}
+              className="pagination-button"
+            >
+              Previous
+            </Button>
+            <span className="pagination-info">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              disabled={currentPage === totalPages}
+              onClick={handleNextPage}
+              className="pagination-button"
+            >
+              Next
+            </Button>
+          </div>
         )}
       </div>
     </div>

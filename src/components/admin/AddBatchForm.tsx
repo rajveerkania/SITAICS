@@ -36,7 +36,6 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
   });
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
   const [csvData, setCSVData] = useState<CSVData[]>([]);
 
   const handleFileUpload = async (file: File) => {
@@ -171,6 +170,7 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
         <Button type="submit">Create Batch</Button>
         <ImportButton
           type="button"
+          onSuccess={onBatchAdded}
           onFileUpload={handleFileUpload}
           fileCategory="importBatches"
           buttonText="Import CSV"

@@ -4,22 +4,17 @@ import ImportButton from "@/components/ImportButton";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-interface AddCourseFormProps {
-  onAddCourseSuccess: (newCourse: {
-    courseId: string;
-    courseName: string;
-    isActive: boolean;
-    totalBatches: number;
-    totalSubjects: number;
-  }) => void;
-}
+
 
 interface CSVData {
   [key: string]: string;
 }
 
-const AddCourseForm: React.FC<AddCourseFormProps> = ({
+
+const AddCourseForm = ({
   onAddCourseSuccess,
+}: {
+  onAddCourseSuccess: () => void;
 }) => {
   const [courseName, setCourseName] = useState("");
   const [csvData, setCSVData] = useState<CSVData[]>([]);
@@ -60,15 +55,7 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({
       const data = await response.json();
       if (response.ok) {
         toast.success("Course added successfully");
-
-        // Create a complete course object
-        onAddCourseSuccess({
-          courseId: data.courseId, // Assuming the API returns courseId
-          courseName: data.courseName,
-          isActive: true,
-          totalBatches: 0,
-          totalSubjects: 0,
-        });
+         onAddCourseSuccess();
         setCourseName("");
       } else {
         toast.error(data.message);
@@ -92,6 +79,7 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({
         <ImportButton
           type="button"
           onFileUpload={handleFileUpload}
+          onSuccess={onAddCourseSuccess}
           fileCategory="importCourses"
           buttonText="Import CSV"
         />
