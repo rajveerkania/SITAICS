@@ -33,7 +33,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     contactNo: "",
     dateOfBirth: "",
     isBatchCoordinator: false,
-    batchId: "",
+    batchId: "", // This stores the selected batchId
   });
 
   const [errors, setErrors] = useState({
@@ -49,8 +49,11 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     batchId: "",
   });
 
-  const [batches, setBatches] = useState<{ id: string; name: string }[]>([]);
+  const [batches, setBatches] = useState<
+    { batchId: string; batchName: string; courseName: string }[]
+  >([]);
 
+  // Fetch available batches for dropdown
   useEffect(() => {
     const fetchBatches = async () => {
       try {
@@ -154,7 +157,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(staffFormData),
+        body: JSON.stringify(staffFormData), // Submit batchId here
       });
 
       if (updatedStaffDetails.ok) {
@@ -283,7 +286,6 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                 type="text"
                 name="contactNo"
                 placeholder="Contact Number"
-                maxLength={10}
                 value={staffFormData.contactNo}
                 onChange={handleStaffInputChange}
                 required
@@ -292,20 +294,25 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
               <Input
                 type="date"
                 name="dateOfBirth"
+                placeholder="Date of Birth"
                 value={staffFormData.dateOfBirth}
                 onChange={handleStaffInputChange}
                 required
               />
               {errors.dateOfBirth && <p className="text-red-500">{errors.dateOfBirth}</p>}
-              <label>
+
+              <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   name="isBatchCoordinator"
                   checked={staffFormData.isBatchCoordinator}
                   onChange={handleStaffInputChange}
+                  id="isBatchCoordinator"
                 />
-                Is Batch Coordinator
-              </label>
+                <label htmlFor="isBatchCoordinator">
+                  Are you a Batch Coordinator?
+                </label>
+              </div>
               {staffFormData.isBatchCoordinator && (
                 <Select
                   name="batchId"
@@ -318,12 +325,16 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                   required
                 >
                   <SelectTrigger className="w-full">
-                    <span>{staffFormData.batchId || "Select Batch"}</span>
+                    <span>
+                      {batches.find(
+                        (batch) => batch.batchId === staffFormData.batchId
+                      )?.batchName || "Select Batch"}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     {batches.map((batch) => (
-                      <SelectItem key={batch.id} value={batch.id}>
-                        {batch.name}
+                      <SelectItem key={batch.batchId} value={batch.batchId}>
+                        {`${batch.batchName} - ${batch.courseName}`}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -333,18 +344,25 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
             </>
           )}
 
-          <div className="flex justify-between">
+          <div className="flex justify-between mt-4">
             {currentStep > 1 && (
-              <Button type="button" onClick={previousStep}>
+              <Button
+                type="button"
+                onClick={previousStep}
+                className="bg-gray-500 hover:bg-gray-600"
+              >
                 Previous
               </Button>
             )}
-            {currentStep < 3 ? (
-              <Button type="button" onClick={nextStep}>
+            {currentStep < 3 && (
+              <Button type="button" onClick={nextStep} className="bg-blue-500">
                 Next
               </Button>
-            ) : (
-              <Button type="submit">Submit</Button>
+            )}
+            {currentStep === 3 && (
+              <Button type="submit" className="bg-green-500">
+                Submit
+              </Button>
             )}
           </div>
         </form>

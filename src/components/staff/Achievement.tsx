@@ -224,7 +224,6 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <FaRegEdit className="cursor-pointer text-blue-600" />
                       <FaTrashAlt
                         className="cursor-pointer text-red-600"
                         onClick={() =>

@@ -5,7 +5,7 @@ import { verifyToken } from "@/utils/auth";
 export async function POST(request: NextRequest) {
   const decodedUser = verifyToken();
   const userRole = decodedUser?.role;
-  const userId = decodedUser?.id
+  const userId = decodedUser?.id;
 
   if (userRole !== "Staff") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
@@ -23,6 +23,8 @@ export async function POST(request: NextRequest) {
       pinCode,
       contactNumber,
       dateOfBirth,
+      isBatchCoordinator, // new field
+      batchId, // new field
     } = reqBody;
 
     const parsedDateOfBirth = new Date(`${dateOfBirth}T00:00:00Z`);
@@ -30,7 +32,6 @@ export async function POST(request: NextRequest) {
     const existingStaff = await prisma.staffDetails.findUnique({
       where: { id: userId },
     });
-
 
     let staffDetails;
 
@@ -47,24 +48,26 @@ export async function POST(request: NextRequest) {
             state,
             pinCode,
             contactNumber,
-            dateOfBirth : parsedDateOfBirth,
+            dateOfBirth: parsedDateOfBirth,
+            isBatchCoordinator, // updated data
+            batchId: isBatchCoordinator ? batchId : null, // assign batchId only if batch coordinator
             isProfileCompleted: true,
           },
-        })
+        }),
       ]);
     }
 
     console.log(
-      (existingStaff ? "Updated" : "Created") + " student details:",
+      (existingStaff ? "Updated" : "Created") + " staff details:",
       staffDetails
     );
 
     return NextResponse.json({
-      message: `Student Details ${
+      message: `Staff Details ${
         existingStaff ? "updated" : "created"
       } successfully`,
       success: true,
-      staffDetails
+      staffDetails,
     });
   } catch (error: any) {
     console.error("Error:", error);
