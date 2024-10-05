@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
       where: { id: userId },
     });
 
+
     let staffDetails;
 
     if (existingStaff) {

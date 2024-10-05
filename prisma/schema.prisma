@@ -112,7 +112,9 @@ model Batch {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   course          Course           @relation(fields: [courseId], references: [courseId])
+  timetable       Bytes?           // Field for storing timetable in PDF format
 }
+
 
 model BatchSubject {
   batchId   String

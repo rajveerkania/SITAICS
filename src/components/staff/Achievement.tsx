@@ -36,6 +36,7 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
     fetchAchievements();
   }, []);
 
+  // Fetch achievements from the server
   const fetchAchievements = async () => {
     try {
       const response = await fetch("/api/fetchAchievements", {
@@ -49,15 +50,14 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
       const data = await response.json();
       console.log("Fetched achievements data:", data);
 
-      setAchievements(
-        Array.isArray(data.achievements) ? data.achievements : []
-      );
+      setAchievements(Array.isArray(data.achievements) ? data.achievements : []);
     } catch (error) {
       console.error("Error fetching achievements:", error);
       setAchievements([]);
     }
   };
 
+  // Handle form submission to add a new achievement
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -85,6 +85,7 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
     }
   };
 
+  // Reset form after submission
   const resetForm = () => {
     setTitle("");
     setDescription("");
@@ -93,6 +94,7 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
     setEditingId(null);
   };
 
+  // Handle delete request for specific achievement
   const handleDelete = async (
     userId: string,
     role: string,
@@ -102,11 +104,19 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
       const response = await fetch("/api/deleteAchievement", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, userRole: role, achievement }),
+        body: JSON.stringify({
+          title: achievement.title,
+          description: achievement.description,
+          date: achievement.date,
+          category: achievement.category,
+        }),
       });
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Delete Achievement Response:", data);
+
+        // Update the achievements list by removing the deleted achievement
         setAchievements((prev) =>
           prev.filter(
             (a) =>
@@ -116,7 +126,6 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
               a.category !== achievement.category
           )
         );
-        
       } else {
         throw new Error("Failed to delete achievement");
       }
@@ -131,6 +140,7 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
         Achievements
       </h2>
 
+      {/* Tabs to switch between view and add modes */}
       <div className="flex flex-col md:flex-row mb-4 border-b border-gray-300">
         <button
           className={`p-2 flex-1 ${
@@ -154,6 +164,7 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
         </button>
       </div>
 
+      {/* Viewing Achievements */}
       {activeTab === "view" && (
         <div>
           <input
@@ -176,34 +187,53 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
             ))}
           </select>
 
+          {/* List of achievements */}
           <div className="space-y-4">
             {Array.isArray(achievements) && achievements.length > 0 ? (
-              achievements.map((achievement, index) => (
-                <div
-                  key={index}
-                  className="border p-4 rounded shadow-md flex justify-between items-center"
-                >
-                  <div>
-                    <h3 className="text-xl font-semibold">
-                      {achievement.title}
-                    </h3>
-                    <p className="text-gray-600">{achievement.description}</p>
-                    <p className="text-sm text-gray-500">
-                      Date: {achievement.date} | Category:{" "}
-                      {achievement.category}
-                    </p>
+              achievements
+                .filter((achievement) => {
+                  const matchesSearch =
+                    achievement.title
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                    achievement.description
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase());
+
+                  const matchesCategory =
+                    filterCategory === "All" ||
+                    achievement.category === filterCategory;
+
+                  return matchesSearch && matchesCategory;
+                })
+                .map((achievement, index) => (
+                  <div
+                    key={index}
+                    className="border p-4 rounded shadow-md flex justify-between items-center"
+                  >
+                    <div>
+                      <h3 className="text-xl font-semibold">
+                        {achievement.title}
+                      </h3>
+                      <p className="text-gray-600">
+                        {achievement.description}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Date: {achievement.date} | Category:{" "}
+                        {achievement.category}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <FaRegEdit className="cursor-pointer text-blue-600" />
+                      <FaTrashAlt
+                        className="cursor-pointer text-red-600"
+                        onClick={() =>
+                          handleDelete(userId, userRole, achievement)
+                        }
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <FaRegEdit className="cursor-pointer text-blue-600" />
-                    <FaTrashAlt
-                      className="cursor-pointer text-red-600"
-                      onClick={() =>
-                        handleDelete(userId, userRole, achievement)
-                      }
-                    />
-                  </div>
-                </div>
-              ))
+                ))
             ) : (
               <p>No achievements found</p>
             )}
@@ -211,6 +241,7 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
         </div>
       )}
 
+      {/* Adding New Achievement */}
       {activeTab === "add" && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
