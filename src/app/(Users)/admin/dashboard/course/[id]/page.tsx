@@ -1,29 +1,28 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Book, Layers, Edit3, ArrowLeft } from 'lucide-react';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
+import { Book, Layers, Edit3, ArrowLeft } from "lucide-react";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 interface Course {
   courseId: string;
@@ -56,34 +55,31 @@ const CourseEditPage = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedCourseName, setEditedCourseName] = useState('');
+  const [editedCourseName, setEditedCourseName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
-        const courseResponse = await fetch('/api/fetchCourses');
+        const courseResponse = await fetch("/api/fetchCourses");
         const courseData = await courseResponse.json();
         const currentCourse = courseData.courses.find(
           (c: Course) => c.courseId === id
         );
-        
+
         if (currentCourse) {
           setCourse(currentCourse);
           setEditedCourseName(currentCourse.courseName);
         }
 
-        // Fetch batches
-        const batchResponse = await fetch('/api/fetchBatches');
+        const batchResponse = await fetch("/api/fetchBatches");
         const batchData = await batchResponse.json();
         const courseBatches = batchData.filter(
           (batch: Batch) => batch.courseName === currentCourse?.courseName
         );
         setBatches(courseBatches);
 
-        // Fetch subjects
-        const subjectResponse = await fetch('/api/fetchSubjects');
+        const subjectResponse = await fetch("/api/fetchSubjects");
         const subjectData = await subjectResponse.json();
         const courseSubjects = subjectData.filter(
           (subject: Subject) => subject.courseName === currentCourse?.courseName
@@ -103,9 +99,9 @@ const CourseEditPage = () => {
   const handleSave = async () => {
     try {
       const response = await fetch(`/api/updateCourse`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           courseId: id,
@@ -114,10 +110,12 @@ const CourseEditPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update course');
+        throw new Error("Failed to update course");
       }
 
-      setCourse(prev => prev ? { ...prev, courseName: editedCourseName } : null);
+      setCourse((prev) =>
+        prev ? { ...prev, courseName: editedCourseName } : null
+      );
       toast.success("Course updated successfully");
       setIsEditing(false);
     } catch (error) {
@@ -127,26 +125,20 @@ const CourseEditPage = () => {
   };
 
   const handleBackClick = () => {
-    router.push('/admin/dashboard');
+    router.push("/admin/dashboard");
   };
 
   if (isLoading) {
     return <LoadingSkeleton loadingText="course details" />;
   }
-  
 
   if (!course) {
-    return <div>Course not found</div>
-    ;
+    return <div>Course not found</div>;
   }
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Button 
-        variant="outline" 
-        onClick={handleBackClick}
-        className="mb-6"
-      >
+      <Button variant="outline" onClick={handleBackClick} className="mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
       </Button>
 
@@ -202,8 +194,8 @@ const CourseEditPage = () => {
         </CardContent>
         {isEditing && (
           <CardFooter className="flex justify-end space-x-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setIsEditing(false);
                 setEditedCourseName(course.courseName);
@@ -211,9 +203,7 @@ const CourseEditPage = () => {
             >
               Cancel
             </Button>
-            <Button onClick={handleSave}>
-              Save Changes
-            </Button>
+            <Button onClick={handleSave}>Save Changes</Button>
           </CardFooter>
         )}
       </Card>
@@ -269,9 +259,7 @@ const CourseEditPage = () => {
           <Card>
             <CardHeader>
               <CardTitle>Course Subjects</CardTitle>
-              <CardDescription>
-                All subjects in this course
-              </CardDescription>
+              <CardDescription>All subjects in this course</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
