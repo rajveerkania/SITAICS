@@ -38,7 +38,9 @@ const BatchTab = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
   const batchesPerPage = 5;
+
   const fetchBatches = async () => {
     setIsLoading(true);
     setError(null);
@@ -92,6 +94,7 @@ const BatchTab = () => {
 
   const handleBatchAdded = () => {
     fetchBatches();
+    setActiveTab("manage")
   };
 
   const handleOpenEditDialog = (batch: Batch) => {
@@ -154,9 +157,13 @@ const BatchTab = () => {
     }
   };
 
-  const totalBatches = batches.length;
+  const filteredBatches = batches.filter((batch) =>
+    batch.batchName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalBatches = filteredBatches.length;
   const totalPages = Math.ceil(totalBatches / batchesPerPage);
-  const currentBatches = batches.slice(
+  const currentBatches = filteredBatches.slice(
     (currentPage - 1) * batchesPerPage,
     currentPage * batchesPerPage
   );
@@ -171,10 +178,24 @@ const BatchTab = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList>
-        <TabsTrigger value="manage">Manage Batches</TabsTrigger>
-        <TabsTrigger value="Create">Create Batch</TabsTrigger>
-      </TabsList>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="manage">Manage Batches</TabsTrigger>
+          <TabsTrigger value="Create">Create Batch</TabsTrigger>
+        </TabsList>
+        {activeTab === "manage" && (
+          <Input
+            className="w-full sm:w-auto sm:ml-auto"
+            type="text"
+            placeholder="Search batches"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        )}
+      </div>
       <TabsContent value="Create">
         <AddBatchForm onBatchAdded={handleBatchAdded} onTabChange={setActiveTab} />
       </TabsContent>
@@ -190,41 +211,49 @@ const BatchTab = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentBatches.map((batch) => (
-              <TableRow key={batch.batchId}>
-                <TableCell>
-                  <Button
-                    variant="link"
-                    onClick={() => handleViewBatchDetails(batch.batchName)}
-                  >
-                    {batch.batchName}
-                  </Button>
-                </TableCell>
-                <TableCell>{batch.courseName}</TableCell>
-                <TableCell>{batch.currentSemester}</TableCell>
-                <TableCell>{batch.studentCount}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
+            {currentBatches.length > 0 ? (
+              currentBatches.map((batch) => (
+                <TableRow key={batch.batchId}>
+                  <TableCell>
                     <Button
-                      variant="outline"
-                      onClick={() => handleOpenEditDialog(batch)}
-                      style={{ backgroundColor: "black", color: "white" }}
-                      className="flex items-center"
+                      variant="link"
+                      onClick={() => handleViewBatchDetails(batch.batchName)}
                     >
-                      <FaEdit className="h-4 w-4" />
+                      {batch.batchName}
                     </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDeleteBatch(batch.batchId)}
-                      style={{ backgroundColor: "black", color: "white" }}
-                      className="flex items-center"
-                    >
-                      <FaTrashAlt className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  </TableCell>
+                  <TableCell>{batch.courseName}</TableCell>
+                  <TableCell>{batch.currentSemester}</TableCell>
+                  <TableCell>{batch.studentCount}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => handleOpenEditDialog(batch)}
+                        style={{ backgroundColor: "black", color: "white" }}
+                        className="flex items-center"
+                      >
+                        <FaEdit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleDeleteBatch(batch.batchId)}
+                        style={{ backgroundColor: "black", color: "white" }}
+                        className="flex items-center"
+                      >
+                        <FaTrashAlt className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  No batches found
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
 
