@@ -135,6 +135,7 @@ model ElectiveGroup {
   groupName             String
   courseId              String
   semester              Int
+  isActive              Boolean                 @default(true)
   subjects              Subject[]
   course                Course                  @relation(fields: [courseId], references: [courseId])
   ElectiveSubjectChoice ElectiveSubjectChoice[]

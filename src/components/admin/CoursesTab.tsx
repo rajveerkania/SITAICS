@@ -17,7 +17,8 @@ import LoadingSkeleton from "../LoadingSkeleton";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import bcryptjs from 'bcryptjs';
+import bcryptjs from "bcryptjs";
+import { Eye } from "lucide-react";
 
 interface Course {
   courseId: string;
@@ -60,9 +61,9 @@ const CoursesTab: React.FC = () => {
       if (Array.isArray(data.courses)) {
         // Encrypt all courseIds
         const coursesWithEncryption = await Promise.all(
-          data.courses.map(async (course: { courseId: string; }) => ({
+          data.courses.map(async (course: { courseId: string }) => ({
             ...course,
-            encryptedId: await encryptCourseId(course.courseId)
+            encryptedId: await encryptCourseId(course.courseId),
           }))
         );
         setCourses(coursesWithEncryption);
@@ -70,7 +71,9 @@ const CoursesTab: React.FC = () => {
         throw new Error("Invalid data structure");
       }
     } catch (error: any) {
-      setError(error.message || "Failed to load courses. Please try again later.");
+      setError(
+        error.message || "Failed to load courses. Please try again later."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +87,7 @@ const CoursesTab: React.FC = () => {
     try {
       // Encrypt courseId before sending to API
       const encryptedId = await encryptCourseId(courseId);
-      
+
       const response = await fetch("/api/deleteCourse", {
         method: "PUT",
         headers: {
@@ -92,7 +95,7 @@ const CoursesTab: React.FC = () => {
         },
         body: JSON.stringify({ courseId: encryptedId }),
       });
-      
+
       if (response.ok) {
         toast.success("Course deleted successfully");
         fetchCourses();
@@ -103,8 +106,8 @@ const CoursesTab: React.FC = () => {
   };
 
   const handleEditCourse = async (course: Course) => {
-    // Encrypt courseId before navigation
-    const encryptedId = course.encryptedId || await encryptCourseId(course.courseId);
+    const encryptedId =
+      course.encryptedId || (await encryptCourseId(course.courseId));
     router.push(`/admin/dashboard/course/${encryptedId}`);
   };
 
@@ -179,7 +182,7 @@ const CoursesTab: React.FC = () => {
                             onClick={() => handleEditCourse(course)}
                             style={{ backgroundColor: "black", color: "white" }}
                           >
-                            <FaEdit className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             onClick={() => handleDeleteCourse(course.courseId)}

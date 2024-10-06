@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 import AddUserForm from "./AddUserForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { UserDetailsDialog } from "./UserDetailsDialog";
@@ -18,6 +18,7 @@ import LoadingSkeleton from "../LoadingSkeleton";
 import AccessDenied from "../accessDenied";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
+import { Eye } from "lucide-react";
 
 interface User {
   id: string;
@@ -160,7 +161,7 @@ const UsersTab = () => {
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Button onClick={() => setShowUserDetails(true)}>
-                              <FaRegEdit className="h-4 w-4" />
+                              <Eye className="h-4 w-4" />
                             </Button>
                             <Button onClick={() => handleDeleteUser(user.id)}>
                               <FaTrashAlt className="h-4 w-4" />
