@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,20 +37,12 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
+  Eye,
+  Check,
+  X,
 } from "lucide-react";
-
-interface Student {
-  id: string;
-  name: string;
-  enrollmentNumber: string;
-  email: string;
-  contactNo: string;
-}
-
-interface Course {
-  courseId: string;
-  courseName: string;
-}
+import { Badge } from "@/components/ui/badge";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 interface BatchDetails {
   batchId: string;
@@ -62,47 +53,96 @@ interface BatchDetails {
   studentCount: number;
 }
 
+interface Student {
+  id: string;
+  name: string;
+  enrollmentNumber: string;
+  email: string;
+  contactNo: string;
+}
+
+interface Subject {
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string;
+  semester: number;
+  assignedToBatch: boolean;
+  batchSemester: number;
+}
+
+interface BatchSubjectsResponse {
+  batchName: string;
+  courseName: string;
+  subjects: Subject[];
+}
+
 const BatchEditPage = () => {
-  const router = useRouter();
+  const [batchDetails, setBatchDetails] = useState<BatchDetails | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [courses, setCourses] = useState<
+    { courseId: string; courseName: string }[]
+  >([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [batchDetailsExpanded, setBatchDetailsExpanded] = useState(true);
   const [studentsExpanded, setStudentsExpanded] = useState(true);
   const { id } = useParams();
+  const router = useRouter();
 
-  const [courses, setCourses] = useState<Course[]>([
-    { courseId: "1", courseName: "Bachelor of Computer Science" },
-    { courseId: "2", courseName: "Bachelor of Engineering" },
-  ]);
+  useEffect(() => {
+    const fetchBatchDetails = async () => {
+      try {
+        const batchResponse = await fetch(`/api/fetchBatches?batchId=${id}`);
+        const batchData = await batchResponse.json();
+        setBatchDetails(batchData);
 
-  const [batchDetails, setBatchDetails] = useState<BatchDetails>({
-    batchId: "batch-1",
-    batchName: "CS 2024",
-    courseName: "Bachelor of Computer Science",
-    batchDuration: 4,
-    currentSemester: 1,
-    studentCount: 45,
-  });
+        const studentsResponse = await fetch(`/api/fetchStudents?batchId=${id}`);
+        const studentsData = await studentsResponse.json();
+        setStudents(studentsData.students);
 
-  const [students, setStudents] = useState<Student[]>([
-    {
-      id: "1",
-      name: "John Doe",
-      enrollmentNumber: "CS2024001",
-      email: "john.doe@example.com",
-      contactNo: "1234567890",
-    },
-    {
-      id: "2",
-      name: "Jane Smith",
-      enrollmentNumber: "CS2024002",
-      email: "jane.smith@example.com",
-      contactNo: "9876543210",
-    },
-  ]);
+        const subjectsResponse = await fetch(
+          `/api/fetchBatchSubjects?batchId=${id}`
+        );
+        const subjectsData: BatchSubjectsResponse = await subjectsResponse.json();
+        if (subjectsResponse.ok) {
+          setSubjects(subjectsData.subjects);
+        }
 
-  const handleSave = () => {
-    toast.success("Batch details updated successfully");
-    setIsEditing(false);
+        const coursesResponse = await fetch("/api/fetchCourses");
+        const coursesData = await coursesResponse.json();
+        setCourses(coursesData.courses);
+        setIsLoading(false);
+      } catch (error) {
+        toast.error("Error while fetching batch data!");
+        console.error(error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchBatchDetails();
+  }, [id]);
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch(`/api/updateBatch/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(batchDetails),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update batch");
+      }
+
+      toast.success("Batch details updated successfully");
+      setIsEditing(false);
+    } catch (error) {
+      toast.error("Failed to update batch details");
+      console.error(error);
+    }
   };
 
   const handleBackClick = () => {
@@ -117,203 +157,235 @@ const BatchEditPage = () => {
     setStudentsExpanded(!studentsExpanded);
   };
 
+  if (isLoading) {
+    return <LoadingSkeleton loadingText="batch details" />;
+  }
+
   return (
-    <div className="max-h-screen">
-      <div className="bg-[#f2f3f5]">
-        <div className="container mx-auto py-8 px-4">
-          <Button variant="outline" onClick={handleBackClick} className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
-          </Button>
+    <div className="bg-[#f3f4f6] min-h-screen">
+      <div className="container mx-auto py-8 px-4">
+        <Button variant="outline" onClick={handleBackClick} className="mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+        </Button>
+        
+        {/* Batch Details Card */}
+        <Card className="mb-6">
+          <CardHeader className="cursor-pointer" onClick={toggleBatchDetails}>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-2xl">Batch Details</CardTitle>
+              {batchDetailsExpanded ? <ChevronUp /> : <ChevronDown />}
+            </div>
+            <CardDescription>
+              Manage batch information and view enrolled students
+            </CardDescription>
+          </CardHeader>
 
-          {/* Batch Details Section */}
-          <Card className="mb-6 overflow-hidden">
-            <CardHeader className="cursor-pointer" onClick={toggleBatchDetails}>
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-2xl">Batch Details</CardTitle>
-                {batchDetailsExpanded ? <ChevronUp /> : <ChevronDown />}
-              </div>
-              <CardDescription>
-                Manage batch information and view enrolled students
-              </CardDescription>
-            </CardHeader>
+          {batchDetailsExpanded && (
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <School className="mr-2 h-4 w-4" /> Batch Name
+                    </label>
+                    {isEditing ? (
+                      <Input
+                        value={batchDetails?.batchName}
+                        onChange={(e) =>
+                          setBatchDetails({
+                            ...batchDetails!,
+                            batchName: e.target.value,
+                          })
+                        }
+                        className="w-full"
+                      />
+                    ) : (
+                      <p className="text-lg">{batchDetails?.batchName}</p>
+                    )}
+                  </div>
 
-            {batchDetailsExpanded && (
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <School className="mr-2 h-4 w-4" /> Course
+                    </label>
+                    {isEditing ? (
+                      <Select
+                        value={batchDetails?.courseName}
+                        onValueChange={(value) =>
+                          setBatchDetails({
+                            ...batchDetails!,
+                            courseName: value,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select Course" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {courses.map((course) => (
+                            <SelectItem
+                              key={course.courseId}
+                              value={course.courseName}
+                            >
+                              {course.courseName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-lg">{batchDetails?.courseName}</p>
+                    )}
+                  </div>
+
+                  <div className="flex gap-8">
                     <div>
                       <label className="text-sm font-medium flex items-center mb-2">
-                        <School className="mr-2 h-4 w-4" /> Batch Name
+                        <Calendar className="mr-2 h-4 w-4" /> Current Semester
                       </label>
                       {isEditing ? (
                         <Input
-                          value={batchDetails.batchName}
+                          type="number"
+                          value={batchDetails?.currentSemester}
                           onChange={(e) =>
                             setBatchDetails({
-                              ...batchDetails,
-                              batchName: e.target.value,
+                              ...batchDetails!,
+                              currentSemester: parseInt(e.target.value),
                             })
                           }
                           className="w-full"
                         />
                       ) : (
-                        <p className="text-lg">{batchDetails.batchName}</p>
+                        <p className="text-lg">
+                          {batchDetails?.currentSemester}
+                        </p>
                       )}
                     </div>
 
                     <div>
                       <label className="text-sm font-medium flex items-center mb-2">
-                        <School className="mr-2 h-4 w-4" /> Course
+                        <Users className="mr-2 h-4 w-4" /> Total Students
                       </label>
-                      {isEditing ? (
-                        <Select
-                          value={batchDetails.courseName}
-                          onValueChange={(value) =>
-                            setBatchDetails({
-                              ...batchDetails,
-                              courseName: value,
-                            })
-                          }
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select Course" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {courses.map((course) => (
-                              <SelectItem
-                                key={course.courseId}
-                                value={course.courseName}
-                              >
-                                {course.courseName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <p className="text-lg">{batchDetails.courseName}</p>
-                      )}
-                    </div>
-
-                    <div className="flex gap-8">
-                      <div>
-                        <label className="text-sm font-medium flex items-center mb-2">
-                          <Calendar className="mr-2 h-4 w-4" /> Current Semester
-                        </label>
-                        <p className="text-lg">
-                          {batchDetails.currentSemester}
-                        </p>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-medium flex items-center mb-2">
-                          <Users className="mr-2 h-4 w-4" /> Total Students
-                        </label>
-                        <p className="text-lg">{batchDetails.studentCount}</p>
-                      </div>
+                      <p className="text-lg">{batchDetails?.studentCount}</p>
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            )}
-
-            {batchDetailsExpanded && (
-              <CardFooter className="flex justify-end space-x-4">
-                {isEditing ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsEditing(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSave}>Save Changes</Button>
-                  </>
-                ) : (
-                  <Button onClick={() => setIsEditing(true)}>
-                    <Edit3 className="mr-2 h-4 w-4" /> Edit Batch
-                  </Button>
-                )}
-              </CardFooter>
-            )}
-          </Card>
-
-          {/* Enrolled Students / Batch Subjects Section */}
-          <Card className="mb-6 overflow-hidden">
-            <CardHeader className="cursor-pointer" onClick={toggleStudents}>
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-2xl">
-                  Batch Enrolled Students/Subjects
-                </CardTitle>
-                {studentsExpanded ? <ChevronUp /> : <ChevronDown />}
               </div>
-              <CardDescription>
-                View enrolled students and subjects assigned to this batch
-              </CardDescription>
-            </CardHeader>
+            </CardContent>
+          )}
 
-            {studentsExpanded && (
-              <CardContent>
-                <Tabs defaultValue="students" className="space-y-6">
-                  <TabsList>
-                    <TabsTrigger value="students">
-                      Enrolled Students
-                    </TabsTrigger>
-                    <TabsTrigger value="subjects">Batch Subjects</TabsTrigger>
-                  </TabsList>
+          {batchDetailsExpanded && (
+            <CardFooter className="flex justify-end space-x-4">
+              {isEditing ? (
+                <>
+                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSave}>Save Changes</Button>
+                </>
+              ) : (
+                <Button onClick={() => setIsEditing(true)}>
+                  <Edit3 className="mr-2 h-4 w-4" /> Edit Batch
+                </Button>
+              )}
+            </CardFooter>
+          )}
+        </Card>
 
-                  {/* Enrolled Students Tab */}
-                  <TabsContent value="students">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Enrollment Number</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Contact Number</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {students.map((student) => (
-                          <TableRow key={student.id}>
-                            <TableCell>{student.name}</TableCell>
-                            <TableCell>{student.enrollmentNumber}</TableCell>
-                            <TableCell>{student.email}</TableCell>
-                            <TableCell>{student.contactNo}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TabsContent>
+        {/* Students and Subjects Card */}
+        <Card className="mb-6">
+          <CardHeader className="cursor-pointer" onClick={toggleStudents}>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-2xl">
+                Enrolled Students and Subjects
+              </CardTitle>
+              {studentsExpanded ? <ChevronUp /> : <ChevronDown />}
+            </div>
+            <CardDescription>
+              View enrolled students and subjects assigned to this batch
+            </CardDescription>
+          </CardHeader>
 
-                  {/* Batch Subjects Tab */}
-                  <TabsContent value="subjects">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Subject Name</TableHead>
-                          <TableHead>Subject Code</TableHead>
-                          <TableHead>Semester</TableHead>
+          {studentsExpanded && (
+            <CardContent>
+              <Tabs defaultValue="students" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="students">Enrolled Students</TabsTrigger>
+                  <TabsTrigger value="subjects">Batch Subjects</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="students">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Enrollment Number</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Contact Number</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {students.map((student) => (
+                        <TableRow key={student.id}>
+                          <TableCell>{student.name}</TableCell>
+                          <TableCell>{student.enrollmentNumber}</TableCell>
+                          <TableCell>{student.email}</TableCell>
+                          <TableCell>{student.contactNo}</TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell>Introduction to Programming</TableCell>
-                          <TableCell>CS101</TableCell>
-                          <TableCell>1</TableCell>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+
+                <TabsContent value="subjects">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Subject Name</TableHead>
+                        <TableHead>Subject Code</TableHead>
+                        <TableHead>Course Semester</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {subjects.map((subject) => (
+                        <TableRow key={subject.subjectId}>
+                          <TableCell>{subject.subjectName}</TableCell>
+                          <TableCell>{subject.subjectCode}</TableCell>
+                          <TableCell>{subject.semester}</TableCell>
+                          <TableCell>
+                            {subject.assignedToBatch ? (
+                              <Badge className="bg-green-100 text-green-800">
+                                <Check className="h-3 w-3 mr-1" />
+                                Semester {subject.batchSemester}
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">
+                                <X className="h-3 w-3 mr-1" />
+                                Not Assigned
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
-                        <TableRow>
-                          <TableCell>Data Structures</TableCell>
-                          <TableCell>CS201</TableCell>
-                          <TableCell>2</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            )}
-          </Card>
-        </div>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          )}
+        </Card>
       </div>
     </div>
   );

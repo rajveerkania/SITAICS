@@ -11,15 +11,10 @@ import {
 } from "@/components/ui/table";
 import AddBatchForm from "./AddBatchForm";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { toast } from "sonner";
 import LoadingSkeleton from "../LoadingSkeleton";
+import { useRouter } from "next/navigation"; // Importing useRouter
 
 interface Batch {
   batchId: string;
@@ -33,19 +28,17 @@ interface Batch {
 const BatchTab = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [activeTab, setActiveTab] = useState("manage");
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [currentBatch, setCurrentBatch] = useState<Batch | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const batchesPerPage = 5;
+  const router = useRouter(); // Initialize useRouter
 
   const fetchBatches = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      setIsLoading(true); // Start loading
       const response = await fetch("/api/fetchBatches");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -94,37 +87,11 @@ const BatchTab = () => {
 
   const handleBatchAdded = () => {
     fetchBatches();
-    setActiveTab("manage")
+    setActiveTab("manage");
   };
 
-  const handleOpenEditDialog = (batch: Batch) => {
-    setCurrentBatch(batch);
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveBatchEdit = async () => {
-    if (!currentBatch) return;
-
-    try {
-      const response = await fetch(`/api/editBatch/${currentBatch.batchId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          batchName: currentBatch.batchName,
-          courseName: currentBatch.courseName,
-          batchDuration: currentBatch.batchDuration,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      fetchBatches();
-      setEditDialogOpen(false);
-    } catch (error: any) {
-      toast.error(`Error saving batch edit: ${error.message}`);
-    }
+  const handleEditBatch = (batchId: string) => {
+    router.push(`/admin/dashboard/batch/${batchId}`); // Navigate to the batch edit page
   };
 
   const handleDeleteBatch = async (batchId: string) => {
@@ -145,15 +112,6 @@ const BatchTab = () => {
       fetchBatches();
     } catch (error: any) {
       toast.error(`An unexpected error occurred: ${error.message}`);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (currentBatch) {
-      setCurrentBatch({
-        ...currentBatch,
-        [e.target.name]: e.target.value,
-      });
     }
   };
 
@@ -197,7 +155,10 @@ const BatchTab = () => {
         )}
       </div>
       <TabsContent value="Create">
-        <AddBatchForm onBatchAdded={handleBatchAdded} onTabChange={setActiveTab} />
+        <AddBatchForm
+          onBatchAdded={handleBatchAdded}
+          onTabChange={setActiveTab}
+        />
       </TabsContent>
       <TabsContent value="manage">
         <Table>
@@ -229,7 +190,7 @@ const BatchTab = () => {
                     <div className="flex space-x-2">
                       <Button
                         variant="outline"
-                        onClick={() => handleOpenEditDialog(batch)}
+                        onClick={() => handleEditBatch(batch.batchId)}
                         style={{ backgroundColor: "black", color: "white" }}
                         className="flex items-center"
                       >
@@ -279,53 +240,6 @@ const BatchTab = () => {
           </div>
         )}
       </TabsContent>
-
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Batch</DialogTitle>
-          </DialogHeader>
-          {currentBatch ? (
-            <div>
-              <Input
-                type="text"
-                name="batchName"
-                value={currentBatch.batchName}
-                onChange={handleInputChange}
-                placeholder="Batch Name"
-                className="mb-2"
-              />
-              <Input
-                type="text"
-                name="courseName"
-                value={currentBatch.courseName}
-                onChange={handleInputChange}
-                placeholder="Course Name"
-                className="mb-2"
-              />
-              <Input
-                type="number"
-                name="batchDuration"
-                value={currentBatch.batchDuration}
-                onChange={handleInputChange}
-                placeholder="Batch Duration"
-                className="mb-2"
-              />
-              <div className="flex justify-end space-x-2 mt-4">
-                <Button
-                  variant="secondary"
-                  onClick={() => setEditDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveBatchEdit}>Save Changes</Button>
-              </div>
-            </div>
-          ) : (
-            <p>Loading...</p>
-          )}
-        </DialogContent>
-      </Dialog>
     </Tabs>
   );
 };
