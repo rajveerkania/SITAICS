@@ -1,284 +1,347 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Flex, Text } from '@radix-ui/themes';
-import { Input } from '@/components/ui/input';
-import router, { useRouter } from 'next/router';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
-import { Switch } from '@radix-ui/react-switch';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { User, Mail, MapPin, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
 
-// Custom Label component
-const Label = ({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) => (
-  <label htmlFor={htmlFor} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-    {children}
-  </label>
-);
-
-async function fetchUserDetails(id: string) {
-  // Implement your API call here
-  // For now, we'll return mock data
-  return {
-    id,
-    email: 'user@example.com',
-    name: 'John Doe',
-    role: 'Student',
-    username: 'johndoe',
-    isActive: true,
-    studentDetails: {
-      enrollmentNumber: 'EN12345',
-      courseName: 'Computer Science',
-      batchName: 'CS2023',
-      dateOfBirth: '1995-05-15',
-      gender: 'Male',
-      contactNo: '1234567890',
-      address: '123 Main St',
-      city: 'New York',
-      state: 'NY',
-      pinCode: 10001,
-    },
-  };
-}
-
-interface User {
+interface UserDetails {
   id: string;
-  email: string;
   name: string;
+  email: string;
   role: string;
-  username: string;
+  username?: string;
   isActive: boolean;
-  studentDetails: {
-    enrollmentNumber: string;
-    courseName: string;
-    batchName: string;
-    dateOfBirth: string;
-    gender: string;
-    contactNo: string;
-    address: string;
-    city: string;
-    state: string;
-    pinCode: number;
+  createdAt: string;
+  updatedAt: string;
+  roleDetails: {
+    // Student specific fields
+    enrollmentNumber?: string;
+    courseName?: string;
+    batchName?: string;
+    // Staff specific fields
+    employeeId?: string;
+    department?: string;
+    // Common fields
+    contactNo?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    pinCode?: string;
   };
 }
 
-export default function UserDetails({ params }: { params: { id: string } }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState('personal');
-  
+const UserEditPage = () => {
+  const { id } = useParams();
+  const router = useRouter();
+  const [user, setUser] = useState<UserDetails | null>(null);
+  const [editedUser, setEditedUser] = useState<UserDetails | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [basicInfoExpanded, setBasicInfoExpanded] = useState(true);
+  const [additionalInfoExpanded, setAdditionalInfoExpanded] = useState(true);
 
   useEffect(() => {
-    async function loadUserDetails() {
-      const userData = await fetchUserDetails(params.id);
-      setUser(userData);
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`/api/users/${id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+        const data = await response.json();
+        setUser(data);
+        setEditedUser(data);
+      } catch (error) {
+        toast.error("Error fetching user data");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchUserData();
     }
-    loadUserDetails();
-  }, [params.id]);
+  }, [id]);
 
-  const handleInputChange = (field: keyof User, value: any) => {
-    setUser((prevUser) => {
-      if (!prevUser) return prevUser;
-      return { ...prevUser, [field]: value };
-    });
+  const handleSave = async () => {
+    if (!editedUser) return;
+
+    try {
+      const response = await fetch(`/api/admin/updateUser/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editedUser),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update user');
+      }
+
+      const updatedUser = await response.json();
+      setUser(updatedUser);
+      toast.success("User updated successfully");
+      setIsEditing(false);
+    } catch (error) {
+      toast.error("Failed to update user");
+      console.error(error);
+    }
   };
 
-  const handleStudentDetailsChange = (field: keyof User['studentDetails'], value: any) => {
-    setUser((prevUser) => {
-      if (!prevUser) return prevUser;
-      return {
-        ...prevUser,
-        studentDetails: { ...prevUser.studentDetails, [field]: value },
-      };
-    });
+  const handleInputChange = (field: string, value: any) => {
+    if (editedUser) {
+      setEditedUser(prevState => ({
+        ...prevState!,
+        [field]: value,
+      }));
+    }
   };
 
-  const handleSave = () => {
-    // Implement save functionality
-    console.log('Saving user:', user);
-    alert('Changes saved successfully!');
+  const handleRoleDetailsChange = (field: string, value: any) => {
+    if (editedUser) {
+      setEditedUser(prevState => ({
+        ...prevState!,
+        roleDetails: {
+          ...prevState!.roleDetails,
+          [field]: value,
+        },
+      }));
+    }
   };
 
-  if (!user) {
-    return <Text>Loading...</Text>;
+  const handleBackClick = () => {
+    router.push('/admin/dashboard');
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user || !editedUser) {
+    return <div>User not found</div>;
   }
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">User Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="personal">Personal Info</TabsTrigger>
-            <TabsTrigger value="academic">Academic Info</TabsTrigger>
-          </TabsList>
+    <div className="container mx-auto py-8 px-4">
+      <Button 
+        variant="outline" 
+        onClick={handleBackClick}
+        className="mb-6"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+      </Button>
 
-          <TabsContent value="personal">
-            <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={user.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    value={user.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    value={user.username}
-                    onChange={(e) => handleInputChange('username', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select
-                    value={user.role}
-                    onValueChange={(value) => handleInputChange('role', value)}
-                  >
-                    <SelectTrigger id="role">
-                      <SelectContent>
-                        <SelectItem value="Admin">Admin</SelectItem>
-                        <SelectItem value="Student">Student</SelectItem>
-                        <SelectItem value="PO">PO</SelectItem>
-                        <SelectItem value="Staff">Staff</SelectItem>
-                      </SelectContent>
-                    </SelectTrigger>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="active"
-                  checked={user.isActive}
-                  onCheckedChange={(checked) => handleInputChange('isActive', checked)}
-                />
-                <Label htmlFor="active">Active</Label>
-              </div>
-            </div>
-          </TabsContent>
+      <Card className="mb-6">
+        <CardHeader 
+          className="cursor-pointer" 
+          onClick={() => setBasicInfoExpanded(!basicInfoExpanded)}
+        >
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl">Basic Information</CardTitle>
+            {basicInfoExpanded ? <ChevronUp /> : <ChevronDown />}
+          </div>
+          <CardDescription>User's basic details and contact information</CardDescription>
+        </CardHeader>
 
-          <TabsContent value="academic">
-            <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="enrollmentNumber">Enrollment Number</Label>
-                  <Input
-                    id="enrollmentNumber"
-                    value={user.studentDetails.enrollmentNumber}
-                    onChange={(e) => handleStudentDetailsChange('enrollmentNumber', e.target.value)}
-                  />
+        {basicInfoExpanded && (
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium flex items-center mb-2">
+                    <User className="mr-2 h-4 w-4" /> Name
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      value={editedUser.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      className="w-full"
+                    />
+                  ) : (
+                    <p className="text-lg">{user.name}</p>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="courseName">Course Name</Label>
-                  <Input
-                    id="courseName"
-                    value={user.studentDetails.courseName}
-                    onChange={(e) => handleStudentDetailsChange('courseName', e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="batchName">Batch Name</Label>
-                  <Input
-                    id="batchName"
-                    value={user.studentDetails.batchName}
-                    onChange={(e) => handleStudentDetailsChange('batchName', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={user.studentDetails.dateOfBirth}
-                    onChange={(e) => handleStudentDetailsChange('dateOfBirth', e.target.value)}
-                  />
+                <div>
+                  <label className="text-sm font-medium flex items-center mb-2">
+                    <Mail className="mr-2 h-4 w-4" /> Email
+                  </label>
+                  <p className="text-lg">{user.email}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select
-                    value={user.studentDetails.gender}
-                    onValueChange={(value) => handleStudentDetailsChange('gender', value)}
-                  >
-                    <SelectTrigger id="gender">
-                      <SelectContent>
-                        <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Female">Female</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </SelectTrigger>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contactNo">Contact Number</Label>
-                  <Input
-                    id="contactNo"
-                    value={user.studentDetails.contactNo}
-                    onChange={(e) => handleStudentDetailsChange('contactNo', e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  value={user.studentDetails.address}
-                  onChange={(e) => handleStudentDetailsChange('address', e.target.value)}
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    value={user.studentDetails.city}
-                    onChange={(e) => handleStudentDetailsChange('city', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    value={user.studentDetails.state}
-                    onChange={(e) => handleStudentDetailsChange('state', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="pinCode">Pin Code</Label>
-                  <Input
-                    id="pinCode"
-                    type="number"
-                    value={user.studentDetails.pinCode}
-                    onChange={(e) => handleStudentDetailsChange('pinCode', parseInt(e.target.value))}
-                  />
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium flex items-center mb-2">
+                    <MapPin className="mr-2 h-4 w-4" /> Address
+                  </label>
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={editedUser.roleDetails.address || ''}
+                        onChange={(e) => handleRoleDetailsChange('address', e.target.value)}
+                        placeholder="Address"
+                        className="w-full"
+                      />
+                      <Input
+                        value={editedUser.roleDetails.city || ''}
+                        onChange={(e) => handleRoleDetailsChange('city', e.target.value)}
+                        placeholder="City"
+                        className="w-full"
+                      />
+                      <Input
+                        value={editedUser.roleDetails.state || ''}
+                        onChange={(e) => handleRoleDetailsChange('state', e.target.value)}
+                        placeholder="State"
+                        className="w-full"
+                      />
+                      <Input
+                        value={editedUser.roleDetails.pinCode || ''}
+                        onChange={(e) => handleRoleDetailsChange('pinCode', e.target.value)}
+                        placeholder="PIN Code"
+                        className="w-full"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-lg">{user.roleDetails.address || 'Not provided'}</p>
+                      <p className="text-lg">{user.roleDetails.city && user.roleDetails.state ? `${user.roleDetails.city}, ${user.roleDetails.state}` : ''}</p>
+                      <p className="text-lg">{user.roleDetails.pinCode || ''}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          </CardContent>
+        )}
 
-        <div className="flex justify-end space-x-4 mt-6">
-          <Button variant="outline" onClick={() => router.push('/admin/dashboard')}>Cancel</Button>
-          <Button onClick={handleSave}>Save Changes</Button>
-        </div>
-      </CardContent>
-    </Card>
+        {basicInfoExpanded && (
+          <CardFooter className="flex justify-end space-x-4">
+            {isEditing ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditedUser(user);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSave}>Save Changes</Button>
+              </>
+            ) : (
+              <Button onClick={() => setIsEditing(true)}>
+                Edit Details
+              </Button>
+            )}
+          </CardFooter>
+        )}
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader 
+          className="cursor-pointer" 
+          onClick={() => setAdditionalInfoExpanded(!additionalInfoExpanded)}
+        >
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl">Additional Information</CardTitle>
+            {additionalInfoExpanded ? <ChevronUp /> : <ChevronDown />}
+          </div>
+          <CardDescription>Role-specific details and information</CardDescription>
+        </CardHeader>
+
+        {additionalInfoExpanded && (
+          <CardContent>
+            <Tabs defaultValue="details" className="space-y-6">
+              <TabsList>
+                <TabsTrigger value="details">Details</TabsTrigger>
+                {user.role === 'Student' && (
+                  <TabsTrigger value="academic">Academic Info</TabsTrigger>
+                )}
+                {user.role === 'Staff' && (
+                  <TabsTrigger value="employment">Employment Info</TabsTrigger>
+                )}
+              </TabsList>
+
+              <TabsContent value="details">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-sm font-medium">Role</label>
+                    <p className="text-lg">{user.role}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Contact Number</label>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser.roleDetails.contactNo || ''}
+                        onChange={(e) => handleRoleDetailsChange('contactNo', e.target.value)}
+                        className="w-full"
+                      />
+                    ) : (
+                      <p className="text-lg">{user.roleDetails.contactNo || 'Not provided'}</p>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+
+              {user.role === 'Student' && (
+                <TabsContent value="academic">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-sm font-medium">Enrollment Number</label>
+                      <p className="text-lg">{user.roleDetails.enrollmentNumber || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Course</label>
+                      <p className="text-lg">{user.roleDetails.courseName || 'Not assigned'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Batch</label>
+                      <p className="text-lg">{user.roleDetails.batchName || 'Not assigned'}</p>
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
+
+              {user.role === 'Staff' && (
+                <TabsContent value="employment">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-sm font-medium">Employee ID</label>
+                      <p className="text-lg">{user.roleDetails.employeeId || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Department</label>
+                      <p className="text-lg">{user.roleDetails.department || 'Not assigned'}</p>
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
+            </Tabs>
+          </CardContent>
+        )}
+      </Card>
+    </div>
   );
-}
+};
+
+export default UserEditPage;
