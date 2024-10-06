@@ -41,10 +41,8 @@ const CoursesTab: React.FC = () => {
   const coursesPerPage = 5;
 
   const encryptCourseId = (courseId: string): string => {
-    const encrypted = AES.encrypt(courseId, SECRET_KEY || "").toString();
-    const base64 = Buffer.from(encrypted).toString("base64");
-
-    return base64.substring(0, 7).padEnd(7, "X");
+    const encrypted = AES.encrypt(courseId, SECRET_KEY!).toString();
+    return encrypted; // Return the full encrypted string
   };
 
   const fetchCourses = async () => {

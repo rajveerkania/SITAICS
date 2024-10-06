@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +17,14 @@ import AccessDenied from "../accessDenied";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Eye } from "lucide-react";
+import router from "next/router";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface User {
   id: string;
@@ -35,6 +41,7 @@ const UsersTab = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("manage");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const usersPerPage = 5;
 
   const fetchUsers = async () => {
@@ -95,8 +102,14 @@ const UsersTab = () => {
     await fetchUsers();
   };
 
-  const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const handleViewUser = async (userId: string) => {
+    router.push(`/admin/dashboard/user/${userId}`);
+  };
+
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (roleFilter === "all" || user.role === roleFilter)
   );
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
@@ -105,7 +118,6 @@ const UsersTab = () => {
     (currentPage - 1) * usersPerPage,
     currentPage * usersPerPage
   );
-
   if (isLoading) {
     return <LoadingSkeleton loadingText="users" />;
   }
@@ -126,16 +138,35 @@ const UsersTab = () => {
             <TabsTrigger value="create">Create User</TabsTrigger>
           </TabsList>
           {activeTab === "manage" && (
-            <Input
-              className="w-full sm:w-auto sm:ml-auto"
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <Input
+                className="w-full sm:w-auto"
+                type="text"
+                placeholder="Search by name or email"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
+              <Select
+                value={roleFilter}
+                onValueChange={(value) => {
+                  setRoleFilter(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="Admin">Admin</SelectItem>
+                  <SelectItem value="Staff">Staff</SelectItem>
+                  <SelectItem value="Student">Student</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
         </div>
 
@@ -160,7 +191,13 @@ const UsersTab = () => {
                         <TableCell>{user.role}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Button onClick={() => setShowUserDetails(true)}>
+                            <Button
+                              style={{
+                                backgroundColor: "black",
+                                color: "white",
+                              }}
+                              onClick={() => handleViewUser(user.id)}
+                            >
                               <Eye className="h-4 w-4" />
                             </Button>
                             <Button onClick={() => handleDeleteUser(user.id)}>

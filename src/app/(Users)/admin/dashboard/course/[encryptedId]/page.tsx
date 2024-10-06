@@ -52,11 +52,7 @@ interface Subject {
 const SECRET_KEY = process.env.NEXT_PUBLIC_ID_SECRET;
 
 const decryptCourseId = (encryptedId: string): string => {
-  const paddedId = encryptedId.padEnd(7, "X");
-  const decryptedBytes = AES.decrypt(
-    Buffer.from(paddedId, "base64").toString(),
-    SECRET_KEY || ""
-  );
+  const decryptedBytes = AES.decrypt(encryptedId, SECRET_KEY!);
   return decryptedBytes.toString(enc.Utf8);
 };
 
