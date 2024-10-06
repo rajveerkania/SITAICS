@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-
 interface Course {
   courseId: string;
   courseName: string;
@@ -26,6 +24,7 @@ interface Course {
   totalBatches: number;
   totalSubjects: number;
 }
+
 
 const CoursesTab: React.FC = () => {
   const router = useRouter();

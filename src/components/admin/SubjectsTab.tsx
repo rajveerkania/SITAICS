@@ -14,6 +14,7 @@ import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 import { toast } from "sonner";
 import AddSubjectForm from "./AddSubjectForm";
 import LoadingSkeleton from "../LoadingSkeleton";
+import { useRouter } from "next/navigation";
 
 interface Subject {
   subjectId: string;
@@ -24,6 +25,7 @@ interface Subject {
 }
 
 const SubjectTab = () => {
+  const router = useRouter();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,10 +77,14 @@ const SubjectTab = () => {
     }
   };
 
-  const onAddSubjectSuccess = () =>{
-    fetchSubjects()
-    setActiveTab("manage")
-  }
+  const handleEditSubject = (subject: Subject) => {
+    router.push(`/admin/dashboard/subject/${subject.subjectId}`);
+  };
+
+  const onAddSubjectSuccess = () => {
+    fetchSubjects();
+    setActiveTab("manage");
+  };
 
   const filteredSubjects = subjects.filter((subject) =>
     subject.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -147,7 +153,7 @@ const SubjectTab = () => {
                     <TableCell>{subject.courseName}</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Button>
+                        <Button onClick={() => handleEditSubject(subject)}>
                           <FaRegEdit className="h-4 w-4" />
                         </Button>
                         <Button
