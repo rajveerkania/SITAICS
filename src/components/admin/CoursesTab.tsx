@@ -10,15 +10,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FaTrashAlt, FaEdit } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 import AddCourseForm from "./AddCourseForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSkeleton from "../LoadingSkeleton";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import bcryptjs from "bcryptjs";
+import { AES, enc } from "crypto-js";
 import { Eye } from "lucide-react";
+
+const SECRET_KEY = process.env.NEXT_PUBLIC_ID_SECRET;
 
 interface Course {
   courseId: string;
@@ -26,7 +28,6 @@ interface Course {
   isActive: boolean;
   totalBatches: number;
   totalSubjects: number;
-  encryptedId?: string;
 }
 
 const CoursesTab: React.FC = () => {
@@ -39,11 +40,11 @@ const CoursesTab: React.FC = () => {
   const [activeTab, setActiveTab] = useState("manage");
   const coursesPerPage = 5;
 
-  // Function to encrypt courseId
-  const encryptCourseId = async (courseId: string): Promise<string> => {
-    const salt = await bcryptjs.genSalt(10);
-    const hashedId = await bcryptjs.hash(courseId, salt);
-    return hashedId;
+  const encryptCourseId = (courseId: string): string => {
+    const encrypted = AES.encrypt(courseId, SECRET_KEY || "").toString();
+    const base64 = Buffer.from(encrypted).toString("base64");
+
+    return base64.substring(0, 7).padEnd(7, "X");
   };
 
   const fetchCourses = async () => {
@@ -59,14 +60,7 @@ const CoursesTab: React.FC = () => {
       }
 
       if (Array.isArray(data.courses)) {
-        // Encrypt all courseIds
-        const coursesWithEncryption = await Promise.all(
-          data.courses.map(async (course: { courseId: string }) => ({
-            ...course,
-            encryptedId: await encryptCourseId(course.courseId),
-          }))
-        );
-        setCourses(coursesWithEncryption);
+        setCourses(data.courses);
       } else {
         throw new Error("Invalid data structure");
       }
@@ -85,29 +79,28 @@ const CoursesTab: React.FC = () => {
 
   const handleDeleteCourse = async (courseId: string) => {
     try {
-      // Encrypt courseId before sending to API
-      const encryptedId = await encryptCourseId(courseId);
-
       const response = await fetch("/api/deleteCourse", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ courseId: encryptedId }),
+        body: JSON.stringify({ courseId }),
       });
 
       if (response.ok) {
-        toast.success("Course deleted successfully");
+        toast.success("Course deactivated successfully");
         fetchCourses();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Error deactivating course");
       }
     } catch (error: any) {
-      toast.error("Error in deleting course");
+      toast.error("Error in deactivating course");
     }
   };
 
-  const handleEditCourse = async (course: Course) => {
-    const encryptedId =
-      course.encryptedId || (await encryptCourseId(course.courseId));
+  const handleViewCourse = (courseId: string) => {
+    const encryptedId = encryptCourseId(courseId);
     router.push(`/admin/dashboard/course/${encryptedId}`);
   };
 
@@ -172,14 +165,14 @@ const CoursesTab: React.FC = () => {
               <TableBody>
                 {currentCourses.length > 0 ? (
                   currentCourses.map((course) => (
-                    <TableRow key={course.encryptedId || course.courseId}>
+                    <TableRow key={course.courseId}>
                       <TableCell>{course.courseName}</TableCell>
                       <TableCell>{course.totalBatches}</TableCell>
                       <TableCell>{course.totalSubjects}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Button
-                            onClick={() => handleEditCourse(course)}
+                            onClick={() => handleViewCourse(course.courseId)}
                             style={{ backgroundColor: "black", color: "white" }}
                           >
                             <Eye className="h-4 w-4" />

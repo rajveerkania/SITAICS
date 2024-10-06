@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { Book, Layers, Edit3, ArrowLeft } from "lucide-react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { AES, enc } from "crypto-js";
 
 interface Course {
   courseId: string;
@@ -48,8 +49,21 @@ interface Subject {
   courseName: string;
 }
 
+const SECRET_KEY = process.env.NEXT_PUBLIC_ID_SECRET;
+
+const decryptCourseId = (encryptedId: string): string => {
+  const paddedId = encryptedId.padEnd(7, "X");
+  const decryptedBytes = AES.decrypt(
+    Buffer.from(paddedId, "base64").toString(),
+    SECRET_KEY || ""
+  );
+  return decryptedBytes.toString(enc.Utf8);
+};
+
 const CourseEditPage = () => {
-  const { id } = useParams();
+  const { encryptedId } = useParams<{ encryptedId: string | string[] }>();
+  const decryptedId = Array.isArray(encryptedId) ? encryptedId[0] : encryptedId;
+  const id = decryptCourseId(decryptedId || "");
   const router = useRouter();
   const [course, setCourse] = useState<Course | null>(null);
   const [batches, setBatches] = useState<Batch[]>([]);
