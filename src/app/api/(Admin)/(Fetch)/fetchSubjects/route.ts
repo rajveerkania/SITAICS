@@ -41,7 +41,7 @@ export async function GET(req: Request) {
       if (subjects.length === 0) {
         return NextResponse.json(
           { message: "No subjects found for this batch" },
-          { status: 404 }
+          { status: 401 }
         );
       }
 

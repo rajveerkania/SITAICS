@@ -38,7 +38,10 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
+  Check,
+  X,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 interface BatchDetails {
@@ -63,6 +66,14 @@ interface Subject {
   subjectName: string;
   subjectCode: string;
   semester: number;
+  assignedToBatch: boolean;
+  batchSemester: number;
+}
+
+interface BatchSubjectsResponse {
+  batchName: string;
+  courseName: string;
+  subjects: Subject[];
 }
 
 const BatchEditPage = () => {
@@ -85,16 +96,22 @@ const BatchEditPage = () => {
         const batchResponse = await fetch(`/api/fetchBatches?batchId=${id}`);
         const batchData = await batchResponse.json();
         setBatchDetails(batchData);
+
         const studentsResponse = await fetch(
           `/api/fetchStudents?batchId=${id}`
         );
         const studentsData = await studentsResponse.json();
         setStudents(studentsData.students);
+
         const subjectsResponse = await fetch(
-          `/api/fetchSubjects?batchId=${id}`
+          `/api/fetchBatchSubjects?batchId=${id}`
         );
-        const subjectsData = await subjectsResponse.json();
-        if (subjectsResponse.status === 200) setSubjects(subjectsData);
+        const subjectsData: BatchSubjectsResponse =
+          await subjectsResponse.json();
+        if (subjectsResponse.ok) {
+          setSubjects(subjectsData.subjects);
+        }
+
         const coursesResponse = await fetch("/api/fetchCourses");
         const coursesData = await coursesResponse.json();
         setCourses(coursesData.courses);
@@ -153,6 +170,8 @@ const BatchEditPage = () => {
         <Button variant="outline" onClick={handleBackClick} className="mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
         </Button>
+
+        {/* Batch Details Card */}
         <Card className="mb-6">
           <CardHeader className="cursor-pointer" onClick={toggleBatchDetails}>
             <div className="flex justify-between items-center">
@@ -275,6 +294,7 @@ const BatchEditPage = () => {
           )}
         </Card>
 
+        {/* Students and Subjects Card */}
         <Card className="mb-6">
           <CardHeader className="cursor-pointer" onClick={toggleStudents}>
             <div className="flex justify-between items-center">
@@ -315,11 +335,9 @@ const BatchEditPage = () => {
                           <TableCell>{student.email}</TableCell>
                           <TableCell>{student.contactNo}</TableCell>
                           <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <Button>
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </div>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -333,26 +351,37 @@ const BatchEditPage = () => {
                       <TableRow>
                         <TableHead>Subject Name</TableHead>
                         <TableHead>Subject Code</TableHead>
-                        <TableHead>Semester</TableHead>
+                        <TableHead>Course Semester</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {subjects.length !== 0 &&
-                        subjects.map((subject) => (
-                          <TableRow key={subject.subjectId}>
-                            <TableCell>{subject.subjectName}</TableCell>
-                            <TableCell>{subject.subjectCode}</TableCell>
-                            <TableCell>{subject.semester}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                <Button>
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                      {subjects.map((subject) => (
+                        <TableRow key={subject.subjectId}>
+                          <TableCell>{subject.subjectName}</TableCell>
+                          <TableCell>{subject.subjectCode}</TableCell>
+                          <TableCell>{subject.semester}</TableCell>
+                          <TableCell>
+                            {subject.assignedToBatch ? (
+                              <Badge className="bg-green-100 text-green-800">
+                                <Check className="h-3 w-3 mr-1" />
+                                Semester {subject.batchSemester}
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">
+                                <X className="h-3 w-3 mr-1" />
+                                Not Assigned
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </TabsContent>
