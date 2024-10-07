@@ -1,36 +1,32 @@
+// File: app/api/admin/updateUser/[userId]/route.ts
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
-export async function PUT(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { userId: string } }
+) {
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
-    let adminId = null,
-      adminRole = null;
-
-    if (token) {
-      const decodedToken = verifyToken();
-      if (decodedToken && typeof decodedToken === "object") {
-        adminId = decodedToken.id;
-        adminRole = decodedToken.role;
-      }
+    const decodedUser = verifyToken();
+    if (decodedUser?.role !== "Admin") {
+      return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
     }
 
-    if (!adminId || adminRole !== "Admin") {
+    const userId = params.userId;
+    if (!userId) {
       return NextResponse.json(
-        { message: "Unauthorized access" },
-        { status: 403 }
+        { message: "User ID is required" },
+        { status: 400 }
       );
     }
 
     const data = await request.json();
-    const { id, role, ...updateData } = data;
+    const { role, ...updateData } = data;
 
-    if (!id || !role) {
+    if (!role) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: "Role is required" },
         { status: 400 }
       );
     }
@@ -39,19 +35,19 @@ export async function PUT(request: NextRequest) {
     switch (role) {
       case "Student":
         updatedUser = await prisma.studentDetails.update({
-          where: { id },
+          where: { id: userId },
           data: updateData,
         });
         break;
       case "Staff":
         updatedUser = await prisma.staffDetails.update({
-          where: { id },
+          where: { id: userId },
           data: updateData,
         });
         break;
       case "Admin":
         updatedUser = await prisma.user.update({
-          where: { id },
+          where: { id: userId },
           data: updateData,
         });
         break;

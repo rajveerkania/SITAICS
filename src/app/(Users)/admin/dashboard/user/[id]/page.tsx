@@ -85,7 +85,7 @@ const UserEditPage = () => {
     if (!editedUser) return;
 
     try {
-      const response = await fetch(`/api/admin/updateUser/${id}`, {
+      const response = await fetch(`/api/admin/updateUserDetails/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
