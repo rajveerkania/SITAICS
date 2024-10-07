@@ -89,6 +89,8 @@ export async function GET(request: NextRequest) {
               city: true,
               state: true,
               pinCode: true,
+              dateOfBirth: true,
+              contactNumber: true,
               isProfileCompleted: true,
             },
           });

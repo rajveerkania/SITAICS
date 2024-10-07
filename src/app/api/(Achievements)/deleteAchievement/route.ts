@@ -64,4 +64,4 @@ export async function PATCH(request: NextRequest) {
     console.error("Error deleting achievement:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}
+} 

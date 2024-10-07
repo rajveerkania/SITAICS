@@ -23,9 +23,8 @@ interface StaffInfoProps {
   city: string;
   state: string;
   pinCode: number;
-  contactNo: string | null;
+  contactNumber: string | null;
   dateOfBirth: string;
-  designation: string;
 }
 
 interface StatCardProps {
@@ -117,10 +116,6 @@ const Dashboard: React.FC = () => {
                     value={staffInfo?.dateOfBirth || "N/A"}
                   />
                   <InfoItem label="Gender" value={staffInfo?.gender || "N/A"} />
-                  <InfoItem
-                    label="Designation"
-                    value={staffInfo?.designation || "N/A"}
-                  />
                 </InfoSection>
 
                 <InfoSection
@@ -130,7 +125,7 @@ const Dashboard: React.FC = () => {
                   <InfoItem label="Email" value={staffInfo?.email || "N/A"} />
                   <InfoItem
                     label="Contact No."
-                    value={staffInfo?.contactNo || "N/A"}
+                    value={staffInfo?.contactNumber || "N/A"}
                   />
                   <InfoItem
                     label="Address"

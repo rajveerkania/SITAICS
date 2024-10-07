@@ -30,7 +30,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     city: "",
     state: "",
     pinCode: "",
-    contactNo: "",
+    contactNumber: "",
     dateOfBirth: "",
     isBatchCoordinator: false,
     batchId: "", // This stores the selected batchId
@@ -44,7 +44,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     city: "",
     state: "",
     pinCode: "",
-    contactNo: "",
+    contactNumber: "",
     dateOfBirth: "",
     batchId: "",
   });
@@ -130,8 +130,8 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     }
 
     if (currentStep === 3) {
-      if (!staffFormData.contactNo) {
-        stepErrors.contactNo = "Contact Number is required.";
+      if (!staffFormData.contactNumber) {
+        stepErrors.contactNumber = "Contact Number is required.";
         stepIsValid = false;
       }
       if (!staffFormData.dateOfBirth) {
@@ -284,13 +284,13 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
             <>
               <Input
                 type="text"
-                name="contactNo"
+                name="contactNumber"
                 placeholder="Contact Number"
-                value={staffFormData.contactNo}
+                value={staffFormData.contactNumber}
                 onChange={handleStaffInputChange}
                 required
               />
-              {errors.contactNo && <p className="text-red-500">{errors.contactNo}</p>}
+              {errors.contactNumber && <p className="text-red-500">{errors.contactNumber}</p>}
               <Input
                 type="date"
                 name="dateOfBirth"

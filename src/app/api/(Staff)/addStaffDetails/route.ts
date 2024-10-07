@@ -23,11 +23,11 @@ export async function POST(request: NextRequest) {
       pinCode,
       contactNumber,
       dateOfBirth,
-      isBatchCoordinator, // new field
-      batchId, // new field
+      isBatchCoordinator, 
+      batchId,
     } = reqBody;
 
-    const parsedDateOfBirth = new Date(`${dateOfBirth}T00:00:00Z`);
+    const parsedDateOfBirth = new Date(`${dateOfBirth}`);
 
     const existingStaff = await prisma.staffDetails.findUnique({
       where: { id: userId },
