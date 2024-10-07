@@ -15,6 +15,11 @@ interface Course {
   courseName: string;
 }
 
+interface ElectiveGroup {
+  electiveGroupId: string;
+  groupName: string;
+}
+
 interface CSVData {
   [key: string]: string;
 }
@@ -31,10 +36,12 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
     subjectCode: "",
     semester: "",
     courseId: "",
+    isElective: "", 
+    electiveGroupId: "",
   });
   const [courses, setCourses] = useState<Course[]>([]);
+  const [electiveGroups, setElectiveGroups] = useState<ElectiveGroup[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
   const [csvData, setCSVData] = useState<CSVData[]>([]);
 
   const handleFileUpload = async (file: File) => {
@@ -62,6 +69,7 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
 
   useEffect(() => {
     fetchCourses();
+    fetchElectiveGroups();
   }, []);
 
   const fetchCourses = async () => {
@@ -70,7 +78,6 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
       const response = await fetch("/api/fetchCourses");
       const data = await response.json();
       if (Array.isArray(data)) {
-        setCourses(data);
       } else if (data && Array.isArray(data.courses)) {
         setCourses(data.courses);
       } else {
@@ -80,6 +87,20 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
       toast.error("Error fetching courses", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchElectiveGroups = async () => {
+    try {
+      const response = await fetch("/api/fetchElectiveGroups");
+      const data = await response.json();
+      if (Array.isArray(data.groups)) {
+        setElectiveGroups(data.groups);
+      } else {
+        throw new Error("Failed to fetch groups");
+      }
+    } catch (error: any) {
+      toast.error("Error fetching elective groups", error);
     }
   };
 
@@ -105,14 +126,15 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
         subjectCode: "",
         semester: "",
         courseId: "",
+        isElective: "false",
+        electiveGroupId: "",
       });
-      if(response.ok){
-      toast.success("Subject added successfully");
-      onAddSubjectSuccess();
-    }
-    else{
-      toast.error(data.message)
-    }
+      if (response.ok) {
+        toast.success("Subject added successfully");
+        onAddSubjectSuccess();
+      } else {
+        toast.error(data.message);
+      }
     } catch (error: any) {
       toast.error("Error adding Subject", error);
     }
@@ -172,6 +194,55 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
           )}
         </SelectContent>
       </Select>
+      <Select
+  value={newSubject.isElective} 
+  onValueChange={(value) => {
+    const isElectiveValue = value === "true";
+    setNewSubject({
+      ...newSubject,
+      isElective: value, 
+      electiveGroupId: isElectiveValue ? newSubject.electiveGroupId : "",
+    });
+  }}
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Is Elective?" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="false">No</SelectItem>
+    <SelectItem value="true">Yes</SelectItem>
+  </SelectContent>
+</Select>
+
+{newSubject.isElective === "true" && (
+  <Select
+    value={newSubject.electiveGroupId}
+    onValueChange={(value) =>
+      setNewSubject({ ...newSubject, electiveGroupId: value })
+    }
+    required={newSubject.isElective === "true"}
+  >
+    <SelectTrigger>
+      <SelectValue placeholder="Select Elective Group" />
+    </SelectTrigger>
+    <SelectContent>
+      {electiveGroups.length > 0 ? (
+        electiveGroups.map((group) => (
+          <SelectItem
+            key={group.electiveGroupId}
+            value={group.electiveGroupId}
+          >
+            {group.groupName}
+          </SelectItem>
+        ))
+      ) : (
+        <SelectItem value="none" disabled>
+          No Elective Groups Available {/* Use "none" instead of an empty string */}
+        </SelectItem>
+      )}
+    </SelectContent>
+  </Select>
+)}
       <div className="flex justify-between pt-5">
         <Button type="submit">Create Subject</Button>
         <ImportButton

@@ -23,11 +23,10 @@ export async function GET(req: Request) {
       );
     }
 
-    // First, verify the batch exists and get its details
     const batch = await prisma.batch.findUnique({
-      where: { 
+      where: {
         batchId,
-        isActive: true // Add this if you want to check for active batches only
+        isActive: true,
       },
       select: {
         courseId: true,
@@ -47,7 +46,6 @@ export async function GET(req: Request) {
       );
     }
 
-    // Get all subjects for this course
     const subjects = await prisma.subject.findMany({
       where: {
         courseId: batch.courseId,
@@ -69,7 +67,6 @@ export async function GET(req: Request) {
       },
     });
 
-    // Even if no subjects are found, return a 200 response with empty subjects array
     const formattedSubjects = subjects.map((subject) => ({
       subjectId: subject.subjectId,
       subjectName: subject.subjectName,
@@ -79,12 +76,14 @@ export async function GET(req: Request) {
       batchSemester: subject.batches[0]?.semester || subject.semester,
     }));
 
-    return NextResponse.json({
-      batchName: batch.batchName,
-      courseName: batch.course.courseName,
-      subjects: formattedSubjects
-    }, { status: 200 });
-
+    return NextResponse.json(
+      {
+        batchName: batch.batchName,
+        courseName: batch.course.courseName,
+        subjects: formattedSubjects,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching batch subjects:", error);
     return NextResponse.json(

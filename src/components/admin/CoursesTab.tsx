@@ -9,13 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FaTrashAlt, FaEdit } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 import AddCourseForm from "./AddCourseForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSkeleton from "../LoadingSkeleton";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { AES, enc } from "crypto-js";
+import { Eye } from "lucide-react";
+
+const SECRET_KEY = process.env.NEXT_PUBLIC_ID_SECRET;
 
 interface Course {
   courseId: string;
@@ -36,6 +40,11 @@ const CoursesTab: React.FC = () => {
   const [activeTab, setActiveTab] = useState("manage");
   const coursesPerPage = 5;
 
+  const encryptCourseId = (courseId: string): string => {
+    const encrypted = AES.encrypt(courseId, SECRET_KEY!).toString();
+    return encrypted; // Return the full encrypted string
+  };
+
   const fetchCourses = async () => {
     setIsLoading(true);
     setError(null);
@@ -54,7 +63,9 @@ const CoursesTab: React.FC = () => {
         throw new Error("Invalid data structure");
       }
     } catch (error: any) {
-      setError(error.message || "Failed to load courses. Please try again later.");
+      setError(
+        error.message || "Failed to load courses. Please try again later."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -73,17 +84,22 @@ const CoursesTab: React.FC = () => {
         },
         body: JSON.stringify({ courseId }),
       });
+
       if (response.ok) {
-        toast.success("Course deleted successfully");
+        toast.success("Course deactivated successfully");
         fetchCourses();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Error deactivating course");
       }
     } catch (error: any) {
-      toast.error("Error in deleting course");
+      toast.error("Error in deactivating course");
     }
   };
 
-  const handleEditCourse = (course: Course) => {
-    router.push(`/admin/dashboard/course/${course.courseId}`);
+  const handleViewCourse = (courseId: string) => {
+    const encryptedId = encryptCourseId(courseId);
+    router.push(`/admin/dashboard/course/${encryptedId}`);
   };
 
   const handleAddCourseSuccess = () => {
@@ -154,10 +170,10 @@ const CoursesTab: React.FC = () => {
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Button
-                            onClick={() => handleEditCourse(course)}
+                            onClick={() => handleViewCourse(course.courseId)}
                             style={{ backgroundColor: "black", color: "white" }}
                           >
-                            <FaEdit className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             onClick={() => handleDeleteCourse(course.courseId)}

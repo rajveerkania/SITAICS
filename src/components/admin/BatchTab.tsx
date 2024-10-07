@@ -11,10 +11,11 @@ import {
 } from "@/components/ui/table";
 import AddBatchForm from "./AddBatchForm";
 import { Input } from "@/components/ui/input";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 import { toast } from "sonner";
 import LoadingSkeleton from "../LoadingSkeleton";
 import { useRouter } from "next/navigation"; // Importing useRouter
+import { Eye } from "lucide-react";
 
 interface Batch {
   batchId: string;
@@ -56,24 +57,6 @@ const BatchTab = () => {
     fetchBatches();
   }, []);
 
-  const handleUpdateSemester = async (batchId: string, newSemester: number) => {
-    try {
-      const response = await fetch(`/api/UpdateBatchSemester/${batchId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ currentSemester: newSemester }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      fetchBatches();
-    } catch (error: any) {
-      toast.error(`Error updating semester: ${error.message}`);
-    }
-  };
-
   const handleViewBatchDetails = async (batchName: string) => {
     try {
       const response = await fetch(`/api/students?batchName=${batchName}`);
@@ -91,7 +74,7 @@ const BatchTab = () => {
   };
 
   const handleEditBatch = (batchId: string) => {
-    router.push(`/admin/dashboard/batch/${batchId}`); // Navigate to the batch edit page
+    router.push(`/admin/dashboard/batch/${batchId}`);
   };
 
   const handleDeleteBatch = async (batchId: string) => {
@@ -194,7 +177,7 @@ const BatchTab = () => {
                         style={{ backgroundColor: "black", color: "white" }}
                         className="flex items-center"
                       >
-                        <FaEdit className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="destructive"

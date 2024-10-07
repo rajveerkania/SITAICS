@@ -40,9 +40,10 @@ import {
   Eye,
   Check,
   X,
+  
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import LoadingSkeleton from "@/components/LoadingSkeleton";
+ import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 interface BatchDetails {
   batchId: string;
@@ -66,6 +67,14 @@ interface Subject {
   subjectName: string;
   subjectCode: string;
   semester: number;
+  assignedToBatch: boolean;
+  batchSemester: number;
+}
+
+interface BatchSubjectsResponse {
+  batchName: string;
+  courseName: string;
+  subjects: Subject[];
   assignedToBatch: boolean;
   batchSemester: number;
 }
@@ -100,6 +109,7 @@ const BatchEditPage = () => {
         const studentsResponse = await fetch(`/api/fetchStudents?batchId=${id}`);
         const studentsData = await studentsResponse.json();
         setStudents(studentsData.students);
+
 
         const subjectsResponse = await fetch(
           `/api/fetchBatchSubjects?batchId=${id}`
@@ -292,6 +302,7 @@ const BatchEditPage = () => {
         </Card>
 
         {/* Students and Subjects Card */}
+        {/* Students and Subjects Card */}
         <Card className="mb-6">
           <CardHeader className="cursor-pointer" onClick={toggleStudents}>
             <div className="flex justify-between items-center">
@@ -335,6 +346,9 @@ const BatchEditPage = () => {
                             <Button variant="ghost" size="sm">
                               <Eye className="h-4 w-4" />
                             </Button>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -350,10 +364,37 @@ const BatchEditPage = () => {
                         <TableHead>Subject Code</TableHead>
                         <TableHead>Course Semester</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Course Semester</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
+                      {subjects.map((subject) => (
+                        <TableRow key={subject.subjectId}>
+                          <TableCell>{subject.subjectName}</TableCell>
+                          <TableCell>{subject.subjectCode}</TableCell>
+                          <TableCell>{subject.semester}</TableCell>
+                          <TableCell>
+                            {subject.assignedToBatch ? (
+                              <Badge className="bg-green-100 text-green-800">
+                                <Check className="h-3 w-3 mr-1" />
+                                Semester {subject.batchSemester}
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">
+                                <X className="h-3 w-3 mr-1" />
+                                Not Assigned
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                       {subjects.map((subject) => (
                         <TableRow key={subject.subjectId}>
                           <TableCell>{subject.subjectName}</TableCell>

@@ -10,10 +10,13 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 import { toast } from "sonner";
 import AddSubjectForm from "./AddSubjectForm";
 import LoadingSkeleton from "../LoadingSkeleton";
+import AddElectiveGroupForm from "./AddElectiveGroup";
+import ManageElectiveGroup from "./ManageElectiveGroup";
+import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Subject {
@@ -22,6 +25,14 @@ interface Subject {
   subjectCode: string;
   semester: number;
   courseName: string;
+  isElective: boolean;
+}
+
+interface ElectiveGroup {
+  electiveGroupId: string;
+  groupName: string;
+  courseId: string;
+  semester: number;
 }
 
 const SubjectTab = () => {
@@ -29,7 +40,7 @@ const SubjectTab = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("manage");
+  const [activeTab, setActiveTab] = useState("manageSubjects");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const subjectsPerPage = 5;
@@ -47,6 +58,10 @@ const SubjectTab = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const fetchElectiveGroups = async () => {
+    setActiveTab("manageElectiveGroup");
   };
 
   useEffect(() => {
@@ -77,19 +92,16 @@ const SubjectTab = () => {
     }
   };
 
-  const handleEditSubject = (subject: Subject) => {
-    router.push(`/admin/dashboard/subject/${subject.subjectId}`);
-  };
-
   const onAddSubjectSuccess = () => {
     fetchSubjects();
-    setActiveTab("manage");
+    setActiveTab("manageSubjects");
   };
 
-  const filteredSubjects = subjects.filter((subject) =>
-    subject.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    subject.subjectCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    subject.courseName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredSubjects = subjects.filter(
+    (subject) =>
+      subject.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      subject.subjectCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      subject.courseName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredSubjects.length / subjectsPerPage);
@@ -111,10 +123,16 @@ const SubjectTab = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
           <TabsList className="w-full sm:w-auto">
-            <TabsTrigger value="manage">Manage Subjects</TabsTrigger>
-            <TabsTrigger value="create">Create Subject</TabsTrigger>
+            <TabsTrigger value="manageSubjects">Manage Subjects</TabsTrigger>
+            <TabsTrigger value="createSubject">Create Subject</TabsTrigger>
+            <TabsTrigger value="manageElectiveGroup">
+              Manage Elective Group
+            </TabsTrigger>
+            <TabsTrigger value="addElectiveGroup">
+              Create Elective Group
+            </TabsTrigger>
           </TabsList>
-          {activeTab === "manage" && (
+          {activeTab === "manageSubjects" && (
             <Input
               className="w-full sm:w-auto sm:ml-auto"
               type="text"
@@ -127,12 +145,14 @@ const SubjectTab = () => {
             />
           )}
         </div>
-        <TabsContent value="create">
-          <AddSubjectForm
-            onAddSubjectSuccess={onAddSubjectSuccess}
-          />
+
+        {/* Add Subject Tab */}
+        <TabsContent value="createSubject">
+          <AddSubjectForm onAddSubjectSuccess={onAddSubjectSuccess} />
         </TabsContent>
-        <TabsContent value="manage">
+
+        {/* Manage Subjects Tab */}
+        <TabsContent value="manageSubjects">
           <Table>
             <TableHeader>
               <TableRow>
@@ -153,8 +173,8 @@ const SubjectTab = () => {
                     <TableCell>{subject.courseName}</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Button onClick={() => handleEditSubject(subject)}>
-                          <FaRegEdit className="h-4 w-4" />
+                        <Button>
+                          <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           onClick={() => handleDeleteSubject(subject.subjectId)}
@@ -193,6 +213,16 @@ const SubjectTab = () => {
               </Button>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="manageElectiveGroup">
+          <ManageElectiveGroup />
+        </TabsContent>
+
+        <TabsContent value="addElectiveGroup">
+          <AddElectiveGroupForm
+            onAddElectiveGroupSuccess={fetchElectiveGroups}
+          />
         </TabsContent>
       </Tabs>
     </div>

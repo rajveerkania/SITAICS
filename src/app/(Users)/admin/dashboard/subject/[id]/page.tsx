@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,11 +17,11 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle
+  CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Book, Edit3, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
+import { Book, Edit3, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 interface Subject {
   subjectId: string;
@@ -44,39 +44,38 @@ const SubjectEditPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [detailsExpanded, setDetailsExpanded] = useState(true);
-  
+
   const [editedSubject, setEditedSubject] = useState({
-    subjectName: '',
-    subjectCode: '',
+    subjectName: "",
+    subjectCode: "",
     semester: 1,
-    courseName: ''
+    courseName: "",
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch subject data
-        const subjectResponse = await fetch('/api/fetchSubjects');
+        const subjectResponse = await fetch("/api/fetchSubjects");
         const subjectData = await subjectResponse.json();
         const currentSubject = subjectData.find(
           (s: Subject) => s.subjectId === id
         );
-        
+
         if (currentSubject) {
           setSubject(currentSubject);
           setEditedSubject({
             subjectName: currentSubject.subjectName,
             subjectCode: currentSubject.subjectCode,
             semester: currentSubject.semester,
-            courseName: currentSubject.courseName
+            courseName: currentSubject.courseName,
           });
         }
 
         // Fetch courses for the dropdown
-        const courseResponse = await fetch('/api/fetchCourses');
+        const courseResponse = await fetch("/api/fetchCourses");
         const courseData = await courseResponse.json();
         setCourses(courseData.courses);
-
       } catch (error) {
         toast.error("Error fetching subject data");
         console.error(error);
@@ -91,25 +90,29 @@ const SubjectEditPage = () => {
   const handleSave = async () => {
     try {
       const response = await fetch(`/api/updateSubject`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           subjectId: id,
-          ...editedSubject
+          ...editedSubject,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update subject');
+        throw new Error("Failed to update subject");
       }
 
-      setSubject(prev => prev ? { 
-        ...prev, 
-        ...editedSubject
-      } : null);
-      
+      setSubject((prev) =>
+        prev
+          ? {
+              ...prev,
+              ...editedSubject,
+            }
+          : null
+      );
+
       toast.success("Subject updated successfully");
       setIsEditing(false);
     } catch (error) {
@@ -119,7 +122,7 @@ const SubjectEditPage = () => {
   };
 
   const handleBackClick = () => {
-    router.push('/admin/dashboard');
+    router.push("/admin/dashboard");
   };
 
   const toggleDetails = () => {
@@ -135,158 +138,162 @@ const SubjectEditPage = () => {
   }
 
   return (
-    
-    <div className="max-h-screen">
-      <div className="bg-[#f2f3f5]">
-        <div className="container mx-auto py-8 px-4">
-          <Button 
-            variant="outline" 
-            onClick={handleBackClick}
-            className="mb-6"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
-          </Button>
+    <div className="bg-[#f2f3f5] min-h-screen">
+      <div className="container mx-auto py-8 px-4">
+        <Button variant="outline" onClick={handleBackClick} className="mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+        </Button>
 
-          <Card className="mb-6 overflow-hidden">
-            <CardHeader className="cursor-pointer" onClick={toggleDetails}>
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-2xl">Subject Details</CardTitle>
-                {detailsExpanded ? <ChevronUp /> : <ChevronDown />}
-              </div>
-              <CardDescription>
-                Manage subject information and details
-              </CardDescription>
-            </CardHeader>
+        <Card className="mb-6 overflow-hidden">
+          <CardHeader className="cursor-pointer" onClick={toggleDetails}>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-2xl">Subject Details</CardTitle>
+              {detailsExpanded ? <ChevronUp /> : <ChevronDown />}
+            </div>
+            <CardDescription>
+              Manage subject information and details
+            </CardDescription>
+          </CardHeader>
 
-            {detailsExpanded && (
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium flex items-center mb-2">
-                        <Book className="mr-2 h-4 w-4" /> Subject Name
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedSubject.subjectName}
-                          onChange={(e) => setEditedSubject({
+          {detailsExpanded && (
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Book className="mr-2 h-4 w-4" /> Subject Name
+                    </label>
+                    {isEditing ? (
+                      <Input
+                        value={editedSubject.subjectName}
+                        onChange={(e) =>
+                          setEditedSubject({
                             ...editedSubject,
-                            subjectName: e.target.value
-                          })}
-                          className="w-full"
-                        />
-                      ) : (
-                        <p className="text-lg">{subject.subjectName}</p>
-                      )}
-                    </div>
+                            subjectName: e.target.value,
+                          })
+                        }
+                        className="w-full"
+                      />
+                    ) : (
+                      <p className="text-lg">{subject.subjectName}</p>
+                    )}
+                  </div>
 
-                    <div>
-                      <label className="text-sm font-medium flex items-center mb-2">
-                        <Book className="mr-2 h-4 w-4" /> Subject Code
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedSubject.subjectCode}
-                          onChange={(e) => setEditedSubject({
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Book className="mr-2 h-4 w-4" /> Subject Code
+                    </label>
+                    {isEditing ? (
+                      <Input
+                        value={editedSubject.subjectCode}
+                        onChange={(e) =>
+                          setEditedSubject({
                             ...editedSubject,
-                            subjectCode: e.target.value
-                          })}
-                          className="w-full"
-                        />
-                      ) : (
-                        <p className="text-lg">{subject.subjectCode}</p>
-                      )}
-                    </div>
+                            subjectCode: e.target.value,
+                          })
+                        }
+                        className="w-full"
+                      />
+                    ) : (
+                      <p className="text-lg">{subject.subjectCode}</p>
+                    )}
+                  </div>
 
-                    <div>
-                      <label className="text-sm font-medium flex items-center mb-2">
-                        <Book className="mr-2 h-4 w-4" /> Semester
-                      </label>
-                      {isEditing ? (
-                        <Select
-                          value={editedSubject.semester.toString()}
-                          onValueChange={(value) => setEditedSubject({
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Book className="mr-2 h-4 w-4" /> Semester
+                    </label>
+                    {isEditing ? (
+                      <Select
+                        value={editedSubject.semester.toString()}
+                        onValueChange={(value) =>
+                          setEditedSubject({
                             ...editedSubject,
-                            semester: parseInt(value)
-                          })}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select semester" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
-                              <SelectItem key={sem} value={sem.toString()}>
-                                Semester {sem}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <p className="text-lg">Semester {subject.semester}</p>
-                      )}
-                    </div>
+                            semester: parseInt(value),
+                          })
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select semester" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                            <SelectItem key={sem} value={sem.toString()}>
+                              Semester {sem}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-lg">Semester {subject.semester}</p>
+                    )}
+                  </div>
 
-                    <div>
-                      <label className="text-sm font-medium flex items-center mb-2">
-                        <Book className="mr-2 h-4 w-4" /> Course
-                      </label>
-                      {isEditing ? (
-                        <Select
-                          value={editedSubject.courseName}
-                          onValueChange={(value) => setEditedSubject({
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Book className="mr-2 h-4 w-4" /> Course
+                    </label>
+                    {isEditing ? (
+                      <Select
+                        value={editedSubject.courseName}
+                        onValueChange={(value) =>
+                          setEditedSubject({
                             ...editedSubject,
-                            courseName: value
-                          })}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select course" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {courses.map((course) => (
-                              <SelectItem key={course.courseId} value={course.courseName}>
-                                {course.courseName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <p className="text-lg">{subject.courseName}</p>
-                      )}
-                    </div>
+                            courseName: value,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select course" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {courses.map((course) => (
+                            <SelectItem
+                              key={course.courseId}
+                              value={course.courseName}
+                            >
+                              {course.courseName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-lg">{subject.courseName}</p>
+                    )}
                   </div>
                 </div>
-              </CardContent>
-            )}
+              </div>
+            </CardContent>
+          )}
 
-            {detailsExpanded && (
-              <CardFooter className="flex justify-end space-x-4">
-                {isEditing ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setIsEditing(false);
-                        setEditedSubject({
-                          subjectName: subject.subjectName,
-                          subjectCode: subject.subjectCode,
-                          semester: subject.semester,
-                          courseName: subject.courseName
-                        });
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSave}>Save Changes</Button>
-                  </>
-                ) : (
-                  <Button onClick={() => setIsEditing(true)}>
-                    <Edit3 className="mr-2 h-4 w-4" /> Edit Subject
+          {detailsExpanded && (
+            <CardFooter className="flex justify-end space-x-4">
+              {isEditing ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditedSubject({
+                        subjectName: subject.subjectName,
+                        subjectCode: subject.subjectCode,
+                        semester: subject.semester,
+                        courseName: subject.courseName,
+                      });
+                    }}
+                  >
+                    Cancel
                   </Button>
-                )}
-              </CardFooter>
-            )}
-          </Card>
-        </div>
+                  <Button onClick={handleSave}>Save Changes</Button>
+                </>
+              ) : (
+                <Button onClick={() => setIsEditing(true)}>
+                  <Edit3 className="mr-2 h-4 w-4" /> Edit Subject
+                </Button>
+              )}
+            </CardFooter>
+          )}
+        </Card>
       </div>
     </div>
   );
