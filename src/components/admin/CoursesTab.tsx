@@ -16,7 +16,6 @@ import LoadingSkeleton from "../LoadingSkeleton";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { AES, enc } from "crypto-js";
 import { Eye } from "lucide-react";
 
 const SECRET_KEY = process.env.NEXT_PUBLIC_ID_SECRET;
@@ -40,10 +39,7 @@ const CoursesTab: React.FC = () => {
   const [activeTab, setActiveTab] = useState("manage");
   const coursesPerPage = 5;
 
-  const encryptCourseId = (courseId: string): string => {
-    const encrypted = AES.encrypt(courseId, SECRET_KEY!).toString();
-    return encrypted; // Return the full encrypted string
-  };
+ 
 
   const fetchCourses = async () => {
     setIsLoading(true);
@@ -98,8 +94,7 @@ const CoursesTab: React.FC = () => {
   };
 
   const handleViewCourse = (courseId: string) => {
-    const encryptedId = encryptCourseId(courseId);
-    router.push(`/admin/dashboard/course/${encryptedId}`);
+    router.push(`/admin/dashboard/course/${courseId}`);
   };
 
   const handleAddCourseSuccess = () => {

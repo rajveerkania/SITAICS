@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import usePreviousRoute from "@/app/hooks/usePreviousRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -55,7 +56,7 @@ interface BatchDetails {
 }
 
 interface Student {
-  id: string;
+  studentId: string;
   name: string;
   enrollmentNumber: string;
   email: string;
@@ -86,6 +87,7 @@ interface BatchSubjectsResponse {
 }
 
 const BatchEditPage = () => {
+  const {handleBack} = usePreviousRoute();
   const [batchDetails, setBatchDetails] = useState<BatchDetails | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -155,9 +157,11 @@ const BatchEditPage = () => {
     }
   };
 
-  const handleBackClick = () => {
-    router.push("/admin/dashboard");
-  };
+  
+
+  const handleViewStudent = (studentId: string) => {
+    if(studentId)  router.push(`/admin/dashboard/user/${studentId}`)
+  }
 
   const toggleBatchDetails = () => {
     setBatchDetailsExpanded(!batchDetailsExpanded);
@@ -174,8 +178,8 @@ const BatchEditPage = () => {
   return (
     <div className="bg-[#f3f4f6] min-h-screen">
       <div className="container mx-auto py-8 px-4">
-        <Button variant="outline" onClick={handleBackClick} className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+        <Button variant="outline" onClick={handleBack} className="mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
         
         {/* Batch Details Card */}
@@ -337,16 +341,15 @@ const BatchEditPage = () => {
                     </TableHeader>
                     <TableBody>
                       {students.map((student) => (
-                        <TableRow key={student.id}>
+                        <TableRow key={student.studentId}>
                           <TableCell>{student.name}</TableCell>
                           <TableCell>{student.enrollmentNumber}</TableCell>
                           <TableCell>{student.email}</TableCell>
                           <TableCell>{student.contactNo}</TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                            variant="outline" onClick={()=>handleViewStudent(student.studentId)} style={{ backgroundColor: "black", color: "white" }}
+                            className="flex items-center">
                               <Eye className="h-4 w-4" />
                             </Button>
                           </TableCell>

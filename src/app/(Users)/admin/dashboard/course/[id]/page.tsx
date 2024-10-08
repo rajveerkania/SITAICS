@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import usePreviousRoute from "@/app/hooks/usePreviousRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -49,17 +50,12 @@ interface Subject {
   courseName: string;
 }
 
-const SECRET_KEY = process.env.NEXT_PUBLIC_ID_SECRET;
 
-const decryptCourseId = (encryptedId: string): string => {
-  const decryptedBytes = AES.decrypt(encryptedId, SECRET_KEY!);
-  return decryptedBytes.toString(enc.Utf8);
-};
+
 
 const CourseEditPage = () => {
-  const { encryptedId } = useParams<{ encryptedId: string | string[] }>();
-  const decryptedId = Array.isArray(encryptedId) ? encryptedId[0] : encryptedId;
-  const id = decryptCourseId(decryptedId || "");
+  const { id } = useParams<{ id: string | string[] }>();
+  const {handleBack} = usePreviousRoute();
   const router = useRouter();
   const [course, setCourse] = useState<Course | null>(null);
   const [batches, setBatches] = useState<Batch[]>([]);
@@ -149,8 +145,8 @@ const CourseEditPage = () => {
   return (
     <div className="min-h-screen bg-[#f2f3f5]">
       <div className="container mx-auto py-8 px-4">
-        <Button variant="outline" onClick={handleBackClick} className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+        <Button variant="outline" onClick={handleBack} className="mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
 
         <Card className="mb-6">

@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams} from 'next/navigation';
+import usePreviousRoute from '@/app/hooks/usePreviousRoute';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +38,7 @@ import {
   Briefcase,
   Users2
 } from 'lucide-react';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 interface UserDetails {
   id: string;
@@ -83,7 +85,7 @@ interface UserDetails {
 
 const UserEditPage = () => {
   const { id } = useParams();
-  const router = useRouter();
+  const { handleBack } = usePreviousRoute();
   const [user, setUser] = useState<UserDetails | null>(null);
   const [editedUser, setEditedUser] = useState<UserDetails | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -162,16 +164,10 @@ const UserEditPage = () => {
     }
   };
 
-  const handleBackClick = () => {
-    router.push('/admin/dashboard');
-  };
+
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <LoadingSkeleton loadingText='user details' />
   }
 
   if (!user || !editedUser) {
@@ -181,10 +177,10 @@ const UserEditPage = () => {
           <h2 className="text-2xl font-bold text-red-600">User not found</h2>
           <Button 
             variant="outline" 
-            onClick={handleBackClick}
+            onClick={handleBack}
             className="mt-4"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
         </div>
       </div>
@@ -195,10 +191,10 @@ const UserEditPage = () => {
     <div className="container mx-auto py-8 px-4">
       <Button 
         variant="outline" 
-        onClick={handleBackClick}
+        onClick={handleBack}
         className="mb-6"
       >
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back
       </Button>
 
       {/* Basic Information Card */}
