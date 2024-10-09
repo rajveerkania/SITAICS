@@ -41,7 +41,7 @@ export async function GET(
     let roleDetails: any = {};
 
     if (user.role === Role.Student && user.studentDetails) {
-      // Destructure without the 'user' property since it doesn't exist
+       
       const {
         id: _id,
         course: _course,

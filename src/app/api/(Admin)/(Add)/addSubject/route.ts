@@ -11,7 +11,14 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { subjectName, subjectCode, semester, courseId: providedCourseId } = await req.json();
+    const { 
+      subjectName, 
+      subjectCode, 
+      semester, 
+      courseId: providedCourseId,
+      isElective,
+      electiveGroupId 
+    } = await req.json();
 
     if (!subjectName || !subjectCode || !semester || !providedCourseId) {
       return NextResponse.json(
@@ -60,18 +67,38 @@ export async function POST(req: Request) {
       );
     }
 
+    // If this is an elective subject, verify the elective group exists
+    if (isElective && electiveGroupId) {
+      const electiveGroup = await prisma.electiveGroup.findFirst({
+        where: {
+          electiveGroupId,
+          courseId: course.courseId,
+          semester: semesterInt
+        }
+      });
+
+      if (!electiveGroup) {
+        return NextResponse.json(
+          { message: "Invalid elective group for this course and semester" },
+          { status: 400 }
+        );
+      }
+    }
+
     const subject = await prisma.subject.create({
       data: {
         subjectName,
         subjectCode,
         semester: semesterInt,
         courseId: course.courseId,
+        isElective: isElective || false,
+        electiveGroupId: isElective ? electiveGroupId : null,
         isActive: true,
       },
     });
 
-    return NextResponse.json(subject,   {status: 200} );
-  } catch (error:any) {
+    return NextResponse.json(subject, { status: 200 });
+  } catch (error: any) {
     console.error("Error adding subject:", error);
     return NextResponse.json(
       { message: "An error occurred while adding the subject", error: error.message },
