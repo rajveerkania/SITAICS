@@ -1,76 +1,80 @@
-// /pages/api/fetchStudentDetails.ts
-
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse, NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
-const prisma = new PrismaClient();
-
-export async function GET(req: Request) {
+export async function POST(request: NextRequest) {
+  console.log("API route hit: /api/fetchStudentDetails");
   try {
-    // Verify the user token
-    const decodedUser = verifyToken();
-    console.log("Decoded User:", decodedUser); // Log decoded user for debugging
+    const cookieStore = cookies();
+    const token = cookieStore.get("token")?.value;
+    console.log("Token:", token ? "Present" : "Not present");
+    let id = null, role = null;
 
-    if (!decodedUser || decodedUser.role !== "Staff") {
-      return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+    if (token) {
+      const decodedToken = verifyToken();
+      if (decodedToken && typeof decodedToken === "object") {
+        id = decodedToken.id;
+        role = decodedToken.role;
+        console.log("Decoded token - ID:", id, "Role:", role);
+      }
     }
 
-    const staffId = decodedUser.id;
-    console.log("Staff ID:", staffId); // Log staff ID for debugging
+    if (!id || role !== "Staff") {
+      console.log("Unauthorized access attempt");
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
-    // Retrieve the staff member's batchId
-    const staff = await prisma.staffDetails.findUnique({
+    // Step 1: Fetch the batch ID of the staff member
+    const staffDetails = await prisma.staffDetails.findUnique({
+      where: { id },
       select: { batchId: true },
-      where: { id: staffId },
     });
 
-    console.log("Staff Details:", staff); // Log staff details for debugging
-
-    if (!staff || !staff.batchId) {
-      return NextResponse.json(
-        { message: "No batch assigned to this staff member." },
-        { status: 400 }
-      );
+    if (!staffDetails || !staffDetails.batchId) {
+      console.log("No batch ID found for staff member");
+      return NextResponse.json({ message: "No batch assigned" }, { status: 404 });
     }
 
-    // Retrieve the batch name using the batchId
-    const batch = await prisma.batch.findUnique({
-      where: { batchId: staff.batchId },
+    const batchId = staffDetails.batchId;
+
+    // Step 2: Fetch the batch name using the batch ID
+    const batchDetails = await prisma.batch.findUnique({
+      where: { batchId },
       select: { batchName: true },
     });
 
-    console.log("Batch Details:", batch); // Log batch details for debugging
-
-    if (!batch || !batch.batchName) {
-      return NextResponse.json(
-        { message: "Batch not found." },
-        { status: 400 }
-      );
+    if (!batchDetails) {
+      console.log("No batch found for the given batch ID");
+      return NextResponse.json({ message: "Batch not found" }, { status: 404 });
     }
 
-    const batchName = batch.batchName;
+    const batchName = batchDetails.batchName;
+    console.log("Fetched batch name:", batchName);
 
-    // Fetch students from the specified batch
+    // Step 3: Fetch the students associated with the batch name
     const students = await prisma.studentDetails.findMany({
-      where: { batchName: batchName },
+      where: {
+        batchName: batchName,
+        isActive: true,
+      },
       select: {
+        id: true,
+        email: true,
         username: true,
         name: true,
         enrollmentNumber: true,
-        email: true,
+        courseName: true,
         batchName: true,
+        isProfileCompleted: true,
       },
     });
 
+    console.log("Number of students fetched:", students.length);
     return NextResponse.json({ students }, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching student details:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch student details." },
-      { status: 500 }
-    );
-  } finally {
-    await prisma.$disconnect();
+  } 
+  catch (error) {
+    console.error("Error fetching students:", error);
+    return NextResponse.json({ message: "An unexpected error occurred" }, { status: 500 });
   }
 }

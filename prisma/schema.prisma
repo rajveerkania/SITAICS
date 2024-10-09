@@ -22,13 +22,13 @@ model User {
 }
 
 model StudentDetails {
-  id                 String    @id
+  id                 String                  @id
   email              String
-  username           String    @unique
+  username           String                  @unique
   name               String
   fatherName         String?
   motherName         String?
-  enrollmentNumber   String?   @unique
+  enrollmentNumber   String?                 @unique
   courseName         String?
   batchName          String?
   dateOfBirth        DateTime?
@@ -41,13 +41,14 @@ model StudentDetails {
   pinCode            Int?
   achievements       String?
   results            Json?
-  isActive           Boolean   @default(true)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  isProfileCompleted Boolean   @default(false)
-  user               User      @relation(fields: [id], references: [id])
-  course             Course?   @relation(fields: [courseName], references: [courseName])
-  batch              Batch?    @relation(fields: [batchName], references: [batchName])
+  isActive           Boolean                 @default(true)
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  isProfileCompleted Boolean                 @default(false)
+  user               User                    @relation(fields: [id], references: [id])
+  course             Course?                 @relation(fields: [courseName], references: [courseName])
+  batch              Batch?                  @relation(fields: [batchName], references: [batchName])
+  electiveChoices    ElectiveSubjectChoice[]
 }
 
 model StaffDetails {
@@ -75,17 +76,21 @@ model StaffDetails {
 }
 
 model Subject {
-  subjectId   String         @id @default(uuid())
-  subjectName String
-  subjectCode String
-  semester    Int
-  courseId    String
-  course      Course         @relation(fields: [courseId], references: [courseId])
-  isActive    Boolean        @default(true)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  staff       StaffDetails[]
-  batches     BatchSubject[]
+  subjectId             String                  @id @default(uuid())
+  subjectName           String
+  subjectCode           String
+  semester              Int
+  courseId              String
+  isElective            Boolean                 @default(false)
+  course                Course                  @relation(fields: [courseId], references: [courseId])
+  electiveGroup         ElectiveGroup?          @relation(fields: [electiveGroupId], references: [electiveGroupId])
+  electiveGroupId       String?
+  staff                 StaffDetails[]
+  batches               BatchSubject[]
+  isActive              Boolean                 @default(true)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  ElectiveSubjectChoice ElectiveSubjectChoice[]
 }
 
 model Course {
@@ -97,6 +102,7 @@ model Course {
   updatedAt      DateTime         @updatedAt
   batches        Batch[]
   StudentDetails StudentDetails[]
+  ElectiveGroup  ElectiveGroup[]
 }
 
 model Batch {
@@ -112,9 +118,8 @@ model Batch {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   course          Course           @relation(fields: [courseId], references: [courseId])
-  timetable       Bytes?           // Field for storing timetable in PDF format
+  timetable       Bytes?
 }
-
 
 model BatchSubject {
   batchId   String
@@ -124,6 +129,27 @@ model BatchSubject {
   subject   Subject @relation(fields: [subjectId], references: [subjectId])
 
   @@id([batchId, subjectId])
+}
+
+model ElectiveGroup {
+  electiveGroupId       String                  @id @default(uuid())
+  groupName             String
+  courseId              String
+  semester              Int
+  isActive              Boolean                 @default(true)
+  subjects              Subject[]
+  course                Course                  @relation(fields: [courseId], references: [courseId])
+  ElectiveSubjectChoice ElectiveSubjectChoice[]
+}
+
+model ElectiveSubjectChoice {
+  id              String         @id @default(uuid())
+  studentId       String
+  electiveGroupId String
+  subjectId       String
+  student         StudentDetails @relation(fields: [studentId], references: [id])
+  subject         Subject        @relation(fields: [subjectId], references: [subjectId])
+  electiveGroup   ElectiveGroup  @relation(fields: [electiveGroupId], references: [electiveGroupId])
 }
 
 enum Role {

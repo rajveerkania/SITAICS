@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,13 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FaTrashAlt, FaEdit } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 import AddCourseForm from "./AddCourseForm";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSkeleton from "../LoadingSkeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { AES, enc } from "crypto-js";
+import { Eye } from "lucide-react";
+
+const SECRET_KEY = process.env.NEXT_PUBLIC_ID_SECRET;
 
 interface Course {
   courseId: string;
@@ -24,16 +29,21 @@ interface Course {
   totalSubjects: number;
 }
 
+
 const CoursesTab: React.FC = () => {
+  const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("manage");
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editCourse, setEditCourse] = useState<Course | null>(null);
   const coursesPerPage = 5;
+
+  const encryptCourseId = (courseId: string): string => {
+    const encrypted = AES.encrypt(courseId, SECRET_KEY!).toString();
+    return encrypted; // Return the full encrypted string
+  };
 
   const fetchCourses = async () => {
     setIsLoading(true);
@@ -53,7 +63,9 @@ const CoursesTab: React.FC = () => {
         throw new Error("Invalid data structure");
       }
     } catch (error: any) {
-      setError(error || "Failed to load courses. Please try again later.");
+      setError(
+        error.message || "Failed to load courses. Please try again later."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -72,53 +84,26 @@ const CoursesTab: React.FC = () => {
         },
         body: JSON.stringify({ courseId }),
       });
+
       if (response.ok) {
-        toast.success("Course deleted successfully");
-        toast.success("Course deleted successfully");
+        toast.success("Course deactivated successfully");
         fetchCourses();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Error deactivating course");
       }
     } catch (error: any) {
-      toast.error("Error in deleting course", error);
+      toast.error("Error in deactivating course");
     }
   };
 
-  const handleEditCourse = (course: Course) => {
-    setEditCourse(course);
-    setEditDialogOpen(true);
+  const handleViewCourse = (courseId: string) => {
+    const encryptedId = encryptCourseId(courseId);
+    router.push(`/admin/dashboard/course/${encryptedId}`);
   };
 
-  const handleSaveCourseEdit = async () => {
-    if (!editCourse) return;
-
-    try {
-      const response = await fetch(`/api/editCourse/${editCourse.courseId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ courseName: editCourse.courseName }),
-      });
-
-      if (response.ok) {
-        await fetchCourses();
-        setEditDialogOpen(false);
-      } else
-        (error: any) => {
-          toast.error("Failed to update course", error);
-        };
-    } catch (error: any) {
-      toast.error("Error saving course edit:", error);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (editCourse) {
-      setEditCourse({ ...editCourse, [e.target.name]: e.target.value });
-    }
-  };
-
-  const handleAddCourseSuccess = (newCourse: Course) => {
-    setCourses((prevCourses) => [...prevCourses, newCourse]);
+  const handleAddCourseSuccess = () => {
+    fetchCourses();
     setActiveTab("manage");
   };
 
@@ -185,10 +170,10 @@ const CoursesTab: React.FC = () => {
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Button
-                            onClick={() => handleEditCourse(course)}
+                            onClick={() => handleViewCourse(course.courseId)}
                             style={{ backgroundColor: "black", color: "white" }}
                           >
-                            <FaEdit className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             onClick={() => handleDeleteCourse(course.courseId)}
@@ -238,37 +223,6 @@ const CoursesTab: React.FC = () => {
           <AddCourseForm onAddCourseSuccess={handleAddCourseSuccess} />
         </TabsContent>
       </Tabs>
-
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Course</DialogTitle>
-          </DialogHeader>
-          {editCourse ? (
-            <div>
-              <Input
-                type="text"
-                name="courseName"
-                value={editCourse.courseName}
-                onChange={handleInputChange}
-                placeholder="Course Name"
-                className="mb-2"
-              />
-              <div className="flex justify-end space-x-2 mt-4">
-                <Button
-                  variant="secondary"
-                  onClick={() => setEditDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveCourseEdit}>Save Changes</Button>
-              </div>
-            </div>
-          ) : (
-            <p>Loading...</p>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

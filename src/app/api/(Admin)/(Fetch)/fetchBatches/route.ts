@@ -12,29 +12,62 @@ export async function GET(req: Request) {
   //   return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   // }
 
+  const { searchParams } = new URL(req.url);
+  const batchId = searchParams.get("batchId");
+
   try {
-    const batches = await prisma.batch.findMany({
-      where: { isActive: true },
-      include: {
-        course: {
-          select: {
-            courseName: true,
+    if (batchId) {
+      const batch = await prisma.batch.findUnique({
+        where: { batchId },
+        include: {
+          course: {
+            select: { courseName: true },
           },
+          students: true,
         },
-        students: true,
-      },
-    });
+      });
 
-    const formattedBatches = batches.map((batch) => ({
-      batchId: batch.batchId,
-      batchName: batch.batchName,
-      courseName: batch.course.courseName,
-      batchDuration: batch.batchDuration,
-      currentSemester: batch.currentSemester,
-      studentCount: batch.students.length,
-    }));
+      if (!batch) {
+        return NextResponse.json(
+          { message: "Batch not found" },
+          { status: 404 }
+        );
+      }
 
-    return NextResponse.json(formattedBatches, { status: 200 });
+      const formattedBatch = {
+        batchId: batch.batchId,
+        batchName: batch.batchName,
+        courseName: batch.course.courseName,
+        batchDuration: batch.batchDuration,
+        currentSemester: batch.currentSemester,
+        studentCount: batch.students.length,
+      };
+
+      return NextResponse.json(formattedBatch, { status: 200 });
+    } else {
+      const batches = await prisma.batch.findMany({
+        where: { isActive: true },
+        include: {
+          course: {
+            select: {
+              courseName: true,
+            },
+          },
+          students: true,
+        },
+      });
+
+      const formattedBatches = batches.map((batch) => ({
+        batchId: batch.batchId,
+        batchName: batch.batchName,
+        courseName: batch.course.courseName,
+        batchDuration: batch.batchDuration,
+        currentSemester: batch.currentSemester,
+        studentCount: batch.students.length,
+      }));
+
+      return NextResponse.json(formattedBatches, { status: 200 });
+    }
   } catch (error) {
     console.error("Error fetching batches:", error);
     return NextResponse.json(

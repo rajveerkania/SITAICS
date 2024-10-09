@@ -16,6 +16,10 @@ interface AddStudentDetailsProps {
   fetchUserDetails: () => void;
 }
 
+interface Course {
+  courseName: string;
+}
+
 const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   id,
   setShowAddStudentDetails,
@@ -66,7 +70,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch("/api/fetchCourses", {
+        const response = await fetch("/api/getCoursesName", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -95,7 +99,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
     const { name, value } = e.target;
     setStudentFormData((prevData) => ({
       ...prevData,
-      [name]: name === "pinCode" ? value : value,
+      [name]: name === "pinCode" ? parseInt(value) || "" : value,
     }));
 
     let errorMessage = "";
@@ -120,11 +124,19 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
 
   const fetchBatches = async (courseName: string) => {
     try {
-      const response = await fetch(
-        `/api/getBatchesName?courseName=${courseName}`
-      );
+      const response = await fetch("/api/getBatchesName/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ courseName: courseName }),
+      });
+
       const data = await response.json();
-      setBatches(data.batches);
+      const formattedBatches = data.batchNames.map((batch: string) => ({
+        batchName: batch,
+      }));
+      setBatches(formattedBatches);
     } catch (error) {
       toast.error("An error occurred while fetching courses.");
     }
@@ -151,23 +163,14 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const updatedStudentData = {
-      ...studentFormData,
-      pinCode: parseInt(studentFormData.pinCode) || null,
-    };
-
     try {
-      const updatedStudentDetails = await fetch(
-        `/api/student/addStudentDetails`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedStudentData),
-        }
-      );
+      const updatedStudentDetails = await fetch(`/api/student/addStudentDetails`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(studentFormData),
+      });
 
       if (updatedStudentDetails.ok) {
         toast.success("Student details added successfully.");
@@ -208,7 +211,6 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
         const response = await fetch(`/api/fetchUserDetails`);
         const data = await response.json();
         setUserName(data.user.name);
-        console.log(data.user.name);
       } catch (error) {
         toast.error("Something went wrong. Please try again later");
       }
@@ -320,9 +322,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
               >
                 <SelectTrigger className="w-full">
                   <span
-                    className={
-                      studentFormData.batchName ? "" : "text-gray-500 "
-                    }
+                    className={studentFormData.batchName ? "" : "text-gray-500"}
                   >
                     {studentFormData.batchName || "Select Batch"}
                   </span>

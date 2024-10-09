@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyToken } from "@/utils/auth";
 
 export async function PUT(request: NextRequest) {
   try {
+    const decodedUser = verifyToken();
+    const userRole = decodedUser?.role;
+
+    if (userRole !== "Admin") {
+      return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+    }
+
     const { batchId } = await request.json();
 
     if (!batchId || typeof batchId !== "string") {
@@ -11,9 +19,10 @@ export async function PUT(request: NextRequest) {
 
     const updatedBatch = await prisma.batch.update({
       where: { batchId },
-      data: { isActive: false }, // Mark batch as inactive instead of deleting
+      data: { isActive: false },
     });
 
+    console.log("Batch updated:", updatedBatch);
     return NextResponse.json(updatedBatch, { status: 200 });
   } catch (error) {
     console.error("Error deactivating batch:", error);

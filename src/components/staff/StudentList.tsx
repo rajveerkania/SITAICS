@@ -43,30 +43,38 @@ const StudentList: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 5;
-
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await fetch(`/api/fetchStudentDetails`);
+        const response = await fetch("/api/fetchStudentDetails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ batchName: "all" }), // or any batch name you want to send
+        });
         const data = await response.json();
-        if (response.status !== 200)
+        console.log(data);
+        if (response.status !== 200) {
           toast.error(data.message || "Error while fetching user data");
-        else {
+        } else {
           setStudents(data.students);
         }
-
+  
+        // Fetch unique batches after getting student data
         const uniqueBatches: string[] = Array.from(
-          new Set(students.map((student: Student) => student.batchName))
+          new Set(data.students.map((student: Student) => student.batchName))
         );
-
+  
         setBatches(["all", ...uniqueBatches]);
       } catch (error) {
         console.error("Error fetching students:", error);
       }
     };
-
+  
     fetchStudents();
   }, []);
+  
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);

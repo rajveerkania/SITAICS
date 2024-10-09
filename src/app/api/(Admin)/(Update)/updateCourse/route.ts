@@ -1,28 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/utils/auth";
 
-export async function PUT(request: NextRequest) {
+export async function PUT(req: Request) {
   const decodedUser = verifyToken();
-  const userRole = decodedUser?.role;
 
-  if (userRole !== "Admin") {
+  if (decodedUser?.role !== "Admin") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
 
   try {
-    const { courseId } = await request.json();
+    const { courseId, courseName } = await req.json();
 
     const updatedCourse = await prisma.course.update({
-      where: { courseId },
-      data: { isActive: false }, // Mark course as inactive instead of deleting
+      where: {
+        courseId: courseId,
+      },
+      data: {
+        courseName: courseName,
+      },
     });
 
-    return NextResponse.json(updatedCourse, { status: 200 });
-  } catch (error) {
-    console.error("Error deleting course:", error);
     return NextResponse.json(
-      { error: "Failed to delete course" },
+      { message: "Course updated successfully", course: updatedCourse },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    return NextResponse.json(
+      { message: "Failed to update course", error: error.message },
       { status: 500 }
     );
   }

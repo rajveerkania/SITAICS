@@ -36,7 +36,10 @@ export async function GET() {
       totalSubjects: course.subjects.length,
       isActive: true,
     }));
+<<<<<<< HEAD
 
+=======
+>>>>>>> hetanshu
     return NextResponse.json(
       { message: "Courses fetched", courses: formattedCourses },
       { status: 200 }
