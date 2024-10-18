@@ -5,10 +5,13 @@ import { verifyToken } from "@/utils/auth";
 
 export async function GET(request: NextRequest) {
   try {
+
+    
+
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
     let id = null,
-    role = null;
+      role = null;
 
     if (token) {
       const decodedToken = verifyToken();
@@ -88,6 +91,10 @@ export async function GET(request: NextRequest) {
               batchId: true,
               subjects: true,
               achievements: true,
+              address: true,
+              city: true,
+              state: true,
+              pinCode: true,
             },
           });
           return NextResponse.json({ user, role: "Staff" }, { status: 200 });

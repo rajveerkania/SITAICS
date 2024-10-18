@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,14 +9,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FaTrashAlt, FaEdit } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 import AddCourseForm from "./AddCourseForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSkeleton from "../LoadingSkeleton";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Eye } from "lucide-react";
 
+const SECRET_KEY = process.env.NEXT_PUBLIC_ID_SECRET;
 
 interface Course {
   courseId: string;
@@ -26,6 +27,7 @@ interface Course {
   totalBatches: number;
   totalSubjects: number;
 }
+
 
 const CoursesTab: React.FC = () => {
   const router = useRouter();
@@ -36,6 +38,8 @@ const CoursesTab: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("manage");
   const coursesPerPage = 5;
+
+ 
 
   const fetchCourses = async () => {
     setIsLoading(true);
@@ -55,7 +59,9 @@ const CoursesTab: React.FC = () => {
         throw new Error("Invalid data structure");
       }
     } catch (error: any) {
-      setError(error.message || "Failed to load courses. Please try again later.");
+      setError(
+        error.message || "Failed to load courses. Please try again later."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -74,17 +80,21 @@ const CoursesTab: React.FC = () => {
         },
         body: JSON.stringify({ courseId }),
       });
+
       if (response.ok) {
-        toast.success("Course deleted successfully");
+        toast.success("Course deactivated successfully");
         fetchCourses();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Error deactivating course");
       }
     } catch (error: any) {
-      toast.error("Error in deleting course");
+      toast.error("Error in deactivating course");
     }
   };
 
-  const handleEditCourse = (course: Course) => {
-    router.push(`/admin/dashboard/course/${course.courseId}`);
+  const handleViewCourse = (courseId: string) => {
+    router.push(`/admin/dashboard/course/${courseId}`);
   };
 
   const handleAddCourseSuccess = () => {
@@ -155,10 +165,10 @@ const CoursesTab: React.FC = () => {
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Button
-                            onClick={() => handleEditCourse(course)}
+                            onClick={() => handleViewCourse(course.courseId)}
                             style={{ backgroundColor: "black", color: "white" }}
                           >
-                            <FaEdit className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             onClick={() => handleDeleteCourse(course.courseId)}

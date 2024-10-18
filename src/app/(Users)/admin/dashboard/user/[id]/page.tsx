@@ -1,331 +1,391 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import usePreviousRoute from '@/app/hooks/usePreviousRoute';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StatCard } from "@/components/StatCard";
-import { IndianCalendar } from "@/components/IndianCalendar";
-import { Navbar } from "@/components/Navbar";
-import UsersTab from "@/components/admin/UsersTab";
-import CoursesTab from "@/components/admin/CoursesTab";
-import SubjectsTab from "@/components/admin/SubjectsTab";
-import LeavesTab from "@/components/admin/LeavesTab";
-import AttendanceTab from "@/components/admin/Attendance";
-import BatchTab from "@/components/admin/BatchTab";
-import LoadingSkeleton from "@/components/LoadingSkeleton";
-import { Toaster, toast } from "sonner";
-import AccessDenied from "@/components/accessDenied";
-import InactiveRecords from "@/components/admin/InactiveRecords";
+import { toast } from "sonner";
+import { 
+  User, 
+  Mail, 
+  Users, 
+  ChevronDown, 
+  ChevronUp, 
+  ArrowLeft, 
+  Phone 
+} from 'lucide-react';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
+import ResultComponent from '@/components/admin/UserDetails/Result';
+import AchievementComponent from '@/components/admin/UserDetails/Achievment';
 
-interface CourseData {
-  courseName: string;
-  Students: number;
-}
-
-interface Stats {
-  studentCount: number;
-  staffCount: number;
-  totalCoursesCount: number;
-  formattedCourseData: CourseData[];
-}
-
-const AdminDashboard = () => {
-  const [showUserDetails, setShowUserDetails] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [userData, setUserData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [overviewStats, setOverviewStats] = useState<Stats | null>(null);
-
-  const tabs = [
-    "Overview",
-    "Users",
-    "Courses",
-    "Batches",
-    "Subjects",
-    "Leaves",
-    "Attendance",
-    "Inactive",
-  ];
+const UserEditPage: React.FC = () => {
+  const { id } = useParams();
+  const { handleBack } = usePreviousRoute();
+  const [user, setUser] = useState<UserDetails | null>(null);
+  const [editedUser, setEditedUser] = useState<UserDetails | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [basicInfoExpanded, setBasicInfoExpanded] = useState(true);
+  const [additionalInfoExpanded, setAdditionalInfoExpanded] = useState(true);
 
   useEffect(() => {
-    const fetchUserDetails = async () => {
+    const fetchUserData = async () => {
       try {
-        const response = await fetch(`/api/fetchUserDetails`);
-        const data = await response.json();
-        if (response.status !== 200)
-          toast.error(data.message || "Error while fetching user data");
-
-        const overviewStatsResponse = await fetch(`/api/overviewStats`);
-        const stats = await overviewStatsResponse.json();
-        if (
-          overviewStatsResponse.status !== 200 &&
-          overviewStatsResponse.status !== 403
-        )
-          toast.error(stats.message || "Error while fetching the stats");
-        else if (overviewStatsResponse.status === 403) {
-          return <AccessDenied />;
+        const response = await fetch(`/api/users/${id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
         }
-
-        setOverviewStats(stats);
-        setUserData(data.user);
+        const data = await response.json();
+        setUser(data);
+        setEditedUser(data);
       } catch (error) {
-        toast.error("Error while fetching the data!");
+        toast.error("Error fetching user data");
+        console.error(error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
-    fetchUserDetails();
-  }, []);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    if (id) {
+      fetchUserData();
+    }
+  }, [id]);
+
+  const handleSave = async () => {
+    if (!editedUser) return;
+
+    try {
+      const response = await fetch(`/api/admin/updateUserDetails/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editedUser),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update user');
+      }
+
+      const updatedUser = await response.json();
+      setUser(updatedUser);
+      setEditedUser(updatedUser);
+      toast.success("User updated successfully");
+      setIsEditing(false);
+    } catch (error) {
+      toast.error("Failed to update user");
+      console.error(error);
+    }
   };
 
-  if (loading) {
+  const handleInputChange = (field: string, value: any) => {
+    if (editedUser) {
+      setEditedUser((prevState: any) => ({
+        ...prevState!,
+        [field]: value,
+      }));
+    }
+  };
+
+  const handleRoleDetailsChange = (field: string, value: any) => {
+    if (editedUser) {
+      setEditedUser((prevState: any) => ({
+        ...prevState!,
+        roleDetails: {
+          ...prevState!.roleDetails,
+          [field]: value,
+        },
+      }));
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingSkeleton loadingText='user details' />;
+  }
+
+  if (!user || !editedUser) {
     return (
-      <div className="">
-        <LoadingSkeleton loadingText="Dashboard" />;
+      <div className="container mx-auto py-8 px-4">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600">User not found</h2>
+          <Button 
+            variant="outline" 
+            onClick={handleBack}
+            className="mt-4"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Toaster />
-      <Navbar name={userData?.name} role={userData?.role} />
-      <div className="container mx-auto mt-8 px-4">
-        <div className="lg:hidden mb-4">
-          <button
-            className="p-2 rounded-md bg-gray-200 hover:bg-gray-300"
-            onClick={toggleMobileMenu}
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16m-7 6h7"
-              />
-            </svg>
-          </button>
-        </div>
-        <div
-          className={`${
-            isMobileMenuOpen ? "flex" : "hidden"
-          } lg:hidden flex-col bg-gray-800 absolute top-0 left-0 w-full h-full p-4 z-10 transition-all duration-300 ease-in-out`}
+    <div className="container mx-auto py-8 px-4">
+      <Button 
+        variant="outline" 
+        onClick={handleBack}
+        className="mb-6"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back
+      </Button>
+
+      <Card className="mb-6">
+        <CardHeader 
+          className="cursor-pointer" 
+          onClick={() => setBasicInfoExpanded(!basicInfoExpanded)}
         >
-          <button
-            className="self-end p-2 rounded-md hover:bg-gray-700"
-            onClick={toggleMobileMenu}
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl">Basic Information</CardTitle>
+            {basicInfoExpanded ? <ChevronUp /> : <ChevronDown />}
+          </div>
+          <CardDescription>User's basic details</CardDescription>
+        </CardHeader>
 
-          <ul className="mt-6 space-y-4">
-            {tabs.map((tab) => (
-              <li key={tab} className="w-full">
-                <button
-                  className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-300 ease-in-out transform hover:scale-105 ${
-                    activeTab === tab.toLowerCase()
-                      ? "bg-gray-900 text-white"
-                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                  }`}
-                  onClick={() => {
-                    setActiveTab(tab.toLowerCase());
-                    toggleMobileMenu();
-                  }}
-                >
-                  {tab}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {basicInfoExpanded && (
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-sm font-medium flex items-center mb-2">
+                  <User className="mr-2 h-4 w-4" /> Name
+                </label>
+                {isEditing ? (
+                  <Input
+                    value={editedUser.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    className="w-full"
+                  />
+                ) : (
+                  <p className="text-lg">{user.name}</p>
+                )}
+              </div>
 
-        {/* Desktop Tabs */}
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-6"
-        >
-          <TabsList className="hidden lg:flex flex-wrap justify-start gap-2 mb-8 p-4 bg-white text-black rounded-lg shadow-md">
-            {tabs.map((tab) => (
-              <TabsTrigger
-                key={tab}
-                value={tab.toLowerCase()}
-                className={`
-                  flex-grow basis-full sm:basis-1/2 md:basis-auto
-                  text-center px-4 py-2 rounded-md
-                  font-medium text-sm
-                  transition-all duration-200 ease-in-out
-                  ${
-                    activeTab === tab.toLowerCase()
-                      ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative"
-                      : "bg-gray-200 text-black hover:bg-gray-300"
-                  }
-                `}
-                onClick={() => setActiveTab(tab.toLowerCase())}
-              >
-                {tab}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+              <div>
+                <label className="text-sm font-medium flex items-center mb-2">
+                  <Mail className="mr-2 h-4 w-4" /> Email
+                </label>
+                {isEditing ? (
+                  <Input
+                    value={editedUser.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="w-full"
+                  />
+                ) : (
+                  <p className="text-lg">{user.email}</p>
+                )}
+              </div>
 
-          {/* Overview Tab Content */}
-          <TabsContent value="overview">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-              <StatCard
-                title="Total Students"
-                value={overviewStats?.studentCount || ""}
-                description={""}
-              />
-              <StatCard
-                title="Total Staff Members"
-                value={overviewStats?.staffCount || ""}
-                description={""}
-              />
-              <StatCard
-                title="Total Courses"
-                value={overviewStats?.totalCoursesCount || ""}
-                description={""}
-              />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Students per Course</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="w-full h-[300px] sm:h-[400px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={overviewStats?.formattedCourseData || []}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="courseName" />
-                        response 
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="Students" fill="#000000" />
-                      </BarChart>
-                    </ResponsiveContainer>
+              <div>
+                <label className="text-sm font-medium flex items-center mb-2">
+                  <Users className="mr-2 h-4 w-4" /> Role
+                </label>
+                <p className="text-lg">{user.role}</p>
+              </div>
+
+              {user.role === 'Student' && (
+                <>
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Users className="mr-2 h-4 w-4" /> Enrollment Number
+                    </label>
+                    <p className="text-lg">{user.roleDetails.enrollmentNumber || 'Not provided'}</p>
                   </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Calendar</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <IndianCalendar />
-                </CardContent>
-              </Card>
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Users className="mr-2 h-4 w-4" /> Course Name
+                    </label>
+                    <p className="text-lg">{user.roleDetails.courseName || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Users className="mr-2 h-4 w-4" /> Batch Name
+                    </label>
+                    <p className="text-lg">{user.roleDetails.batchName || 'Not provided'}</p>
+                  </div>
+                </>
+              )}
             </div>
-          </TabsContent>
+          </CardContent>
+        )}
+      </Card>
 
-          <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <UsersTab />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="courses">
-            <Card>
-              <CardHeader>
-                <CardTitle>Course Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CoursesTab />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="batches">
-            <Card>
-              <CardHeader>
-                <CardTitle>Batch Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BatchTab />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="subjects">
-            <Card>
-              <CardHeader>
-                <CardTitle>Subject Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SubjectsTab />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="leaves">
-            <Card>
-              <CardHeader>
-                <CardTitle>Leave Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <LeavesTab />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="attendance">
-            <Card>
-              <CardHeader>
-                <CardTitle>Attendance Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <AttendanceTab />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="inactive">
-            <Card>
-              <CardHeader>
-                <CardTitle>Inactive Records</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <InactiveRecords />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+      {user.role !== 'Admin' && (
+        <Card className="mb-6">
+          <CardHeader 
+            className="cursor-pointer" 
+            onClick={() => setAdditionalInfoExpanded(!additionalInfoExpanded)}
+          >
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-2xl">Additional Information</CardTitle>
+              {additionalInfoExpanded ? <ChevronUp /> : <ChevronDown />}
+            </div>
+            <CardDescription>Role-specific details and information</CardDescription>
+          </CardHeader>
+
+          {additionalInfoExpanded && (
+            <CardContent>
+              <Tabs defaultValue="personal" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="personal">Personal Details</TabsTrigger>
+                  {user.role === 'Student' && <TabsTrigger value="result">Results</TabsTrigger>}
+                  {user.role === 'Student' && <TabsTrigger value="achievement">Achievements</TabsTrigger>}
+                </TabsList>
+
+                <TabsContent value="personal">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-sm font-medium flex items-center mb-2">
+                        <User className="mr-2 h-4 w-4" /> Father's Name
+                      </label>
+                      {isEditing ? (
+                        <Input
+                          value={editedUser.roleDetails.fatherName || ''}
+                          onChange={(e) => handleRoleDetailsChange('fatherName', e.target.value)}
+                          className="w-full"
+                          placeholder="Enter father's name"
+                        />
+                      ) : (
+                        <p className="text-lg">{user.roleDetails.fatherName || 'Not provided'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium flex items-center mb-2">
+                        <User className="mr-2 h-4 w-4" /> Mother's Name
+                      </label>
+                      {isEditing ? (
+                        <Input
+                          value={editedUser.roleDetails.motherName || ''}
+                          onChange={(e) => handleRoleDetailsChange('motherName', e.target.value)}
+                          className="w-full"
+                          placeholder="Enter mother's name"
+                        />
+                      ) : (
+                        <p className="text-lg">{user.roleDetails.motherName || 'Not provided'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium flex items-center mb-2">
+                        <Phone className="mr-2 h-4 w-4" /> Contact Number
+                      </label>
+                      {isEditing ? (
+                        <Input
+                          value={editedUser.contactNumber || ''}
+                          onChange={(e) => handleRoleDetailsChange('contactNumber', e.target.value)}
+                          className="w-full"
+                          placeholder="Enter contact number"
+                        />
+                      ) : (
+                        <p className="text-lg">{user.contactNumber || 'Not provided'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium flex items-center mb-2">
+                        <User className="mr-2 h-4 w-4" /> Address
+                      </label>
+                      {isEditing ? (
+                        <Input
+                          value={editedUser.roleDetails.address || ''}
+                          onChange={(e) => handleRoleDetailsChange('address', e.target.value)}
+                          className="w-full"
+                          placeholder="Enter address"
+                        />
+                      ) : (
+                        <p className="text-lg">{user.roleDetails.address || 'Not provided'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium flex items-center mb-2">
+                        <User className="mr-2 h-4 w-4" /> City
+                      </label>
+                      {isEditing ? (
+                        <Input
+                          value={editedUser.roleDetails.city || ''}
+                          onChange={(e) => handleRoleDetailsChange('city', e.target.value)}
+                          className="w-full"
+                          placeholder="Enter city"
+                        />
+                      ) : (
+                        <p className="text-lg">{user.roleDetails.city || 'Not provided'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium flex items-center mb-2">
+                        <User className="mr-2 h-4 w-4" /> State
+                      </label>
+                      {isEditing ? (
+                        <Input
+                          value={editedUser.roleDetails.state || ''}
+                          onChange={(e) => handleRoleDetailsChange('state', e.target.value)}
+                          className="w-full"
+                          placeholder="Enter state"
+                        />
+                      ) : (
+                        <p className="text-lg">{user.roleDetails.state || 'Not provided'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium flex items-center mb-2">
+                        <User className="mr-2 h-4 w-4" /> Pin Code
+                      </label>
+                      {isEditing ? (
+                        <Input
+                          value={editedUser.roleDetails.pinCode || ''}
+                          onChange={(e) => handleRoleDetailsChange('pinCode', e.target.value)}
+                          className="w-full"
+                          placeholder="Enter pin code"
+                        />
+                      ) : (
+                        <p className="text-lg">{user.roleDetails.pinCode || 'Not provided'}</p>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {user.role === 'Student' && (
+                  <>
+                    <TabsContent value="result">
+                      <ResultComponent results={user.roleDetails.results} />
+                    </TabsContent>
+                    <TabsContent value="achievement">
+                      <AchievementComponent achievements={user.roleDetails.achievements} isEditing={false} handleRoleDetailsChange={function (field: string, value: any): void {
+                        throw new Error('Function not implemented.');
+                      } } />
+                    </TabsContent>
+                  </>
+                )}
+              </Tabs>
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+      <div className="flex justify-end">
+        {isEditing ? (
+          <Button variant="outline" onClick={handleSave}>
+            Save Changes
+          </Button>  
+        ) : (
+          <Button variant="outline" onClick={() => setIsEditing(true)}>
+            Edit User
+          </Button>
+        )}
       </div>
     </div>
   );
 };
 
-export default AdminDashboard;
+export default UserEditPage;

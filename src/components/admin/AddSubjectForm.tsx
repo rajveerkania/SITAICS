@@ -13,6 +13,14 @@ import ImportButton from "../ImportButton";
 
 interface Course {
   courseName: string;
+  courseId: string;
+}
+
+interface ElectiveGroup {
+  electiveGroupId: string;
+  groupName: string;
+  courseId: string;
+  semester: number;
 }
 
 interface CSVData {
@@ -31,12 +39,21 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
     subjectCode: "",
     semester: "",
     courseId: "",
+    courseName: "", // Added to store courseName
+    isElective: "false",
+    electiveGroupId: "",
   });
   const [courses, setCourses] = useState<Course[]>([]);
+  const [electiveGroups, setElectiveGroups] = useState<ElectiveGroup[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
   const [csvData, setCSVData] = useState<CSVData[]>([]);
+  const [availableElectiveGroups, setAvailableElectiveGroups] = useState<ElectiveGroup[]>([]);
 
+
+  useEffect(() => {
+    console.log("Current subject state:", newSubject);
+    console.log("Available elective groups:", availableElectiveGroups);
+  }, [newSubject, availableElectiveGroups]);
   const handleFileUpload = async (file: File) => {
     try {
       const text = await file.text();
@@ -60,26 +77,84 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
     });
   };
 
-  useEffect(() => {
-    fetchCourses();
-  }, []);
-
   const fetchCourses = async () => {
     setLoading(true);
     try {
       const response = await fetch("/api/fetchCourses");
       const data = await response.json();
-      if (Array.isArray(data)) {
-        setCourses(data);
-      } else if (data && Array.isArray(data.courses)) {
+      if (data && Array.isArray(data.courses)) {
         setCourses(data.courses);
       } else {
-        toast.error("Unexpected response structure for courses:", data);
+        toast.error("Unexpected response structure for courses");
       }
     } catch (error: any) {
-      toast.error("Error fetching courses", error);
+      toast.error("Error fetching courses");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchElectiveGroups = async () => {
+    try {
+      const response = await fetch("/api/fetchElectiveGroups");
+      const data = await response.json();
+      if (Array.isArray(data.groups)) {
+        setElectiveGroups(data.groups);
+        console.log("Fetched elective groups:", data.groups); // Debug log
+      } else {
+        throw new Error("Failed to fetch groups");
+      }
+    } catch (error: any) {
+      toast.error("Error fetching elective groups");
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+    fetchElectiveGroups();
+  }, []);
+
+
+  useEffect(() => {
+    if (newSubject.courseName && newSubject.semester) {
+      const selectedCourse = courses.find(
+        (course) => course.courseName === newSubject.courseName
+      );
+
+      if (selectedCourse) {
+        const matchingGroups = electiveGroups.filter(
+          (group) =>
+            group.courseId === selectedCourse.courseId &&
+            group.semester === parseInt(newSubject.semester, 10)
+        );
+
+        console.log("Matching groups found:", matchingGroups); 
+        setAvailableElectiveGroups(matchingGroups);
+
+        if (matchingGroups.length === 0) {
+          setNewSubject((prev) => ({
+            ...prev,
+            isElective: "false",
+            electiveGroupId: "",
+          }));
+        }
+      }
+    } else {
+      setAvailableElectiveGroups([]);
+    }
+  }, [newSubject.courseName, newSubject.semester, courses, electiveGroups]);
+
+  const handleCourseChange = (courseName: string) => {
+    const selectedCourse = courses.find(
+      (course) => course.courseName === courseName
+    );
+
+    if (selectedCourse) {
+      setNewSubject((prev) => ({
+        ...prev,
+        courseName: courseName,
+        courseId: selectedCourse.courseId,
+      }));
     }
   };
 
@@ -89,6 +164,7 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
     const subjectData = {
       ...newSubject,
       semester: parseInt(newSubject.semester, 10),
+      isElective: newSubject.isElective === "true",
     };
 
     try {
@@ -99,22 +175,26 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
         },
         body: JSON.stringify(subjectData),
       });
+      
       const data = await response.json();
-      setNewSubject({
-        subjectName: "",
-        subjectCode: "",
-        semester: "",
-        courseId: "",
-      });
-      if(response.ok){
-      toast.success("Subject added successfully");
-      onAddSubjectSuccess();
-    }
-    else{
-      toast.error(data.message)
-    }
+      
+      if (response.ok) {
+        setNewSubject({
+          subjectName: "",
+          subjectCode: "",
+          semester: "",
+          courseId: "",
+          courseName: "",
+          isElective: "false",
+          electiveGroupId: "",
+        });
+        toast.success("Subject added successfully");
+        onAddSubjectSuccess();
+      } else {
+        toast.error(data.message);
+      }
     } catch (error: any) {
-      toast.error("Error adding Subject", error);
+      toast.error("Error adding Subject");
     }
   };
 
@@ -136,19 +216,9 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
         }
         required
       />
-      <Input
-        placeholder="Semester"
-        value={newSubject.semester}
-        onChange={(e) =>
-          setNewSubject({ ...newSubject, semester: e.target.value })
-        }
-        required
-      />
       <Select
-        value={newSubject.courseId}
-        onValueChange={(value) =>
-          setNewSubject({ ...newSubject, courseId: value })
-        }
+        value={newSubject.courseName}
+        onValueChange={handleCourseChange}
         required
       >
         <SelectTrigger>
@@ -160,8 +230,8 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
               Loading Courses...
             </SelectItem>
           ) : courses.length > 0 ? (
-            courses.map((course, index) => (
-              <SelectItem key={index} value={course.courseName}>
+            courses.map((course) => (
+              <SelectItem key={course.courseId} value={course.courseName}>
                 {course.courseName}
               </SelectItem>
             ))
@@ -172,6 +242,64 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
           )}
         </SelectContent>
       </Select>
+      <Input
+        placeholder="Semester"
+        type="number"
+        min="1"
+        value={newSubject.semester}
+        onChange={(e) =>
+          setNewSubject({ ...newSubject, semester: e.target.value })
+        }
+        required
+      />
+
+      {availableElectiveGroups.length > 0 && (
+        <>
+          <Select
+            value={newSubject.isElective}
+            onValueChange={(value) => {
+              setNewSubject({
+                ...newSubject,
+                isElective: value,
+                electiveGroupId: value === "false" ? "" : newSubject.electiveGroupId,
+              });
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Is Elective?" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="false">No</SelectItem>
+              <SelectItem value="true">Yes</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {newSubject.isElective === "true" && (
+            <Select
+              value={newSubject.electiveGroupId}
+              onValueChange={(value) =>
+                setNewSubject({ ...newSubject, electiveGroupId: value })
+              }
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Elective Group" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableElectiveGroups.map((group) => (
+                  <SelectItem
+                    key={group.electiveGroupId}
+                    value={group.electiveGroupId}
+                  >
+                    {group.groupName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </>
+      )}
+
       <div className="flex justify-between pt-5">
         <Button type="submit">Create Subject</Button>
         <ImportButton
