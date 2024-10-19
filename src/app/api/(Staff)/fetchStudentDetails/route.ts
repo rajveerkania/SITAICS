@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
-  console.log("API route hit: /api/fetchStudentsByBatch");
+  console.log("API route hit: /api/fetchStudentDetails");
   try {
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
@@ -20,22 +20,40 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!id || !role || (role !== "Admin" && role !== "Staff")) {
+    if (!id || role !== "Staff") {
       console.log("Unauthorized access attempt");
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }   
-
-    const body = await request.json();
-    const batchName = body.batchName;
-    console.log("Requested batch name:", batchName);
-
-    if (!batchName) {
-      console.log("Batch name not provided");
-      return NextResponse.json({ message: "Batch name is required" }, { status: 400 });
     }
 
-    console.log("Fetching students from database");
-     const students = await prisma.studentDetails.findMany({
+    // Step 1: Fetch the batch ID of the staff member
+    const staffDetails = await prisma.staffDetails.findUnique({
+      where: { id },
+      select: { batchId: true },
+    });
+
+    if (!staffDetails || !staffDetails.batchId) {
+      console.log("No batch ID found for staff member");
+      return NextResponse.json({ message: "No batch assigned" }, { status: 404 });
+    }
+
+    const batchId = staffDetails.batchId;
+
+    // Step 2: Fetch the batch name using the batch ID
+    const batchDetails = await prisma.batch.findUnique({
+      where: { batchId },
+      select: { batchName: true },
+    });
+
+    if (!batchDetails) {
+      console.log("No batch found for the given batch ID");
+      return NextResponse.json({ message: "Batch not found" }, { status: 404 });
+    }
+
+    const batchName = batchDetails.batchName;
+    console.log("Fetched batch name:", batchName);
+
+    // Step 3: Fetch the students associated with the batch name
+    const students = await prisma.studentDetails.findMany({
       where: {
         batchName: batchName,
         isActive: true,

@@ -83,22 +83,27 @@ export async function GET(request: NextRequest) {
           user = await prisma.staffDetails.findUnique({
             where: { id },
             select: {
+              id: true,
               email: true,
               username: true,
               name: true,
+              gender: true,
+              address: true,
+              city: true,
+              state: true,
+              pinCode: true,
+              dateOfBirth: true,
               contactNumber: true,
               isBatchCoordinator: true,
               batchId: true,
               subjects: true,
               achievements: true,
-              address: true,
-              city: true,
-              state: true,
-              pinCode: true,
+              isProfileCompleted: true
             },
           });
           return NextResponse.json({ user, role: "Staff" }, { status: 200 });
         } catch (error) {
+          console.log(error);
           return NextResponse.json(
             { message: "Error while fetching user data!" },
             { status: 500 }

@@ -97,7 +97,6 @@ export async function POST(request: NextRequest) {
           });
 
           successRate++;
-          console.log("Added course: ", course.courseName);
         } catch (error: any) {
           failedCourses.push({
             courseName: course.courseName,
@@ -108,9 +107,7 @@ export async function POST(request: NextRequest) {
     });
 
     const failureRate = failedCourses.length;
-    if (failureRate) console.log(failedCourses);
     const duplicationRate = duplicateCourses.length;
-    if (duplicationRate) console.log(duplicateCourses);
 
     return NextResponse.json(
       {

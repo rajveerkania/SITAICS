@@ -130,7 +130,6 @@ export async function POST(request: NextRequest) {
             throw new Error("courseId is required and must be defined.");
           }
           successRate++;
-          console.log("Added batch: ", subject.subjectName);
         } catch (error: any) {
           failedSubjects.push({
             subjectName: subject.batchName,
@@ -144,9 +143,7 @@ export async function POST(request: NextRequest) {
     });
 
     const failureRate = failedSubjects.length;
-    if (failureRate) console.log(failedSubjects);
     const duplicationRate = duplicateSubjects.length;
-    if (duplicationRate) console.log(duplicateSubjects);
 
     return NextResponse.json(
       {

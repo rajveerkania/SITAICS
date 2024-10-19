@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import ReCAPTCHA from "react-google-recaptcha";
 import { Eye, EyeOff } from "lucide-react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 
@@ -14,24 +13,10 @@ export default function Login() {
     emailOrUsername: "",
     password: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [skeleton, setSkeleton] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://www.google.com/recaptcha/api.js";
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
@@ -40,9 +25,6 @@ export default function Login() {
     }
     if (!authState.password) {
       errors.password = "Password is required.";
-    }
-    if (!captchaToken) {
-      errors.captcha = "Captcha not verified!";
     }
     return errors;
   };
@@ -207,18 +189,6 @@ export default function Login() {
                 Forgot password?
               </Link>
             </div>
-            <div className="mt-4">
-              <ReCAPTCHA
-                sitekey="6Ldx5i8qAAAAAGNuXmx6IP-LjQG7Zhwc9f7VSr3R"
-                onChange={(token) => setCaptchaToken(token)}
-                className="w-full"
-              />
-            </div>
-            {errors.captcha && (
-              <span className="text-red-500 font-bold mt-2 block animate-pulse">
-                {errors.captcha}
-              </span>
-            )}
           </div>
           <div>
             <button
