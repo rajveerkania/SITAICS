@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { NotificationDialog } from "@/components/admin/AdminNotification";
 import BlurIn from "./magicui/blur-in";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import { StudentProfile } from "@/components/student/StudentProfile";
+
 interface NavBarProps {
   name?: string;
   role?: string;
@@ -13,6 +14,7 @@ export function Navbar({ name, role }: NavBarProps) {
   const [dateTime, setDateTime] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const greeting = `Welcome, ${name}`;
   const shortGreeting = `Welcome, ${name?.split(" ")[0]}`;
 
@@ -37,6 +39,26 @@ export function Navbar({ name, role }: NavBarProps) {
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target as Node)
+    ) {
+      setDropdownOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    if (dropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+    } else {
+      document.removeEventListener("click", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [dropdownOpen]);
 
   const handleLogout = async () => {
     try {
@@ -90,7 +112,7 @@ export function Navbar({ name, role }: NavBarProps) {
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">{dateTime}</div>
           {role === "Admin" && <NotificationDialog />}
-          <div className="relative">
+          <div className="relative" ref={dropdownRef}>
             <div onClick={toggleDropdown} className="cursor-pointer">
               <Image
                 src={role === "Admin" ? "/Admin-logo.png" : "/User-logo.png"}
