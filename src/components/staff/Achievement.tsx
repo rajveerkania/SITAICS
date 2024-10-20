@@ -2,18 +2,14 @@ import React, { useState, useEffect } from "react";
 import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 
 interface Achievement {
+  id: number;
   title: string;
   description: string;
   date: string;
   category: string;
 }
 
-interface AchievementProps {
-  userId: string;
-  userRole: string;
-}
-
-const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
+const Achievement: React.FC = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -24,223 +20,144 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
   const [filterCategory, setFilterCategory] = useState("All");
   const [activeTab, setActiveTab] = useState<"view" | "add">("view");
 
-  const categories = [
-    "Academic",
-    "Sports",
-    "Extracurricular",
-    "Professional",
-    "Other",
-  ];
+  const categories = ["Academic", "Sports", "Extracurricular", "Professional", "Other"];
 
   useEffect(() => {
-    fetchAchievements();
+    const storedAchievements = localStorage.getItem("achievements");
+    if (storedAchievements) {
+      setAchievements(JSON.parse(storedAchievements));
+    }
   }, []);
 
-  // Fetch achievements from the server
-  const fetchAchievements = async () => {
-    try {
-      const response = await fetch("/api/fetchAchievements", {
-        method: "GET",
-      });
+  useEffect(() => {
+    localStorage.setItem("achievements", JSON.stringify(achievements));
+  }, [achievements]);
 
-      if (!response.ok) {
-        throw new Error(`Error fetching achievements: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("Fetched achievements data:", data);
-
-      setAchievements(Array.isArray(data.achievements) ? data.achievements : []);
-    } catch (error) {
-      console.error("Error fetching achievements:", error);
-      setAchievements([]);
-    }
-  };
-
-  // Handle form submission to add a new achievement
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    const newAchievement = { title, description, date, category };
-
-    try {
-      const response = await fetch("/api/addAchievement", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newAchievement),
-      });
-
-      const data = await response.json();
-      console.log("Add Achievement Response:", data);
-
-      if (response.ok) {
-        await fetchAchievements();
-      } else {
-        throw new Error("Failed to add achievement");
-      }
-
-      resetForm();
-    } catch (error) {
-      console.error("Error adding achievement:", error);
+    if (editingId !== null) {
+      setAchievements(
+        achievements.map((ach) =>
+          ach.id === editingId ? { ...ach, title, description, date, category } : ach
+        )
+      );
+      setEditingId(null);
+    } else {
+      const newAchievement: Achievement = {
+        id: Date.now(),
+        title,
+        description,
+        date,
+        category,
+      };
+      setAchievements([...achievements, newAchievement]);
     }
-  };
-
-  // Reset form after submission
-  const resetForm = () => {
     setTitle("");
     setDescription("");
     setDate("");
     setCategory("");
-    setEditingId(null);
   };
 
-  // Handle delete request for specific achievement
-  const handleDelete = async (
-    userId: string,
-    role: string,
-    achievement: Achievement
-  ) => {
-    try {
-      const response = await fetch("/api/deleteAchievement", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: achievement.title,
-          description: achievement.description,
-          date: achievement.date,
-          category: achievement.category,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Delete Achievement Response:", data);
-
-        // Update the achievements list by removing the deleted achievement
-        setAchievements((prev) =>
-          prev.filter(
-            (a) =>
-              a.title !== achievement.title ||
-              a.description !== achievement.description ||
-              a.date !== achievement.date ||
-              a.category !== achievement.category
-          )
-        );
-      } else {
-        throw new Error("Failed to delete achievement");
-      }
-    } catch (error) {
-      console.error("Error deleting achievement:", error);
+  const handleEdit = (id: number) => {
+    const achievementToEdit = achievements.find((ach) => ach.id === id);
+    if (achievementToEdit) {
+      setTitle(achievementToEdit.title);
+      setDescription(achievementToEdit.description);
+      setDate(achievementToEdit.date);
+      setCategory(achievementToEdit.category);
+      setEditingId(id);
+      setActiveTab("add");
     }
   };
 
+  const handleDelete = (id: number) => {
+    setAchievements(achievements.filter((ach) => ach.id !== id));
+  };
+
+  const filteredAchievements = achievements
+    .filter(
+      (ach) =>
+        ach.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ach.description.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((ach) => filterCategory === "All" || ach.category === filterCategory);
+
   return (
     <div className="bg-white shadow-md rounded-lg p-6 md:p-8 max-w-10xl mx-auto">
-      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">
-        Achievements
-      </h2>
+      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">Achievements</h2>
 
-      {/* Tabs to switch between view and add modes */}
+      {/* Tab Navigation */}
       <div className="flex flex-col md:flex-row mb-4 border-b border-gray-300">
         <button
           className={`p-2 flex-1 ${
-            activeTab === "view"
-              ? "bg-black text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
+            activeTab === "view" ? "bg-black text-white" : "bg-gray-200 text-gray-700"
+          } md:rounded-tl-lg`}
           onClick={() => setActiveTab("view")}
         >
           View Achievements
         </button>
         <button
           className={`p-2 flex-1 ${
-            activeTab === "add"
-              ? "bg-black text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
+            activeTab === "add" ? "bg-black text-white" : "bg-gray-200 text-gray-700"
+          } md:rounded-tr-lg`}
           onClick={() => setActiveTab("add")}
         >
           Add Achievement
         </button>
       </div>
 
-      {/* Viewing Achievements */}
       {activeTab === "view" && (
         <div>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search achievements..."
-            className="p-2 border rounded w-full md:w-1/2 lg:w-1/3"
-          />
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="p-2 border rounded w-full md:w-1/4 lg:w-1/5"
-          >
-            <option value="All">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 md:space-x-4">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search achievements..."
+              className="p-2 border rounded w-full md:w-1/2 lg:w-1/3"
+            />
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="p-2 border rounded w-full md:w-1/4 lg:w-1/5"
+            >
+              <option value="All">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          {/* List of achievements */}
           <div className="space-y-4">
-            {Array.isArray(achievements) && achievements.length > 0 ? (
-              achievements
-                .filter((achievement) => {
-                  const matchesSearch =
-                    achievement.title
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase()) ||
-                    achievement.description
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase());
-
-                  const matchesCategory =
-                    filterCategory === "All" ||
-                    achievement.category === filterCategory;
-
-                  return matchesSearch && matchesCategory;
-                })
-                .map((achievement, index) => (
-                  <div
-                    key={index}
-                    className="border p-4 rounded shadow-md flex justify-between items-center"
+            {filteredAchievements.map((achievement) => (
+              <div key={achievement.id} className="border p-4 rounded shadow-md">
+                <h3 className="text-xl font-semibold">{achievement.title}</h3>
+                <p className="text-gray-600">{achievement.description}</p>
+                <p className="text-sm text-gray-500">
+                  Date: {achievement.date} | Category: {achievement.category}
+                </p>
+                <div className="mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  <button
+                    onClick={() => handleEdit(achievement.id)}
+                    className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 w-full sm:w-auto flex items-center justify-center"
                   >
-                    <div>
-                      <h3 className="text-xl font-semibold">
-                        {achievement.title}
-                      </h3>
-                      <p className="text-gray-600">
-                        {achievement.description}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Date: {achievement.date} | Category:{" "}
-                        {achievement.category}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <FaTrashAlt
-                        className="cursor-pointer text-red-600"
-                        onClick={() =>
-                          handleDelete(userId, userRole, achievement)
-                        }
-                      />
-                    </div>
-                  </div>
-                ))
-            ) : (
-              <p>No achievements found</p>
-            )}
+                    <FaRegEdit className="mr-2" /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(achievement.id)}
+                    className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 w-full sm:w-auto flex items-center justify-center"
+                  >
+                    <FaTrashAlt className="mr-2" /> Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Adding New Achievement */}
       {activeTab === "add" && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <input

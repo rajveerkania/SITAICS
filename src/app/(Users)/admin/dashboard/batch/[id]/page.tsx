@@ -20,7 +20,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -39,12 +38,8 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
-  Check,
-  X,
-  
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
- import LoadingSkeleton from "@/components/LoadingSkeleton";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 interface BatchDetails {
   batchId: string;
@@ -63,37 +58,14 @@ interface Student {
   contactNo: string;
 }
 
-interface Subject {
-  subjectId: string;
-  subjectName: string;
-  subjectCode: string;
-  semester: number;
-  assignedToBatch: boolean;
-  batchSemester: number;
-}
-
-interface BatchSubjectsResponse {
-  batchName: string;
-  courseName: string;
-  subjects: Subject[];
-  assignedToBatch: boolean;
-  batchSemester: number;
-}
-
-interface BatchSubjectsResponse {
-  batchName: string;
-  courseName: string;
-  subjects: Subject[];
-}
-
 const BatchEditPage = () => {
-  const {handleBack} = usePreviousRoute();
+  const { handleBack } = usePreviousRoute();
   const [batchDetails, setBatchDetails] = useState<BatchDetails | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [courses, setCourses] = useState<
-    { courseId: string; courseName: string }[]
-  >([]);
+  const [courses, setCourses] = useState<{
+    courseId: string;
+    courseName: string;
+  }[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [batchDetailsExpanded, setBatchDetailsExpanded] = useState(true);
@@ -111,15 +83,6 @@ const BatchEditPage = () => {
         const studentsResponse = await fetch(`/api/fetchStudents?batchId=${id}`);
         const studentsData = await studentsResponse.json();
         setStudents(studentsData.students);
-
-
-        const subjectsResponse = await fetch(
-          `/api/fetchBatchSubjects?batchId=${id}`
-        );
-        const subjectsData: BatchSubjectsResponse = await subjectsResponse.json();
-        if (subjectsResponse.ok) {
-          setSubjects(subjectsData.subjects);
-        }
 
         const coursesResponse = await fetch("/api/fetchCourses");
         const coursesData = await coursesResponse.json();
@@ -157,11 +120,9 @@ const BatchEditPage = () => {
     }
   };
 
-  
-
   const handleViewStudent = (studentId: string) => {
-    if(studentId)  router.push(`/admin/dashboard/user/${studentId}`)
-  }
+    if (studentId) router.push(`/admin/dashboard/user/${studentId}`);
+  };
 
   const toggleBatchDetails = () => {
     setBatchDetailsExpanded(!batchDetailsExpanded);
@@ -181,7 +142,7 @@ const BatchEditPage = () => {
         <Button variant="outline" onClick={handleBack} className="mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
-        
+
         {/* Batch Details Card */}
         <Card className="mb-6">
           <CardHeader className="cursor-pointer" onClick={toggleBatchDetails}>
@@ -305,128 +266,49 @@ const BatchEditPage = () => {
           )}
         </Card>
 
-        {/* Students and Subjects Card */}
-        {/* Students and Subjects Card */}
+        {/* Students Card */}
         <Card className="mb-6">
           <CardHeader className="cursor-pointer" onClick={toggleStudents}>
             <div className="flex justify-between items-center">
-              <CardTitle className="text-2xl">
-                Enrolled Students and Subjects
-              </CardTitle>
+              <CardTitle className="text-2xl">Enrolled Students</CardTitle>
               {studentsExpanded ? <ChevronUp /> : <ChevronDown />}
             </div>
             <CardDescription>
-              View enrolled students and subjects assigned to this batch
+              View enrolled students in this batch
             </CardDescription>
           </CardHeader>
 
           {studentsExpanded && (
             <CardContent>
-              <Tabs defaultValue="students" className="space-y-6">
-                <TabsList>
-                  <TabsTrigger value="students">Enrolled Students</TabsTrigger>
-                  <TabsTrigger value="subjects">Batch Subjects</TabsTrigger>
-                </TabsList>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Enrollment Number</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Contact Number</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
 
-                <TabsContent value="students">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Enrollment Number</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Contact Number</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {students.map((student) => (
-                        <TableRow key={student.studentId}>
-                          <TableCell>{student.name}</TableCell>
-                          <TableCell>{student.enrollmentNumber}</TableCell>
-                          <TableCell>{student.email}</TableCell>
-                          <TableCell>{student.contactNo}</TableCell>
-                          <TableCell>
-                            <Button 
-                            variant="outline" onClick={()=>handleViewStudent(student.studentId)} style={{ backgroundColor: "black", color: "white" }}
-                            className="flex items-center">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-
-                <TabsContent value="subjects">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Subject Name</TableHead>
-                        <TableHead>Subject Code</TableHead>
-                        <TableHead>Course Semester</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Course Semester</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {subjects.map((subject) => (
-                        <TableRow key={subject.subjectId}>
-                          <TableCell>{subject.subjectName}</TableCell>
-                          <TableCell>{subject.subjectCode}</TableCell>
-                          <TableCell>{subject.semester}</TableCell>
-                          <TableCell>
-                            {subject.assignedToBatch ? (
-                              <Badge className="bg-green-100 text-green-800">
-                                <Check className="h-3 w-3 mr-1" />
-                                Semester {subject.batchSemester}
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary">
-                                <X className="h-3 w-3 mr-1" />
-                                Not Assigned
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {subjects.map((subject) => (
-                        <TableRow key={subject.subjectId}>
-                          <TableCell>{subject.subjectName}</TableCell>
-                          <TableCell>{subject.subjectCode}</TableCell>
-                          <TableCell>{subject.semester}</TableCell>
-                          <TableCell>
-                            {subject.assignedToBatch ? (
-                              <Badge className="bg-green-100 text-green-800">
-                                <Check className="h-3 w-3 mr-1" />
-                                Semester {subject.batchSemester}
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary">
-                                <X className="h-3 w-3 mr-1" />
-                                Not Assigned
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-              </Tabs>
+                <TableBody>
+                  {students.map((student) => (
+                    <TableRow key={student.studentId}>
+                      <TableCell>{student.name}</TableCell>
+                      <TableCell>{student.enrollmentNumber}</TableCell>
+                      <TableCell>{student.email}</TableCell>
+                      <TableCell>{student.contactNo}</TableCell>
+                      <TableCell>
+                        <Button
+                          onClick={() => handleViewStudent(student.studentId)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           )}
         </Card>

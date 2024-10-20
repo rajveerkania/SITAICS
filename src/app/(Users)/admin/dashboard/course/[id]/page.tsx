@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import usePreviousRoute from "@/app/hooks/usePreviousRoute";
@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Book, Layers, Edit3, ArrowLeft } from "lucide-react";
+import { Book, Layers, Edit3, ArrowLeft, Eye } from "lucide-react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { AES, enc } from "crypto-js";
 
@@ -50,12 +50,9 @@ interface Subject {
   courseName: string;
 }
 
-
-
-
 const CourseEditPage = () => {
   const { id } = useParams<{ id: string | string[] }>();
-  const {handleBack} = usePreviousRoute();
+  const { handleBack } = usePreviousRoute();
   const router = useRouter();
   const [course, setCourse] = useState<Course | null>(null);
   const [batches, setBatches] = useState<Batch[]>([]);
@@ -132,6 +129,14 @@ const CourseEditPage = () => {
 
   const handleBackClick = () => {
     router.push("/admin/dashboard");
+  };
+
+  const redirectToBatchDetails = (batchId: string) => {
+    router.push(`/admin/dashboard/batch/${batchId}`);
+  };
+
+  const redirectToSubjectDetails = (subjectId: string) => {
+    router.push(`/admin/dashboard/subject/${subjectId}`);
   };
 
   if (isLoading) {
@@ -237,6 +242,7 @@ const CourseEditPage = () => {
                       <TableHead>Duration (Years)</TableHead>
                       <TableHead>Current Semester</TableHead>
                       <TableHead>Students</TableHead>
+                      <TableHead>Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -247,11 +253,22 @@ const CourseEditPage = () => {
                           <TableCell>{batch.batchDuration}</TableCell>
                           <TableCell>{batch.currentSemester}</TableCell>
                           <TableCell>{batch.studentCount}</TableCell>
+                          <TableCell>
+                            <Button
+                              style={{
+                                backgroundColor: "black",
+                                color: "white",
+                              }}
+                              onClick={() => redirectToBatchDetails(batch.batchId)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center">
+                        <TableCell colSpan={5} className="text-center">
                           No batches found
                         </TableCell>
                       </TableRow>
@@ -272,23 +289,35 @@ const CourseEditPage = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Subject Name</TableHead>
                       <TableHead>Subject Code</TableHead>
+                      <TableHead>Subject Name</TableHead>
                       <TableHead>Semester</TableHead>
+                      <TableHead>Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {subjects.length > 0 ? (
                       subjects.map((subject) => (
                         <TableRow key={subject.subjectId}>
-                          <TableCell>{subject.subjectName}</TableCell>
                           <TableCell>{subject.subjectCode}</TableCell>
+                          <TableCell>{subject.subjectName}</TableCell>
                           <TableCell>{subject.semester}</TableCell>
+                          <TableCell>
+                            <Button
+                              style={{
+                                backgroundColor: "black",
+                                color: "white",
+                              }}
+                              onClick={() => redirectToSubjectDetails(subject.subjectId)} // Redirect to subject details
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center">
+                        <TableCell colSpan={4} className="text-center">
                           No subjects found
                         </TableCell>
                       </TableRow>
