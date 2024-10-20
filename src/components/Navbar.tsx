@@ -112,7 +112,7 @@ export function Navbar({ name, role }: NavBarProps) {
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">{dateTime}</div>
           {role === "Admin" && <NotificationDialog />}
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative " ref={dropdownRef}>
             <div onClick={toggleDropdown} className="cursor-pointer">
               <Image
                 src={role === "Admin" ? "/Admin-logo.png" : "/User-logo.png"}
