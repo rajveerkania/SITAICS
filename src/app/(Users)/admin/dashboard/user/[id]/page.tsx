@@ -1,26 +1,42 @@
-"use client";
+ "use client"
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import usePreviousRoute from '@/app/hooks/usePreviousRoute';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { 
   User, 
   Mail, 
-  Users, 
+  MapPin, 
   ChevronDown, 
   ChevronUp, 
   ArrowLeft, 
-  Phone 
+  Calendar, 
+  Users, 
+  Award,
+  Phone,
+  Book,
+  GraduationCap,
+  Briefcase,
+  Users2
 } from 'lucide-react';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import ResultComponent from '@/components/admin/UserDetails/result';
@@ -95,7 +111,7 @@ const UserEditPage: React.FC = () => {
 
   const handleInputChange = (field: string, value: any) => {
     if (editedUser) {
-      setEditedUser((prevState: any) => ({
+      setEditedUser(prevState => ({
         ...prevState!,
         [field]: value,
       }));
@@ -104,7 +120,7 @@ const UserEditPage: React.FC = () => {
 
   const handleRoleDetailsChange = (field: string, value: any) => {
     if (editedUser) {
-      setEditedUser((prevState: any) => ({
+      setEditedUser(prevState => ({
         ...prevState!,
         roleDetails: {
           ...prevState!.roleDetails,
@@ -174,22 +190,12 @@ const UserEditPage: React.FC = () => {
                   <p className="text-lg">{user.name}</p>
                 )}
               </div>
-
               <div>
                 <label className="text-sm font-medium flex items-center mb-2">
                   <Mail className="mr-2 h-4 w-4" /> Email
                 </label>
-                {isEditing ? (
-                  <Input
-                    value={editedUser.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full"
-                  />
-                ) : (
-                  <p className="text-lg">{user.email}</p>
-                )}
+                <p className="text-lg">{user.email}</p>
               </div>
-
               <div>
                 <label className="text-sm font-medium flex items-center mb-2">
                   <Users className="mr-2 h-4 w-4" /> Role
@@ -300,39 +306,53 @@ const UserEditPage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="text-sm font-medium flex items-center mb-2">
-                        <User className="mr-2 h-4 w-4" /> Father's Name
+                        <Calendar className="mr-2 h-4 w-4" /> Date of Birth
                       </label>
                       {isEditing ? (
                         <Input
-                          value={editedUser.roleDetails.fatherName || ''}
-                          onChange={(e) => handleRoleDetailsChange('fatherName', e.target.value)}
+                          type="date"
+                          value={editedUser.roleDetails.dateOfBirth?.split('T')[0] || ''}
+                          onChange={(e) => handleRoleDetailsChange('dateOfBirth', e.target.value)}
                           className="w-full"
-                          placeholder="Enter father's name"
                         />
                       ) : (
-                        <p className="text-lg">{user.roleDetails.fatherName || 'Not provided'}</p>
+                        <p className="text-lg">
+                          {editedUser.roleDetails.dateOfBirth 
+                            ? new Date(editedUser.roleDetails.dateOfBirth).toLocaleDateString()
+                            : 'Not provided'}
+                        </p>
                       )}
                     </div>
-
                     <div>
                       <label className="text-sm font-medium flex items-center mb-2">
-                        <User className="mr-2 h-4 w-4" /> Mother's Name
+                        <Users className="mr-2 h-4 w-4" /> Gender
                       </label>
                       {isEditing ? (
-                        <Input
-                          value={editedUser.roleDetails.motherName || ''}
-                          onChange={(e) => handleRoleDetailsChange('motherName', e.target.value)}
-                          className="w-full"
-                          placeholder="Enter mother's name"
-                        />
+                        <Select 
+                          value={editedUser.roleDetails.gender || ''} 
+                          onValueChange={(value) => handleRoleDetailsChange('gender', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select gender" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
                       ) : (
-                        <p className="text-lg">{user.roleDetails.motherName || 'Not provided'}</p>
+                        <p className="text-lg">
+                          {editedUser.roleDetails.gender 
+                            ? editedUser.roleDetails.gender.charAt(0).toUpperCase() + 
+                              editedUser.roleDetails.gender.slice(1)
+                            : 'Not provided'}
+                        </p>
                       )}
                     </div>
-
-                    <div>
+                    <div className="col-span-2">
                       <label className="text-sm font-medium flex items-center mb-2">
-                        <Phone className="mr-2 h-4 w-4" /> Contact Number
+                        <MapPin className="mr-2 h-4 w-4" /> Address
                       </label>
                       {isEditing ? (
                         <Input
@@ -405,7 +425,15 @@ const UserEditPage: React.FC = () => {
                           placeholder="Enter pin code"
                         />
                       ) : (
-                        <p className="text-lg">{user.roleDetails.pinCode || 'Not provided'}</p>
+                        <div>
+                          <p className="text-lg">{user.roleDetails.address || 'Not provided'}</p>
+                          <p className="text-lg">
+                            {user.roleDetails.city && user.roleDetails.state 
+                              ? `${user.roleDetails.city}, ${user.roleDetails.state}` 
+                              : ''}
+                            {user.roleDetails.pinCode ? ` - ${user.roleDetails.pinCode}` : ''}
+                          </p>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -469,7 +497,7 @@ const UserEditPage: React.FC = () => {
             Edit User
           </Button>
         )}
-      </div>
+      </CardFooter>
     </div>
   );
 };
