@@ -60,6 +60,7 @@ model StaffDetails {
   batchId            String?
   dateOfBirth        DateTime?
   gender             String?
+  subject            Json?
   subjects           Subject[]
   contactNumber      String?
   achievements       Json?
@@ -85,13 +86,15 @@ model Subject {
   course                Course                  @relation(fields: [courseId], references: [courseId])
   electiveGroup         ElectiveGroup?          @relation(fields: [electiveGroupId], references: [electiveGroupId])
   electiveGroupId       String?
-  staff                 StaffDetails[]
+  staffId               String?                 // New staffId field
+  staff                 StaffDetails?           @relation(fields: [staffId], references: [id]) // Define relation with StaffDetails
   batches               BatchSubject[]
   isActive              Boolean                 @default(true)
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
   ElectiveSubjectChoice ElectiveSubjectChoice[]
 }
+
 
 model Course {
   courseId       String           @id @default(uuid())

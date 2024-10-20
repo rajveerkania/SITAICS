@@ -279,7 +279,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
               {errors.pinCode && <p className="text-red-500">{errors.pinCode}</p>}
             </>
           )}
-
+          
           {currentStep === 3 && (
             <>
               <Input
@@ -298,7 +298,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                 value={staffFormData.dateOfBirth}
                 onChange={handleStaffInputChange}
                 required
-              />
+              /> 
               {errors.dateOfBirth && <p className="text-red-500">{errors.dateOfBirth}</p>}
 
               <div className="flex items-center space-x-2">
