@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import usePreviousRoute from "@/app/hooks/usePreviousRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,7 +39,7 @@ interface Course {
 
 const SubjectEditPage = () => {
   const { id } = useParams();
-  const router = useRouter();
+  const {handleBack} = usePreviousRoute();
   const [subject, setSubject] = useState<Subject | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -121,9 +122,6 @@ const SubjectEditPage = () => {
     }
   };
 
-  const handleBackClick = () => {
-    router.push("/admin/dashboard");
-  };
 
   const toggleDetails = () => {
     setDetailsExpanded(!detailsExpanded);
@@ -140,8 +138,8 @@ const SubjectEditPage = () => {
   return (
     <div className="bg-[#f2f3f5] min-h-screen">
       <div className="container mx-auto py-8 px-4">
-        <Button variant="outline" onClick={handleBackClick} className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+        <Button variant="outline" onClick={handleBack} className="mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
 
         <Card className="mb-6 overflow-hidden">

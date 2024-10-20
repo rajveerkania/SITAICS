@@ -43,7 +43,7 @@ const UsersTab = () => {
   const [activeTab, setActiveTab] = useState("manage");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const usersPerPage = 5;
- const router=useRouter();
+  const router = useRouter();
 
   const fetchUsers = async () => {
     setIsLoading(true);

@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { FaTrashAlt } from "react-icons/fa";
 import { toast } from "sonner";
 import LoadingSkeleton from "../LoadingSkeleton";
-import { useRouter } from "next/navigation"; // Importing useRouter
+import { useRouter } from "next/navigation";
 import { Eye } from "lucide-react";
 
 interface Batch {
@@ -34,7 +34,7 @@ const BatchTab = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const batchesPerPage = 5;
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
   const fetchBatches = async () => {
     setIsLoading(true);
@@ -73,7 +73,7 @@ const BatchTab = () => {
     setActiveTab("manage");
   };
 
-  const handleEditBatch = (batchId: string) => {
+  const handleViewtBatch = (batchId: string) => {
     router.push(`/admin/dashboard/batch/${batchId}`);
   };
 
@@ -173,7 +173,7 @@ const BatchTab = () => {
                     <div className="flex space-x-2">
                       <Button
                         variant="outline"
-                        onClick={() => handleEditBatch(batch.batchId)}
+                        onClick={() => handleViewtBatch(batch.batchId)}
                         style={{ backgroundColor: "black", color: "white" }}
                         className="flex items-center"
                       >

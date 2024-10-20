@@ -97,6 +97,10 @@ const SubjectTab = () => {
     setActiveTab("manageSubjects");
   };
 
+  const handleViewSubject = (subjectId: string) => {
+    router.push(`/admin/dashboard/subject/${subjectId}`);
+  };
+
   const filteredSubjects = subjects.filter(
     (subject) =>
       subject.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -146,12 +150,12 @@ const SubjectTab = () => {
           )}
         </div>
 
-        {/* Add Subject Tab */}
+
         <TabsContent value="createSubject">
           <AddSubjectForm onAddSubjectSuccess={onAddSubjectSuccess} />
         </TabsContent>
 
-        {/* Manage Subjects Tab */}
+
         <TabsContent value="manageSubjects">
           <Table>
             <TableHeader>
@@ -173,7 +177,12 @@ const SubjectTab = () => {
                     <TableCell>{subject.courseName}</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleViewSubject(subject.subjectId)}
+                          style={{ backgroundColor: "black", color: "white" }}
+                          className="flex items-center"
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button
@@ -220,9 +229,7 @@ const SubjectTab = () => {
         </TabsContent>
 
         <TabsContent value="addElectiveGroup">
-          <AddElectiveGroupForm
-            onAddElectiveGroupSuccess={fetchElectiveGroups}
-          />
+          <AddElectiveGroupForm onAddElectiveGroupSuccess={fetchElectiveGroups} />
         </TabsContent>
       </Tabs>
     </div>
