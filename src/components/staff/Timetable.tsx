@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FaTrashAlt, FaUpload } from 'react-icons/fa'; // React icons for delete and upload
+import React, { useState, useEffect } from "react";
+import { FaTrashAlt, FaUpload } from "react-icons/fa"; // React icons for delete and upload
 
 const Timetable: React.FC = () => {
   const [timetableFile, setTimetableFile] = useState<File | null>(null);
@@ -7,25 +7,43 @@ const Timetable: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [showManagement, setShowManagement] = useState<boolean>(true);
-  const [title, setTitle] = useState<string>('Manage Timetable');
+  const [title, setTitle] = useState<string>("Manage Timetable");
+
+  // Fetch timetable on load to see if it already exists
+  useEffect(() => {
+    const fetchTimetable = async () => {
+      try {
+        const res = await fetch("/api/addTimeTable", {
+          method: "POST",
+        });
+        const data = await res.json();
+        if (data.timetableExists && data.timetable) {
+          const base64String = data.timetable;
+          const blob = new Blob([Uint8Array.from(atob(base64String), (c) => c.charCodeAt(0))], { type: "application/pdf" });
+          const fileURL = URL.createObjectURL(blob);
+          setTimetableURL(fileURL);
+          setShowManagement(false);
+          setTitle("Existing Timetable");
+        }
+      } catch (error) {
+        console.error("Error fetching timetable:", error);
+      }
+    };
+
+    fetchTimetable();
+  }, []);
 
   const validateFile = (file: File) => {
-    const validTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ];
+    const validTypes = ["application/pdf"];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (!validTypes.includes(file.type)) {
-      setErrorMessage('Only PDF, DOC, DOCX, XLS, and XLSX files are allowed.');
+      setErrorMessage("Only PDF files are allowed.");
       return false;
     }
 
     if (file.size > maxSize) {
-      setErrorMessage('File size should be less than 10MB.');
+      setErrorMessage("File size should be less than 10MB.");
       return false;
     }
 
@@ -45,28 +63,54 @@ const Timetable: React.FC = () => {
     if (timetableFile) {
       setIsUploading(true);
       setShowManagement(false);
-      setTitle('Updated Time Table');
+      setTitle("Updated Time Table");
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        const fileURL = URL.createObjectURL(timetableFile);
-        setTimetableURL(fileURL);
+        const formData = new FormData();
+        formData.append("timetable", timetableFile);
+
+        const res = await fetch("/api/addTimeTable", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          const fileURL = URL.createObjectURL(timetableFile);
+          setTimetableURL(fileURL);
+        } else {
+          setErrorMessage("Failed to upload timetable.");
+        }
       } catch (error) {
-        console.error('Upload failed:', error);
-        setErrorMessage('Failed to upload timetable.');
+        console.error("Upload failed:", error);
+        setErrorMessage("Failed to upload timetable.");
       } finally {
         setIsUploading(false);
       }
     } else {
-      setErrorMessage('Please upload a valid timetable file.');
+      setErrorMessage("Please upload a valid timetable file.");
     }
   };
 
-  const handleDelete = () => {
-    setTimetableFile(null);
-    setTimetableURL(null);
-    setShowManagement(true);
-    setTitle('Manage Timetable');
+  const handleDelete = async () => {
+    try {
+      const res = await fetch("/api/deleteTimeTable", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setTimetableFile(null);
+        setTimetableURL(null);
+        setShowManagement(true);
+        setTitle("Manage Timetable");
+      } else {
+        setErrorMessage("Failed to delete timetable.");
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
+      setErrorMessage("Failed to delete timetable.");
+    }
   };
 
   return (
@@ -82,7 +126,7 @@ const Timetable: React.FC = () => {
           <input
             id="timetable"
             type="file"
-            accept=".pdf,.doc,.docx,.xlsx,.xls"
+            accept=".pdf"
             onChange={handleFileChange}
             className="mt-4 block w-full p-5 border border-gray-400 rounded-lg shadow-md focus:ring-blue-500 focus:border-blue-500"
           />
@@ -98,52 +142,31 @@ const Timetable: React.FC = () => {
           <button
             onClick={handleUpload}
             disabled={isUploading}
-            className={`bg-black text-white text-lg font-semibold py-4 px-8 rounded-lg shadow-lg transition-transform transform ${isUploading ? 'opacity-50' : 'hover:scale-105'}`}
+            className={`bg-black text-white text-lg font-semibold py-4 px-8 rounded-lg shadow-lg transition-transform transform ${isUploading ? "opacity-50" : "hover:scale-105"}`}
           >
-            <FaUpload className="inline mr-2" /> {/* Upload Icon */}
-            {isUploading ? 'Uploading...' : 'Upload'}
+            <FaUpload className="inline mr-2" />
+            {isUploading ? "Uploading..." : "Upload"}
           </button>
         </div>
       )}
 
-      {/* Uploaded Timetable Section */}
+      {/* Display Timetable */}
       {timetableURL && (
-        <>
-          {/* Display PDF Preview */}
-          {timetableFile?.type === 'application/pdf' && (
-            <div className="w-full h-[600px] bg-white border border-gray-400 shadow-lg rounded-lg overflow-hidden mb-6"> {/* Added margin-bottom here */}
-              <iframe
-                src={timetableURL}
-                className="w-full h-full"
-                title="Timetable Preview"
-                aria-label="Timetable Preview"
-              />
-            </div>
-          )}
-          {timetableFile?.type !== 'application/pdf' && (
-            <div className="flex justify-between items-center mb-6">
-              <a
-                href={timetableURL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 text-xl underline"
-              >
-                View or Download Timetable
-              </a>
-            </div>
-          )}
-        </>
+        <div className="flex flex-col items-center justify-center mb-8">
+          <h3 className="text-2xl font-semibold mb-6">Uploaded Timetable</h3>
+          <iframe src={timetableURL} width="80%" height="500px" className="border border-gray-500 shadow-lg"></iframe>
+        </div>
       )}
 
-      {/* Delete Button with space from PDF view */}
+      {/* Delete Timetable Button */}
       {timetableURL && (
-        <div className="flex justify-center mb-8"> {/* Added margin-bottom for spacing */}
+        <div className="flex justify-end mb-8">
           <button
             onClick={handleDelete}
-            className="bg-black text-white text-lg font-semibold py-4 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105"
+            className="bg-red-600 text-white text-lg font-semibold py-4 px-8 rounded-lg shadow-lg hover:scale-105 transition-transform transform"
           >
-            <FaTrashAlt className="inline mr-2" /> {/* Delete Icon */}
-            Delete
+            <FaTrashAlt className="inline mr-2" />
+            Delete Timetable
           </button>
         </div>
       )}

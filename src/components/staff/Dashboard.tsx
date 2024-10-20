@@ -1,10 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Book, Calendar, Clock } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { IndianCalendar } from "@/components/IndianCalendar";
+import { toast } from "sonner";
+import LoadingSkeleton from "../LoadingSkeleton";
 
-// Define the interface for staff information
 interface StaffInfoProps {
   email: string;
   name: string;
@@ -13,12 +23,10 @@ interface StaffInfoProps {
   city: string;
   state: string;
   pinCode: number;
-  contactNo: string | null;
+  contactNumber: string | null;
   dateOfBirth: string;
-  designation: string; // Add any additional fields as needed
 }
 
-// Define the interface for stat card properties
 interface StatCardProps {
   title: string;
   value: string;
@@ -26,7 +34,30 @@ interface StatCardProps {
   description: string;
 }
 
-const Dashboard: React.FC<{ staffInfo: StaffInfoProps }> = ({ staffInfo }) => {
+const Dashboard: React.FC = () => {
+  const [staffInfo, setStaffInfo] = useState<StaffInfoProps | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStaffInfo = async () => {
+      try {
+        const response = await fetch(`/api/fetchUserDetails`);
+        const data = await response.json();
+        if (response.status !== 200)
+          toast.error(data.message || "Error while fetching user data");
+        else {
+          setStaffInfo(data.user);
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching staff details:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchStaffInfo();
+  }, []);
+
   const attendanceData = [
     { subject: "Big Data Analysis", totalClasses: 30, attendedClasses: 28 },
     { subject: "Network Security", totalClasses: 25, attendedClasses: 23 },
@@ -34,28 +65,31 @@ const Dashboard: React.FC<{ staffInfo: StaffInfoProps }> = ({ staffInfo }) => {
     { subject: "REMA", totalClasses: 15, attendedClasses: 14 },
   ];
 
+  if (loading) {
+    return <LoadingSkeleton loadingText="dashboard" />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="container mx-auto">
-        
         {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
-          <StatCard 
-            title="Pending Leaves" 
-            value="2" 
-            icon={<Calendar className="h-10 w-10" />} 
+          <StatCard
+            title="Pending Leaves"
+            value="2"
+            icon={<Calendar className="h-10 w-10" />}
             description="Remaining leave days"
           />
-          <StatCard 
-            title="Total Subjects" 
-            value="6" 
-            icon={<Book className="h-10 w-10" />} 
+          <StatCard
+            title="Total Subjects"
+            value="6"
+            icon={<Book className="h-10 w-10" />}
             description="Current semester"
           />
-          <StatCard 
-            title="Overall Attendance" 
-            value="92%" 
-            icon={<Clock className="h-10 w-10" />} 
+          <StatCard
+            title="Overall Attendance"
+            value="92%"
+            icon={<Clock className="h-10 w-10" />}
             description="Across all subjects"
           />
         </div>
@@ -72,20 +106,37 @@ const Dashboard: React.FC<{ staffInfo: StaffInfoProps }> = ({ staffInfo }) => {
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <InfoSection title="Personal Details" icon={<User className="text-black" />}>
-                  <InfoItem label="Name" value={staffInfo.name} />
-                  <InfoItem label="Date of Birth" value={staffInfo.dateOfBirth} />
-                  <InfoItem label="Gender" value={staffInfo.gender} />
-                  <InfoItem label="Designation" value={staffInfo.designation} />
+                <InfoSection
+                  title="Personal Details"
+                  icon={<User className="text-black" />}
+                >
+                  <InfoItem label="Name" value={staffInfo?.name || "N/A"} />
+                  <InfoItem
+                    label="Date of Birth"
+                    value={staffInfo?.dateOfBirth || "N/A"}
+                  />
+                  <InfoItem label="Gender" value={staffInfo?.gender || "N/A"} />
                 </InfoSection>
 
-                <InfoSection title="Contact Information" icon={<Mail className="text-black" />}>
-                  <InfoItem label="Email" value={staffInfo.email} />
-                  <InfoItem label="Contact No." value={staffInfo.contactNo || "N/A"} />
-                  <InfoItem label="Address" value={staffInfo.address} />
-                  <InfoItem label="City" value={staffInfo.city} />
-                  <InfoItem label="State" value={staffInfo.state} />
-                  <InfoItem label="PIN Code" value={staffInfo?.pinCode?.toString() || "N/A"} />
+                <InfoSection
+                  title="Contact Information"
+                  icon={<Mail className="text-black" />}
+                >
+                  <InfoItem label="Email" value={staffInfo?.email || "N/A"} />
+                  <InfoItem
+                    label="Contact No."
+                    value={staffInfo?.contactNumber || "N/A"}
+                  />
+                  <InfoItem
+                    label="Address"
+                    value={staffInfo?.address || "N/A"}
+                  />
+                  <InfoItem label="City" value={staffInfo?.city || "N/A"} />
+                  <InfoItem label="State" value={staffInfo?.state || "N/A"} />
+                  <InfoItem
+                    label="PIN Code"
+                    value={staffInfo?.pinCode?.toString() || "N/A"}
+                  />
                 </InfoSection>
               </div>
             </CardContent>
@@ -113,17 +164,37 @@ const Dashboard: React.FC<{ staffInfo: StaffInfoProps }> = ({ staffInfo }) => {
           </CardHeader>
           <CardContent className="p-6">
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={attendanceData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <BarChart
+                data={attendanceData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                <XAxis dataKey="subject" tick={{ fill: '#333', fontSize: 12 }} />
-                <YAxis tick={{ fill: '#333', fontSize: 12 }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                  itemStyle={{ color: '#1f2937' }}
+                <XAxis
+                  dataKey="subject"
+                  tick={{ fill: "#333", fontSize: 12 }}
                 />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <Bar dataKey="totalClasses" fill="#1f2937" name="Total Classes" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="attendedClasses" fill="#4b5563" name="Attended Classes" radius={[4, 4, 0, 0]} />
+                <YAxis tick={{ fill: "#333", fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#f3f4f6",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                  }}
+                  itemStyle={{ color: "#1f2937" }}
+                />
+                <Legend wrapperStyle={{ paddingTop: "20px" }} />
+                <Bar
+                  dataKey="totalClasses"
+                  fill="#1f2937"
+                  name="Total Classes"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="attendedClasses"
+                  fill="#4b5563"
+                  name="Attended Classes"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -133,7 +204,12 @@ const Dashboard: React.FC<{ staffInfo: StaffInfoProps }> = ({ staffInfo }) => {
   );
 };
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, description }) => {
+const StatCard: React.FC<StatCardProps> = ({
+  title,
+  value,
+  icon,
+  description,
+}) => {
   return (
     <Card className="bg-white shadow-xl rounded-lg overflow-hidden transform transition-all hover:scale-[1.05]">
       <CardContent className="flex flex-col items-center p-6">
@@ -146,7 +222,11 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, description }) 
   );
 };
 
-const InfoSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => (
+const InfoSection: React.FC<{
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}> = ({ title, icon, children }) => (
   <div className="bg-gray-50 p-5 rounded-lg shadow-inner">
     <h3 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
       {icon}
@@ -156,7 +236,10 @@ const InfoSection: React.FC<{ title: string; icon: React.ReactNode; children: Re
   </div>
 );
 
-const InfoItem: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+const InfoItem: React.FC<{ label: string; value: string }> = ({
+  label,
+  value,
+}) => (
   <p className="mb-3 text-sm">
     <span className="font-medium text-gray-700">{label}:</span>{" "}
     <span className="text-gray-900">{value}</span>

@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { FaTrashAlt } from "react-icons/fa";
 import { toast } from "sonner";
 import LoadingSkeleton from "../LoadingSkeleton";
-import { useRouter } from "next/navigation"; // Importing useRouter
+import { useRouter } from "next/navigation";
 import { Eye } from "lucide-react";
 
 interface Batch {
@@ -34,7 +34,7 @@ const BatchTab = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const batchesPerPage = 5;
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
   const fetchBatches = async () => {
     setIsLoading(true);
