@@ -35,8 +35,6 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
   useEffect(() => {
     fetchAchievements();
   }, []);
-
-  // Fetch achievements from the server
   const fetchAchievements = async () => {
     try {
       const response = await fetch("/api/fetchAchievements", {
@@ -56,8 +54,6 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
       setAchievements([]);
     }
   };
-
-  // Handle form submission to add a new achievement
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -84,8 +80,6 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
       console.error("Error adding achievement:", error);
     }
   };
-
-  // Reset form after submission
   const resetForm = () => {
     setTitle("");
     setDescription("");
@@ -93,8 +87,6 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
     setCategory("");
     setEditingId(null);
   };
-
-  // Handle delete request for specific achievement
   const handleDelete = async (
     userId: string,
     role: string,
@@ -111,12 +103,9 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
           category: achievement.category,
         }),
       });
-
       if (response.ok) {
         const data = await response.json();
         console.log("Delete Achievement Response:", data);
-
-        // Update the achievements list by removing the deleted achievement
         setAchievements((prev) =>
           prev.filter(
             (a) =>
@@ -133,14 +122,11 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
       console.error("Error deleting achievement:", error);
     }
   };
-
   return (
     <div className="bg-white shadow-md rounded-lg p-6 md:p-8 max-w-10xl mx-auto">
       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">
         Achievements
       </h2>
-
-      {/* Tabs to switch between view and add modes */}
       <div className="flex flex-col md:flex-row mb-4 border-b border-gray-300">
         <button
           className={`p-2 flex-1 ${
@@ -163,31 +149,29 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
           Add Achievement
         </button>
       </div>
-
-      {/* Viewing Achievements */}
       {activeTab === "view" && (
         <div>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search achievements..."
-            className="p-2 border rounded w-full md:w-1/2 lg:w-1/3"
-          />
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="p-2 border rounded w-full md:w-1/4 lg:w-1/5"
-          >
-            <option value="All">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-
-          {/* List of achievements */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 md:space-x-4">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search achievements..."
+              className="p-2 border rounded w-full md:w-1/2 lg:w-1/3"
+            />
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="p-2 border rounded w-full md:w-1/4 lg:w-1/5"
+            >
+              <option value="All">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-4">
             {Array.isArray(achievements) && achievements.length > 0 ? (
               achievements
@@ -223,14 +207,12 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
                         {achievement.category}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <FaTrashAlt
-                        className="cursor-pointer text-red-600"
-                        onClick={() =>
-                          handleDelete(userId, userRole, achievement)
-                        }
-                      />
-                    </div>
+                    <button
+                    onClick={() => handleDelete(userId, userRole, achievement)}
+                    className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 w-full sm:w-auto flex items-center justify-center"
+                  >
+                    <FaTrashAlt className="mr-2" /> Delete
+                  </button>
                   </div>
                 ))
             ) : (
@@ -239,8 +221,6 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
           </div>
         </div>
       )}
-
-      {/* Adding New Achievement */}
       {activeTab === "add" && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -289,5 +269,4 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
     </div>
   );
 };
-
 export default Achievement;

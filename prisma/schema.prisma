@@ -39,7 +39,7 @@ model StudentDetails {
   city               String?
   state              String?
   pinCode            Int?
-  achievements       String?
+  achievements       Json?
   results            Json?
   isActive           Boolean                 @default(true)
   createdAt          DateTime                @default(now())
