@@ -57,7 +57,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const response = await fetch("/api/fetchBatches");
+        const response = await fetch("/api/fetchBatchstaff");
         if (!response.ok) {
           throw new Error("Failed to fetch batches");
         }
@@ -152,8 +152,8 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     e.preventDefault();
     if (!validateStep()) return;
     try {
-      const updatedStaffDetails = await fetch("/api/addStaffDetails", {
-        method: "POST",
+      const updatedStaffDetails = await fetch("/api/fetchBatchSubjectsStaff", {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },

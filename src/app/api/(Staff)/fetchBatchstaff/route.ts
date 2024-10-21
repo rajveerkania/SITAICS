@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   const decodedUser = verifyToken();
   const userRole = decodedUser?.role;
 
-  if (userRole !== "Admin") {
+  if (userRole !== "Staff") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
 
@@ -37,10 +37,7 @@ export async function GET(req: Request) {
       const formattedBatch = {
         batchId: batch.batchId,
         batchName: batch.batchName,
-        courseName: batch.course.courseName,
-        batchDuration: batch.batchDuration,
-        currentSemester: batch.currentSemester,
-        studentCount: batch.students.length,
+        courseName: batch.course.courseName
       };
 
       return NextResponse.json(formattedBatch, { status: 200 });
@@ -60,10 +57,7 @@ export async function GET(req: Request) {
       const formattedBatches = batches.map((batch) => ({
         batchId: batch.batchId,
         batchName: batch.batchName,
-        courseName: batch.course.courseName,
-        batchDuration: batch.batchDuration,
-        currentSemester: batch.currentSemester,
-        studentCount: batch.students.length,
+        courseName: batch.course.courseName
       }));
 
       return NextResponse.json(formattedBatches, { status: 200 });
