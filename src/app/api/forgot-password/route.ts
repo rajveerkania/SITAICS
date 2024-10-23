@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import sendPasswordResetEmail from "@/lib/sendemail";
 import crypto from "crypto";
 
-
 interface ForgotPasswordRequestBody {
   emailOrUsername: string;
 }
@@ -41,7 +40,6 @@ export async function POST(req: NextRequest) {
 
     const { resetToken, tokenExpiry } = generateResetToken();
 
-
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -58,7 +56,6 @@ export async function POST(req: NextRequest) {
       { success: true, message: "Password reset email sent successfully." },
       { status: 200 }
     );
-    
   } catch (error) {
     console.error("Error in forgot-password:", error);
     return NextResponse.json(

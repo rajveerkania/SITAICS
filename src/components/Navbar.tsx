@@ -144,21 +144,21 @@ export function Navbar({ name, role }: NavBarProps) {
               />
             </div>
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-lg z-50">
-                <ul className="py-2">
+              <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
+                <ul>
                   <li
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-900"
+                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg"
                     onClick={openProfile}
                   >
                     {role === "Admin" ? "Admin Profile" : "Student Profile"}
                   </li>
                   {role === "Admin" && (
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-900">
+                    <li className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer">
                       Send Notification
                     </li>
                   )}
                   <li
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-900"
+                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
                     onClick={handleLogout}
                   >
                     Logout
@@ -175,7 +175,9 @@ export function Navbar({ name, role }: NavBarProps) {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Profile</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                Profile
+              </h3>
               <div className="mt-2 px-7 py-3">
                 {role === "Admin" ? (
                   <AdminProfile
