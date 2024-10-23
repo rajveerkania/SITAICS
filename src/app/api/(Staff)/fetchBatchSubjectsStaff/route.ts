@@ -9,7 +9,7 @@ export async function GET(req: Request) {
     const decodedUser = verifyToken();
     const userRole = decodedUser?.role;
 
-    if (userRole !== "Admin") {
+    if (userRole !== "Staff") {
       return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
     }
 

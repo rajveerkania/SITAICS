@@ -65,7 +65,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const response = await fetch("/api/fetchBatches");
+        const response = await fetch("/api/fetchBatchstaff");
         if (!response.ok) {
           throw new Error("Failed to fetch batches");
         }
@@ -210,8 +210,8 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     e.preventDefault();
     if (!validateStep()) return;
     try {
-      const updatedStaffDetails = await fetch("/api/addStaffDetails", {
-        method: "POST",
+      const updatedStaffDetails = await fetch("/api/fetchBatchSubjectsStaff", {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
@@ -337,7 +337,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
               {errors.pinCode && <p className="text-red-500">{errors.pinCode}</p>}
             </>
           )}
-
+          
           {currentStep === 3 && (
             <>
               <Input
@@ -358,46 +358,19 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                 value={staffFormData.dateOfBirth}
                 onChange={handleStaffInputChange}
                 required
-              />
-              {errors.dateOfBirth && (
-                <p className="text-red-500">{errors.dateOfBirth}</p>
-              )}
-              <div>
-                <Input
-                  type="text"
-                  name="subjectCount"
-                  placeholder={`How many subjects do you teach? (Max ${MAX_SUBJECTS})`}
-                  value={staffFormData.subjectCount}
-                  onChange={handleSubjectCountChange}
-                  required
-                />
-              </div>
-              {errors.subjectCount && (
-                <p className="text-red-500">{errors.subjectCount}</p>
-              )}
-              {staffFormData.subjectCount > 0 &&
-                [...Array(staffFormData.subjectCount)].map((_, index) => (
-                  <Input
-                    key={index}
-                    type="text"
-                    name={`subject-${index}`}
-                    placeholder={`Subject ${index + 1}`}
-                    value={staffFormData.subjects[index] || ""}
-                    onChange={(e) => handleSubjectChange(index, e.target.value)}
-                    required
-                  />
-                ))}
-              {errors.subjects && <p className="text-red-500">{errors.subjects}</p>}
+              /> 
+              {errors.dateOfBirth && <p className="text-red-500">{errors.dateOfBirth}</p>}
 
-              <div className="space-y-2">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4"
-                    checked={staffFormData.isBatchCoordinator}
-                    onChange={(e) => handleBatchCoordinatorChange(e.target.checked)}
-                  />
-                  <span>Batch Coordinator</span>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="isBatchCoordinator"
+                  checked={staffFormData.isBatchCoordinator}
+                  onChange={handleStaffInputChange}
+                  id="isBatchCoordinator"
+                />
+                <label htmlFor="isBatchCoordinator">
+                  Are you a Batch Coordinator?
                 </label>
 
                 {staffFormData.isBatchCoordinator && (
