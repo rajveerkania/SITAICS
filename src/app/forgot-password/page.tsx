@@ -9,7 +9,7 @@ export default function ForgotPassword() {
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [successMessage, setSuccessMessage] = useState(""); // New state for success message
+  const [successMessage, setSuccessMessage] = useState(""); 
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
@@ -29,7 +29,7 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
       setErrors({});
-      setSuccessMessage(""); // Reset success message on new request
+      setSuccessMessage(""); 
 
       const res = await fetch("/api/forgot-password", {
         method: "POST",
@@ -45,11 +45,11 @@ export default function ForgotPassword() {
         return;
       }
 
-      setSuccessMessage("Request has been shared with the existing email address."); // Set success message
-      // Optionally redirect after a short delay
+      setSuccessMessage("Request has been shared with the existing email address."); 
+      
       setTimeout(() => {
         router.push("./");
-      }, 2000); // Redirect after 2 seconds
+      }, 2000); 
     } catch (error) {
       console.error("An error occurred during password reset:", error);
       setErrors({ emailOrUsername: "An unexpected error occurred." });
@@ -132,7 +132,6 @@ export default function ForgotPassword() {
           </div>
         </form>
 
-        {/* Success message display */}
         {successMessage && (
           <div className="mt-4 text-green-600 font-semibold text-center">
             {successMessage}
