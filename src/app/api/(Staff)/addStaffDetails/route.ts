@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
             pinCode,
             contactNumber,
             dateOfBirth: parsedDateOfBirth,
-            isBatchCoordinator, // updated data
-            batchId: isBatchCoordinator ? batchId : null, // assign batchId only if batch coordinator
+            isBatchCoordinator, 
+            batchId: isBatchCoordinator ? batchId : null, 
             isProfileCompleted: true,
           },
         }),
