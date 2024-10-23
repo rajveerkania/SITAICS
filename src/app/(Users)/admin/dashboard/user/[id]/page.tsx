@@ -1,30 +1,53 @@
-"use client";
+ "use client"
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import usePreviousRoute from '@/app/hooks/usePreviousRoute';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { 
   User, 
   Mail, 
-  Users, 
+  MapPin, 
   ChevronDown, 
   ChevronUp, 
   ArrowLeft, 
-  Phone 
+  Calendar, 
+  Users, 
+  Award,
+  Phone,
+  Book,
+  GraduationCap,
+  Briefcase,
+  Users2
 } from 'lucide-react';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
-import ResultComponent from '@/components/admin/UserDetails/Result';
-import AchievementComponent from '@/components/admin/UserDetails/Achievment';
+import ResultComponent from '@/components/admin/UserDetails/result';
+import AchievementComponent from '@/components/admin/UserDetails/achievment';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const UserEditPage: React.FC = () => {
   const { id } = useParams();
@@ -88,7 +111,7 @@ const UserEditPage: React.FC = () => {
 
   const handleInputChange = (field: string, value: any) => {
     if (editedUser) {
-      setEditedUser((prevState: any) => ({
+      setEditedUser(prevState => ({
         ...prevState!,
         [field]: value,
       }));
@@ -97,7 +120,7 @@ const UserEditPage: React.FC = () => {
 
   const handleRoleDetailsChange = (field: string, value: any) => {
     if (editedUser) {
-      setEditedUser((prevState: any) => ({
+      setEditedUser(prevState => ({
         ...prevState!,
         roleDetails: {
           ...prevState!.roleDetails,
@@ -167,48 +190,81 @@ const UserEditPage: React.FC = () => {
                   <p className="text-lg">{user.name}</p>
                 )}
               </div>
-
               <div>
                 <label className="text-sm font-medium flex items-center mb-2">
                   <Mail className="mr-2 h-4 w-4" /> Email
                 </label>
-                {isEditing ? (
-                  <Input
-                    value={editedUser.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full"
-                  />
-                ) : (
-                  <p className="text-lg">{user.email}</p>
-                )}
+                <p className="text-lg">{user.email}</p>
               </div>
-
               <div>
                 <label className="text-sm font-medium flex items-center mb-2">
                   <Users className="mr-2 h-4 w-4" /> Role
                 </label>
-                <p className="text-lg">{user.role}</p>
+                {isEditing ? (
+                  <Select
+                    value={editedUser.role}
+                    onValueChange={(value) => handleInputChange('role', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Student">Student</SelectItem>
+                      <SelectItem value="Staff">Staff</SelectItem>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-lg">{user.role}</p>
+                )}
               </div>
 
-              {user.role === 'Student' && (
+              {(user.role === 'Student' || editedUser.role === 'Student') && (
                 <>
                   <div>
                     <label className="text-sm font-medium flex items-center mb-2">
                       <Users className="mr-2 h-4 w-4" /> Enrollment Number
                     </label>
-                    <p className="text-lg">{user.roleDetails.enrollmentNumber || 'Not provided'}</p>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser.roleDetails.enrollmentNumber || ''}
+                        onChange={(e) => handleRoleDetailsChange('enrollmentNumber', e.target.value)}
+                        className="w-full"
+                        placeholder="Enter enrollment number"
+                      />
+                    ) : (
+                      <p className="text-lg">{user.roleDetails.enrollmentNumber || 'Not provided'}</p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium flex items-center mb-2">
                       <Users className="mr-2 h-4 w-4" /> Course Name
                     </label>
-                    <p className="text-lg">{user.roleDetails.courseName || 'Not provided'}</p>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser.roleDetails.courseName || ''}
+                        onChange={(e) => handleRoleDetailsChange('courseName', e.target.value)}
+                        className="w-full"
+                        placeholder="Enter course name"
+                      />
+                    ) : (
+                      <p className="text-lg">{user.roleDetails.courseName || 'Not provided'}</p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium flex items-center mb-2">
                       <Users className="mr-2 h-4 w-4" /> Batch Name
                     </label>
-                    <p className="text-lg">{user.roleDetails.batchName || 'Not provided'}</p>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser.roleDetails.batchName || ''}
+                        onChange={(e) => handleRoleDetailsChange('batchName', e.target.value)}
+                        className="w-full"
+                        placeholder="Enter batch name"
+                      />
+                    ) : (
+                      <p className="text-lg">{user.roleDetails.batchName || 'Not provided'}</p>
+                    )}
                   </div>
                 </>
               )}
@@ -217,7 +273,7 @@ const UserEditPage: React.FC = () => {
         )}
       </Card>
 
-      {user.role !== 'Admin' && (
+      {(user.role !== 'Admin' || editedUser.role !== 'Admin') && (
         <Card className="mb-6">
           <CardHeader 
             className="cursor-pointer" 
@@ -235,57 +291,78 @@ const UserEditPage: React.FC = () => {
               <Tabs defaultValue="personal" className="space-y-6">
                 <TabsList>
                   <TabsTrigger value="personal">Personal Details</TabsTrigger>
-                  {user.role === 'Student' && <TabsTrigger value="result">Results</TabsTrigger>}
-                  {user.role === 'Student' && <TabsTrigger value="achievement">Achievements</TabsTrigger>}
+                  {(user.role === 'Student' || editedUser.role === 'Student') && (
+                    <>
+                      <TabsTrigger value="result">Results</TabsTrigger>
+                      <TabsTrigger value="achievement">Achievements</TabsTrigger>
+                    </>
+                  )}
+                  {(user.role === 'Staff' || editedUser.role === 'Staff') && 
+                    <TabsTrigger value="achievement">Achievements</TabsTrigger>
+                  }
                 </TabsList>
 
                 <TabsContent value="personal">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="text-sm font-medium flex items-center mb-2">
-                        <User className="mr-2 h-4 w-4" /> Father's Name
+                        <Calendar className="mr-2 h-4 w-4" /> Date of Birth
                       </label>
                       {isEditing ? (
                         <Input
-                          value={editedUser.roleDetails.fatherName || ''}
-                          onChange={(e) => handleRoleDetailsChange('fatherName', e.target.value)}
+                          type="date"
+                          value={editedUser.roleDetails.dateOfBirth?.split('T')[0] || ''}
+                          onChange={(e) => handleRoleDetailsChange('dateOfBirth', e.target.value)}
                           className="w-full"
-                          placeholder="Enter father's name"
                         />
                       ) : (
-                        <p className="text-lg">{user.roleDetails.fatherName || 'Not provided'}</p>
+                        <p className="text-lg">
+                          {editedUser.roleDetails.dateOfBirth 
+                            ? new Date(editedUser.roleDetails.dateOfBirth).toLocaleDateString()
+                            : 'Not provided'}
+                        </p>
                       )}
                     </div>
-
                     <div>
                       <label className="text-sm font-medium flex items-center mb-2">
-                        <User className="mr-2 h-4 w-4" /> Mother's Name
+                        <Users className="mr-2 h-4 w-4" /> Gender
                       </label>
                       {isEditing ? (
-                        <Input
-                          value={editedUser.roleDetails.motherName || ''}
-                          onChange={(e) => handleRoleDetailsChange('motherName', e.target.value)}
-                          className="w-full"
-                          placeholder="Enter mother's name"
-                        />
+                        <Select 
+                          value={editedUser.roleDetails.gender || ''} 
+                          onValueChange={(value) => handleRoleDetailsChange('gender', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select gender" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
                       ) : (
-                        <p className="text-lg">{user.roleDetails.motherName || 'Not provided'}</p>
+                        <p className="text-lg">
+                          {editedUser.roleDetails.gender 
+                            ? editedUser.roleDetails.gender.charAt(0).toUpperCase() + 
+                              editedUser.roleDetails.gender.slice(1)
+                            : 'Not provided'}
+                        </p>
                       )}
                     </div>
-
-                    <div>
+                    <div className="col-span-2">
                       <label className="text-sm font-medium flex items-center mb-2">
-                        <Phone className="mr-2 h-4 w-4" /> Contact Number
+                        <MapPin className="mr-2 h-4 w-4" /> Address
                       </label>
                       {isEditing ? (
                         <Input
-                          value={editedUser.contactNumber || ''}
+                          value={editedUser.roleDetails.contactNumber || ''}
                           onChange={(e) => handleRoleDetailsChange('contactNumber', e.target.value)}
                           className="w-full"
                           placeholder="Enter contact number"
                         />
                       ) : (
-                        <p className="text-lg">{user.contactNumber || 'Not provided'}</p>
+                        <p className="text-lg">{user.roleDetails.contactNumber || 'Not provided'}</p>
                       )}
                     </div>
 
@@ -341,31 +418,60 @@ const UserEditPage: React.FC = () => {
                       <label className="text-sm font-medium flex items-center mb-2">
                         <User className="mr-2 h-4 w-4" /> Pin Code
                       </label>
-                      {isEditing ? (
-                        <Input
+                      {isEditing ? (<Input
                           value={editedUser.roleDetails.pinCode || ''}
                           onChange={(e) => handleRoleDetailsChange('pinCode', e.target.value)}
                           className="w-full"
                           placeholder="Enter pin code"
                         />
                       ) : (
-                        <p className="text-lg">{user.roleDetails.pinCode || 'Not provided'}</p>
+                        <div>
+                          <p className="text-lg">{user.roleDetails.address || 'Not provided'}</p>
+                          <p className="text-lg">
+                            {user.roleDetails.city && user.roleDetails.state 
+                              ? `${user.roleDetails.city}, ${user.roleDetails.state}` 
+                              : ''}
+                            {user.roleDetails.pinCode ? ` - ${user.roleDetails.pinCode}` : ''}
+                          </p>
+                        </div>
                       )}
                     </div>
                   </div>
                 </TabsContent>
 
-                {user.role === 'Student' && (
+                {(user.role === 'Student' || editedUser.role === 'Student') && (
                   <>
                     <TabsContent value="result">
-                      <ResultComponent results={user.roleDetails.results} />
+                      <ResultComponent 
+                        results={user.roleDetails.results} 
+                        isEditing={isEditing}
+                        onResultsChange={(updatedResults: any) => 
+                          handleRoleDetailsChange('results', updatedResults)
+                        }
+                      />
                     </TabsContent>
                     <TabsContent value="achievement">
-                      <AchievementComponent achievements={user.roleDetails.achievements} isEditing={false} handleRoleDetailsChange={function (field: string, value: any): void {
-                        throw new Error('Function not implemented.');
-                      } } />
+                      <AchievementComponent 
+                        achievements={user.roleDetails.achievements} 
+                        isEditing={isEditing}
+                        handleRoleDetailsChange={(field, value) => 
+                          handleRoleDetailsChange('achievements', value)
+                        }
+                      />
                     </TabsContent>
                   </>
+                )}
+
+                {(user.role === 'Staff' || editedUser.role === 'Staff') && (
+                  <TabsContent value="achievement">
+                    <AchievementComponent 
+                      achievements={user.roleDetails.achievements} 
+                      isEditing={isEditing}
+                      handleRoleDetailsChange={(field, value) => 
+                        handleRoleDetailsChange('achievements', value)
+                      }
+                    />
+                  </TabsContent>
                 )}
               </Tabs>
             </CardContent>
@@ -373,17 +479,25 @@ const UserEditPage: React.FC = () => {
         </Card>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-4">
         {isEditing ? (
-          <Button variant="outline" onClick={handleSave}>
-            Save Changes
-          </Button>  
+          <>
+            <Button variant="outline" onClick={() => {
+              setEditedUser(user);
+              setIsEditing(false);
+            }}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>
+              Save Changes
+            </Button>
+          </>
         ) : (
-          <Button variant="outline" onClick={() => setIsEditing(true)}>
+          <Button onClick={() => setIsEditing(true)}>
             Edit User
           </Button>
         )}
-      </div>
+      </CardFooter>
     </div>
   );
 };
