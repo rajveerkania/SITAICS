@@ -31,6 +31,7 @@ export async function GET(req: Request) {
           { success: true, records: admins },
           { status: 200 }
         );
+
       case "student":
         const students = await prisma.studentDetails.findMany({
           where: {
@@ -47,6 +48,7 @@ export async function GET(req: Request) {
           { success: true, records: students },
           { status: 200 }
         );
+
       case "staff":
         const staff = await prisma.staffDetails.findMany({
           where: {
@@ -63,11 +65,6 @@ export async function GET(req: Request) {
           { success: true, records: staff },
           { status: 200 }
         );
-      case "po":
-        return NextResponse.json(
-          { success: false, message: "Not yet implemented" },
-          { status: 500 }
-        );
 
       case "batch":
         const batches = await prisma.batch.findMany({
@@ -79,10 +76,15 @@ export async function GET(req: Request) {
             batchId: true,
           },
         });
+        const batchRecords = batches.map(({ batchId, batchName }) => ({
+          id: batchId,
+          batchName,
+        }));
         return NextResponse.json(
-          { success: true, records: batches },
+          { success: true, records: batchRecords },
           { status: 200 }
         );
+
       case "subject":
         const subjects = await prisma.subject.findMany({
           where: {
@@ -93,8 +95,12 @@ export async function GET(req: Request) {
             subjectName: true,
           },
         });
+        const subjectRecords = subjects.map(({ subjectId, subjectName }) => ({
+          id: subjectId,
+          subjectName,
+        }));
         return NextResponse.json(
-          { success: true, records: subjects },
+          { success: true, records: subjectRecords },
           { status: 200 }
         );
 
@@ -108,8 +114,13 @@ export async function GET(req: Request) {
             courseName: true,
           },
         });
+        // Map `courseId` to `id`
+        const courseRecords = courses.map(({ courseId, courseName }) => ({
+          id: courseId,
+          courseName,
+        }));
         return NextResponse.json(
-          { success: true, records: courses },
+          { success: true, records: courseRecords },
           { status: 200 }
         );
 
