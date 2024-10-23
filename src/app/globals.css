@@ -71,4 +71,6 @@
 ::selection {
   background-color: black;
   color: white;
+  border-radius: 9999px;
+  padding: 0 4px;
 }
