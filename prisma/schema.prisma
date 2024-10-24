@@ -1,10 +1,10 @@
-generator client {
-  provider = "prisma-client-js"
+datasource db {
+  provider = "postgresql" // or "mysql", "sqlite", etc.
+  url      = env("DATABASE_URL")
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -19,6 +19,16 @@ model User {
   isActive       Boolean         @default(true)
   studentDetails StudentDetails?
   staffDetails   StaffDetails?
+}
+
+model Result {
+  id         String         @id @default(uuid())
+  studentId  String
+  student    StudentDetails @relation("StudentResults", fields: [studentId], references: [id]) // Added relation name
+  semester   Int // Semester number (1 to 8)
+  resultFile Bytes // Storing the PDF as binary data
+  uploadedAt DateTime       @default(now())
+  isRepeater Boolean        @default(false)
 }
 
 model StudentDetails {
@@ -49,6 +59,7 @@ model StudentDetails {
   course             Course?                 @relation(fields: [courseName], references: [courseName])
   batch              Batch?                  @relation(fields: [batchName], references: [batchName])
   electiveChoices    ElectiveSubjectChoice[]
+  resultsRelation    Result[]                @relation("StudentResults") // Added relation name
 }
 
 model StaffDetails {
@@ -86,7 +97,7 @@ model Subject {
   course                Course                  @relation(fields: [courseId], references: [courseId])
   electiveGroup         ElectiveGroup?          @relation(fields: [electiveGroupId], references: [electiveGroupId])
   electiveGroupId       String?
-  staffId               String?                 // New staffId field
+  staffId               String? // New staffId field
   staff                 StaffDetails?           @relation(fields: [staffId], references: [id]) // Define relation with StaffDetails
   batches               BatchSubject[]
   isActive              Boolean                 @default(true)
@@ -94,7 +105,6 @@ model Subject {
   updatedAt             DateTime                @updatedAt
   ElectiveSubjectChoice ElectiveSubjectChoice[]
 }
-
 
 model Course {
   courseId       String           @id @default(uuid())

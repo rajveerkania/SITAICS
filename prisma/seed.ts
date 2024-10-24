@@ -88,6 +88,7 @@ async function main() {
           batchId: batch.batchId,
           subjectId: createdSubject.subjectId,
           semester: 1,
+          batchName: batch.batchName,
         },
       });
     }

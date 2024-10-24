@@ -60,7 +60,6 @@ export async function GET(request: NextRequest) {
               enrollmentNumber: true,
               courseName: true,
               batchName: true,
-              results: true,
               bloodGroup: true,
               dateOfBirth: true,
               gender: true,
