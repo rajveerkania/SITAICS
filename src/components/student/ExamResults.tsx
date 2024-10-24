@@ -32,7 +32,7 @@ const ExamResults = () => {
           const response = await fetch("/api/student/viewResults");
           if (!response.ok) throw new Error("Failed to fetch results");
           const data = await response.json();
-          setResults(data);
+          setResults(data.results); // Assuming the API returns a results array
         } catch (error) {
           console.error("Error fetching results:", error);
         }
@@ -68,8 +68,8 @@ const ExamResults = () => {
         setIsRepeater(false);
         setName("");
 
-        // Reload the page to reflect the new data
-        window.location.reload(); // This will refresh the entire page
+        // Reload the data after upload
+        setActiveTab("view"); // Switch to view tab
       }
     } catch (err) {
       console.error("Error uploading:", err);
@@ -188,7 +188,7 @@ const ExamResults = () => {
                     <td className="border border-gray-300 px-4 py-2">{result.semester}</td>
                     <td className="border border-gray-300 px-4 py-2">{result.isRepeater ? "Yes" : "No"}</td>
                     <td className="border border-gray-300 px-4 py-2">
-                      <a href={URL.createObjectURL(new Blob([result.resultFile]))} target="_blank" rel="noopener noreferrer" className="text-black hover:underline">
+                      <a href={`data:application/pdf;base64,${result.resultFile}`} target="_blank" rel="noopener noreferrer" className="text-black hover:underline">
                         View Result
                       </a>
                     </td>

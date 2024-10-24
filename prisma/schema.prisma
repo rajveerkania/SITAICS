@@ -50,7 +50,6 @@ model StudentDetails {
   state              String?
   pinCode            Int?
   achievements       Json?
-  results            Json?
   isActive           Boolean                 @default(true)
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
