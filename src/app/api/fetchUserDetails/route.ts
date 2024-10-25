@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
               batchId: true,
               subjects: true,
               achievements: true,
-              isProfileCompleted: true
+              // isProfileCompleted: true
             },
           });
           return NextResponse.json({ user, role: "Staff" }, { status: 200 });

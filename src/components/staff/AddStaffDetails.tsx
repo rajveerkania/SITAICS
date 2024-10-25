@@ -57,7 +57,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const response = await fetch("/api/fetchBatches");
+        const response = await fetch("/api/fetchBatchstaff");
         if (!response.ok) {
           throw new Error("Failed to fetch batches");
         }
@@ -148,30 +148,31 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     return stepIsValid;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateStep()) return;
-    try {
-      const updatedStaffDetails = await fetch("/api/addStaffDetails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(staffFormData), // Submit batchId here
-      });
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!validateStep()) return;
+  try {
+    const updatedStaffDetails = await fetch("/api/fetchBatchSubjectsStaff", {
+      method: "POST", // Change this to POST
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(staffFormData), // Send form data as JSON
+    });
 
-      if (updatedStaffDetails.ok) {
-        toast.success("Staff details added successfully.");
-        setShowAddStaffDetails(false);
-        fetchUserDetails();
-      } else {
-        toast.error("Failed to add staff details.");
-      }
-    } catch (error) {
-      console.error("An error occurred:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+    if (updatedStaffDetails.ok) {
+      toast.success("Staff details added successfully.");
+      setShowAddStaffDetails(false);
+      fetchUserDetails();
+    } else {
+      toast.error("Failed to add staff details.");
     }
-  };
+  } catch (error) {
+    console.error("An error occurred:", error);
+    toast.error("An unexpected error occurred. Please try again.");
+  }
+};
+
 
   const nextStep = () => {
     if (validateStep()) {
