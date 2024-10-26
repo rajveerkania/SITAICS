@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
         success: true,
         timetableExists: true,
         timetable: existingBatch.timetable.toString("base64"), 
+        timetable: existingBatch.timetable.toString("base64"), 
       });
     }
 
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
     const updatedBatch = await prisma.batch.update({
       where: { batchId },
       data: {
+        timetable: timetableBuffer, 
         timetable: timetableBuffer, 
       },
     });

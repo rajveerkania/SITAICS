@@ -73,7 +73,7 @@ const BatchTab = () => {
     setActiveTab("manage");
   };
 
-  const handleViewtBatch = (batchId: string) => {
+  const handleViewBatch = (batchId: string) => {
     router.push(`/admin/dashboard/batch/${batchId}`);
   };
 
@@ -173,7 +173,7 @@ const BatchTab = () => {
                     <div className="flex space-x-2">
                       <Button
                         variant="outline"
-                        onClick={() => handleViewtBatch(batch.batchId)}
+                        onClick={() => handleViewBatch(batch.batchId)}
                         style={{ backgroundColor: "black", color: "white" }}
                         className="flex items-center"
                       >

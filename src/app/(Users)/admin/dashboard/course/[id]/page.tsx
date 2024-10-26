@@ -308,7 +308,7 @@ const CourseEditPage = () => {
                                 backgroundColor: "black",
                                 color: "white",
                               }}
-                              onClick={() => redirectToSubjectDetails(subject.subjectId)} // Redirect to subject details
+                              onClick={() => redirectToSubjectDetails(subject.subjectId)} 
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
