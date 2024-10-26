@@ -12,20 +12,20 @@ import {
 import { toast } from "sonner";
 
 interface AddStaffDetailsProps {
-  id: string;
+  name: string;
   setShowAddStaffDetails: (value: boolean) => void;
   fetchUserDetails: () => void;
 }
 
 const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
-  id,
+  name,
   setShowAddStaffDetails,
   fetchUserDetails,
 }) => {
   const MAX_SUBJECTS = 10;
+  const username = name;
   const [currentStep, setCurrentStep] = useState(1);
   const [staffFormData, setStaffFormData] = useState({
-    id,
     email: "",
     name: "",
     gender: "",
@@ -56,16 +56,18 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     subjectCount: "",
   });
 
-  const [batches, setBatches] = useState<{
-    batchId: string;
-    batchName: string;
-    courseName: string;
-  }[]>([]);
+  const [batches, setBatches] = useState<
+    {
+      batchId: string;
+      batchName: string;
+      courseName: string;
+    }[]
+  >([]);
 
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const response = await fetch("/api/fetchBatchstaff");
+        const response = await fetch("/api/fetchBatchStaff");
         if (!response.ok) {
           throw new Error("Failed to fetch batches");
         }
@@ -99,10 +101,10 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   };
 
   const handleBatchCoordinatorChange = (checked: boolean) => {
-    setStaffFormData(prev => ({
+    setStaffFormData((prev) => ({
       ...prev,
       isBatchCoordinator: checked,
-      batchId: checked ? prev.batchId : "", // Clear batchId if unchecked
+      batchId: checked ? prev.batchId : "",
     }));
   };
 
@@ -111,8 +113,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
 
     if (/^[0-9]*$/.test(value)) {
       const newCount = value === "" ? 0 : parseInt(value, 10);
-      
-      // Limit the subject count to MAX_SUBJECTS
+
       if (newCount > MAX_SUBJECTS) {
         toast.error(`Maximum ${MAX_SUBJECTS} subjects are allowed.`);
         return;
@@ -121,12 +122,33 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
       setStaffFormData((prevData) => ({
         ...prevData,
         subjectCount: newCount,
-        subjects: Array(newCount).fill("").map((_, i) => prevData.subjects[i] || ""),
+        subjects: Array(newCount)
+          .fill("")
+          .map((_, i) => prevData.subjects[i] || ""),
       }));
       setErrors((prevErrors) => ({
         ...prevErrors,
         subjectCount: "",
       }));
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout failed", err);
     }
   };
 
@@ -192,7 +214,10 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
         stepErrors.subjectCount = "Please select number of subjects";
         stepIsValid = false;
       }
-      if (staffFormData.subjectCount > 0 && staffFormData.subjects.some(subject => !subject)) {
+      if (
+        staffFormData.subjectCount > 0 &&
+        staffFormData.subjects.some((subject) => !subject)
+      ) {
         stepErrors.subjects = "All subject names are required.";
         stepIsValid = false;
       }
@@ -243,8 +268,11 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
 
   return (
     <div className="relative min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="absolute top-4 right-4">
+        <Button onClick={handleLogout}>Logout</Button>
+      </div>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-3 text-center">Staff Details</h1>
+        <h1 className="text-3xl font-bold mb-3 text-center">{username}</h1>
         <p className="text-sm text-gray-400 text-center mb-6">
           Enter staff details to continue
         </p>
@@ -306,7 +334,9 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                 onChange={handleStaffInputChange}
                 required
               />
-              {errors.address && <p className="text-red-500">{errors.address}</p>}
+              {errors.address && (
+                <p className="text-red-500">{errors.address}</p>
+              )}
               <Input
                 type="text"
                 name="city"
@@ -334,7 +364,9 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                 onChange={handleStaffInputChange}
                 required
               />
-              {errors.pinCode && <p className="text-red-500">{errors.pinCode}</p>}
+              {errors.pinCode && (
+                <p className="text-red-500">{errors.pinCode}</p>
+              )}
             </>
           )}
 
@@ -387,7 +419,9 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                     required
                   />
                 ))}
-              {errors.subjects && <p className="text-red-500">{errors.subjects}</p>}
+              {errors.subjects && (
+                <p className="text-red-500">{errors.subjects}</p>
+              )}
 
               <div className="space-y-2">
                 <label className="flex items-center space-x-2">
@@ -395,7 +429,9 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                     type="checkbox"
                     className="w-4 h-4"
                     checked={staffFormData.isBatchCoordinator}
-                    onChange={(e) => handleBatchCoordinatorChange(e.target.checked)}
+                    onChange={(e) =>
+                      handleBatchCoordinatorChange(e.target.checked)
+                    }
                   />
                   <span>Batch Coordinator</span>
                 </label>

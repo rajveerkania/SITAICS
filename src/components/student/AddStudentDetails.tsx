@@ -11,7 +11,7 @@ import {
 import { toast } from "sonner";
 
 interface AddStudentDetailsProps {
-  id: string;
+  name: string;
   setShowAddStudentDetails: (value: boolean) => void;
   fetchUserDetails: () => void;
 }
@@ -21,17 +21,16 @@ interface Course {
 }
 
 const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
-  id,
+  name,
   setShowAddStudentDetails,
   fetchUserDetails,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [courses, setCourses] = useState<{ courseName: string }[]>([]);
   const [batches, setBatches] = useState<{ batchName: string }[]>([]);
-  const [userName, setUserName] = useState("User");
+  const userName = name;
 
   const [studentFormData, setStudentFormData] = useState({
-    id,
     name: "",
     fatherName: "",
     motherName: "",
@@ -164,13 +163,16 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const updatedStudentDetails = await fetch(`/api/student/addStudentDetails`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(studentFormData),
-      });
+      const updatedStudentDetails = await fetch(
+        `/api/student/addStudentDetails`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(studentFormData),
+        }
+      );
 
       if (updatedStudentDetails.ok) {
         toast.success("Student details added successfully.");
@@ -206,15 +208,6 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
       }
     };
 
-    const fetchUserDetails = async () => {
-      try {
-        const response = await fetch(`/api/fetchUserDetails`);
-        const data = await response.json();
-        setUserName(data.user.name);
-      } catch (error) {
-        toast.error("Something went wrong. Please try again later");
-      }
-    };
     fetchUserDetails();
     fetchCourses();
   }, []);

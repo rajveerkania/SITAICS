@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       pinCode,
       contactNumber,
       dateOfBirth,
-      isBatchCoordinator, 
+      isBatchCoordinator,
       batchId,
     } = reqBody;
 
@@ -49,18 +49,13 @@ export async function POST(request: NextRequest) {
             pinCode,
             contactNumber,
             dateOfBirth: parsedDateOfBirth,
-            isBatchCoordinator, 
-            batchId: isBatchCoordinator ? batchId : null, 
+            isBatchCoordinator,
+            batchId: isBatchCoordinator ? batchId : null,
             isProfileCompleted: true,
           },
         }),
       ]);
     }
-
-    console.log(
-      (existingStaff ? "Updated" : "Created") + " staff details:",
-      staffDetails
-    );
 
     return NextResponse.json({
       message: `Staff Details ${
