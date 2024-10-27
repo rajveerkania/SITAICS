@@ -39,6 +39,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     batchId: "",
     subjectCount: 0,
     subjects: [] as string[],
+    selectedSubjectIds: [] as string[],
   });
 
   const [errors, setErrors] = useState({
@@ -62,13 +63,16 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     courseName: string;
   }[]>([]);
 
+  const [availableSubjects, setAvailableSubjects] = useState<{
+    subjectId: string;
+    subjectName: string;
+  }[]>([]);
+
   useEffect(() => {
     const fetchBatches = async () => {
       try {
         const response = await fetch("/api/fetchBatchstaff");
-        if (!response.ok) {
-          throw new Error("Failed to fetch batches");
-        }
+        if (!response.ok) throw new Error("Failed to fetch batches");
         const data = await response.json();
         setBatches(data);
       } catch (error) {
@@ -77,9 +81,20 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
       }
     };
 
-    if (staffFormData.isBatchCoordinator) {
-      fetchBatches();
-    }
+    const fetchSubjects = async () => {
+      try {
+        const response = await fetch("/api/fetchSubjectStaff");
+        if (!response.ok) throw new Error("Failed to fetch subjects");
+        const data = await response.json();
+        setAvailableSubjects(data);
+      } catch (error) {
+        console.error("Error fetching subjects:", error);
+        toast.error("Failed to fetch subjects. Please try again.");
+      }
+    };
+
+    if (staffFormData.isBatchCoordinator) fetchBatches();
+    fetchSubjects();
   }, [staffFormData.isBatchCoordinator]);
 
   const handleStaffInputChange = (
@@ -141,6 +156,17 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     });
   };
 
+  const handleSelectedSubjectChange = (index: number, subjectId: string) => {
+    setStaffFormData(prev => {
+      const selectedSubjects = [...prev.selectedSubjectIds];
+      selectedSubjects[index] = subjectId;
+      return {
+        ...prev,
+        selectedSubjectIds: selectedSubjects,
+      };
+    });
+  };
+
   const validateStep = () => {
     let stepIsValid = true;
     let stepErrors = { ...errors };
@@ -190,10 +216,6 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
       }
       if (staffFormData.subjectCount === 0) {
         stepErrors.subjectCount = "Please select number of subjects";
-        stepIsValid = false;
-      }
-      if (staffFormData.subjectCount > 0 && staffFormData.subjects.some(subject => !subject)) {
-        stepErrors.subjects = "All subject names are required.";
         stepIsValid = false;
       }
       if (staffFormData.isBatchCoordinator && !staffFormData.batchId) {
@@ -369,25 +391,29 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                   placeholder={`How many subjects do you teach? (Max ${MAX_SUBJECTS})`}
                   value={staffFormData.subjectCount}
                   onChange={handleSubjectCountChange}
-                  required
                 />
               </div>
               {errors.subjectCount && (
                 <p className="text-red-500">{errors.subjectCount}</p>
               )}
               {staffFormData.subjectCount > 0 &&
-                [...Array(staffFormData.subjectCount)].map((_, index) => (
-                  <Input
-                    key={index}
-                    type="text"
-                    name={`subject-${index}`}
-                    placeholder={`Subject ${index + 1}`}
-                    value={staffFormData.subjects[index] || ""}
-                    onChange={(e) => handleSubjectChange(index, e.target.value)}
-                    required
-                  />
-                ))}
-              {errors.subjects && <p className="text-red-500">{errors.subjects}</p>}
+            [...Array(staffFormData.subjectCount)].map((_, index) => (
+              <Select
+                key={index}
+                onValueChange={(subjectId) => handleSelectedSubjectChange(index, subjectId)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={`Select Subject ${index + 1}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSubjects.map((subject) => (
+                    <SelectItem key={subject.subjectId} value={subject.subjectId}>
+                      {subject.subjectName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ))}
 
               <div className="space-y-2">
                 <label className="flex items-center space-x-2">

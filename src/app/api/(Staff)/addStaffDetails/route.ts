@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       dateOfBirth,
       isBatchCoordinator, 
       batchId,
+      selectedSubjectIds,
     } = reqBody;
 
     const parsedDateOfBirth = new Date(`${dateOfBirth}`);
@@ -57,6 +58,26 @@ export async function POST(request: NextRequest) {
       ]);
     }
 
+    // Update BatchSubject table with the selected subjects and staff ID
+    const batchSubjectUpdates = selectedSubjectIds.map((subjectId: string) =>
+      prisma.batchSubject.upsert({
+        where: {
+          batchId_subjectId: { batchId, subjectId },
+        },
+        update: {
+          staffId: userId,
+        },
+        create: {
+          batchId,
+          subjectId,
+          semester: 1, // Adjust semester value as needed
+          staffId: userId,
+        },
+      })
+    );
+
+    await prisma.$transaction(batchSubjectUpdates);
+
     console.log(
       (existingStaff ? "Updated" : "Created") + " staff details:",
       staffDetails
@@ -65,7 +86,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: `Staff Details ${
         existingStaff ? "updated" : "created"
-      } successfully`,
+      } successfully, and subjects assigned.`,
       success: true,
       staffDetails,
     });

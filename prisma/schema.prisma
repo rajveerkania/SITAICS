@@ -140,6 +140,7 @@ model StudentDetails {
     batchId   String
     subjectId String
     semester  Int
+    staffId   String?
     batch     Batch   @relation(fields: [batchId], references: [batchId])
     subject   Subject @relation(fields: [subjectId], references: [subjectId])
 

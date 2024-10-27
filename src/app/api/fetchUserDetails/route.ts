@@ -5,9 +5,6 @@ import { verifyToken } from "@/utils/auth";
 
 export async function GET(request: NextRequest) {
   try {
-
-    
-
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
     let id = null,
@@ -97,7 +94,7 @@ export async function GET(request: NextRequest) {
               batchId: true,
               subjects: true,
               achievements: true,
-              // isProfileCompleted: true
+              isProfileCompleted: true
             },
           });
           return NextResponse.json({ user, role: "Staff" }, { status: 200 });

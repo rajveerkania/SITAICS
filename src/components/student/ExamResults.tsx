@@ -68,8 +68,8 @@ const ExamResults = () => {
         setIsRepeater(false);
         setName("");
 
-        // Reload the data after upload
-        setActiveTab("view"); // Switch to view tab
+        // Reload the page after upload
+        window.location.reload(); // Refresh the page
       }
     } catch (err) {
       console.error("Error uploading:", err);
