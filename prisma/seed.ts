@@ -4,6 +4,7 @@ import * as bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  // Upsert Admin User
   const adminUser = await prisma.user.upsert({
     where: { email: "rajveer@gmail.com" },
     update: {},
@@ -46,7 +47,9 @@ async function main() {
   const createdStaffMembers = [];
   const createdSubjects = [];
 
+  // Loop through each course to create related data
   for (let i = 0; i < courses.length; i++) {
+    // Upsert course
     const course = await prisma.course.upsert({
       where: { courseName: courses[i] },
       update: {},
@@ -54,6 +57,7 @@ async function main() {
     });
     createdCourses.push(course);
 
+    // Upsert batch for the course
     const batch = await prisma.batch.upsert({
       where: { batchName: batches[i] },
       update: {
@@ -70,10 +74,12 @@ async function main() {
     });
     createdBatches.push(batch);
 
-    // Create subjects for each course
+    // Create subjects for each course and associate them with batches
     for (const subject of subjects) {
-      const createdSubject = await prisma.subject.create({
-        data: {
+      const createdSubject = await prisma.subject.upsert({
+        where: { subjectCode: subject.code },
+        update: {},
+        create: {
           subjectName: subject.name,
           subjectCode: subject.code,
           semester: 1,
@@ -82,9 +88,16 @@ async function main() {
       });
       createdSubjects.push(createdSubject);
 
-      // Associate subject with batch
-      await prisma.batchSubject.create({
-        data: {
+      // Associate subject with batch via BatchSubject
+      await prisma.batchSubject.upsert({
+        where: {
+          batchId_subjectId: {
+            batchId: batch.batchId,
+            subjectId: createdSubject.subjectId,
+          },
+        },
+        update: {},
+        create: {
           batchId: batch.batchId,
           subjectId: createdSubject.subjectId,
           semester: 1,
@@ -93,6 +106,7 @@ async function main() {
       });
     }
 
+    // Create students for each batch
     for (let j = 1; j <= 10; j++) {
       const email = `${courses[i]
         .toLowerCase()
@@ -127,6 +141,7 @@ async function main() {
       }
     }
 
+    // Create staff member for each course
     const staffEmail = `${courses[i]
       .toLowerCase()
       .replace(/\s+/g, "")}staff@example.com`;
@@ -156,6 +171,7 @@ async function main() {
     }
   }
 
+  // Log created data for verification
   console.log({
     adminUser,
     courses: createdCourses,

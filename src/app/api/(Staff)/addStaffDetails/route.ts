@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       pinCode,
       contactNumber,
       dateOfBirth,
-      isBatchCoordinator, 
+      isBatchCoordinator,
       batchId,
       selectedSubjectIds,
     } = reqBody;
@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
             pinCode,
             contactNumber,
             dateOfBirth: parsedDateOfBirth,
-            isBatchCoordinator, 
-            batchId: isBatchCoordinator ? batchId : null, 
+            isBatchCoordinator,
+            batchId: isBatchCoordinator ? batchId : null,
             isProfileCompleted: true,
           },
         }),
@@ -95,3 +95,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

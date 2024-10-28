@@ -65,7 +65,7 @@ const StudentDashboard: React.FC = () => {
       } else {
         setUserInfo({
           id: data.user.id,
-          name: "",
+          name: data.user.name,
           isProfileCompleted: false,
         } as UserInfo);
         setShowAddStudentDetails(true);
@@ -92,7 +92,7 @@ const StudentDashboard: React.FC = () => {
   if (showAddStudentDetails && userInfo) {
     return (
       <AddStudentDetails
-        id={userInfo.id}
+        name={userInfo.name}
         setShowAddStudentDetails={setShowAddStudentDetails}
         fetchUserDetails={fetchUserDetails}
       />
@@ -203,7 +203,7 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="timetable">
-                <Timetable timetableData={[]} />
+            <Timetable timetableData={[]} />
           </TabsContent>
 
           <TabsContent value="subjects">
@@ -249,7 +249,7 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="achievements">
-                <Achievement />
+            <Achievement />
           </TabsContent>
           <TabsContent value="placement">
             <Card>

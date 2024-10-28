@@ -183,12 +183,13 @@ const ExamResults = () => {
                 </tr>
               </thead>
               <tbody>
+                
                 {results.map((result, index) => (
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="border border-gray-300 px-4 py-2">{result.semester}</td>
                     <td className="border border-gray-300 px-4 py-2">{result.isRepeater ? "Yes" : "No"}</td>
                     <td className="border border-gray-300 px-4 py-2">
-                      <a href={`data:application/pdf;base64,${result.resultFile}`} target="_blank" rel="noopener noreferrer" className="text-black hover:underline">
+                      <a href={`${result.resultFile}`} target="_blank" rel="noopener noreferrer" className="text-black hover:underline">
                         View Result
                       </a>
                     </td>
