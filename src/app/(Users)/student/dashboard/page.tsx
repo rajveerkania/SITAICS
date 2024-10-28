@@ -65,7 +65,7 @@ const StudentDashboard: React.FC = () => {
       } else {
         setUserInfo({
           id: data.user.id,
-          name: data.user.name,
+          name: "",
           isProfileCompleted: false,
         } as UserInfo);
         setShowAddStudentDetails(true);
@@ -92,7 +92,7 @@ const StudentDashboard: React.FC = () => {
   if (showAddStudentDetails && userInfo) {
     return (
       <AddStudentDetails
-        name={userInfo.name}
+        id={userInfo.id}
         setShowAddStudentDetails={setShowAddStudentDetails}
         fetchUserDetails={fetchUserDetails}
       />

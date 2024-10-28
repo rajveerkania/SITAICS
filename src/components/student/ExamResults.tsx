@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import PDFViewerModal from "./PDFViewerModel";
 
 const ExamResults = () => {
   const [activeTab, setActiveTab] = useState("add");
@@ -9,12 +11,15 @@ const ExamResults = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [availableSemesters, setAvailableSemesters] = useState<number[]>([]);
   const [results, setResults] = useState<any[]>([]);
+  const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchAvailableSemesters = async () => {
       try {
         const response = await fetch("/api/student/availableSemesters");
-        if (!response.ok) throw new Error("Failed to fetch available semesters");
+        if (!response.ok)
+          throw new Error("Failed to fetch available semesters");
         const semesters = await response.json();
         setAvailableSemesters(semesters);
       } catch (error) {
@@ -32,9 +37,10 @@ const ExamResults = () => {
           const response = await fetch("/api/student/viewResults");
           if (!response.ok) throw new Error("Failed to fetch results");
           const data = await response.json();
-          setResults(data.results); // Assuming the API returns a results array
+          console.log(data);
+          setResults(data.results);
         } catch (error) {
-          console.error("Error fetching results:", error);
+          toast.error("Error while fetching results");
         }
       };
       fetchResults();
@@ -58,17 +64,18 @@ const ExamResults = () => {
     if (name) formData.append("name", name);
 
     try {
-      const res = await fetch("/api/student/addResult", { method: "POST", body: formData });
+      const res = await fetch("/api/student/addResult", {
+        method: "POST",
+        body: formData,
+      });
       const data = await res.json();
       setMessage(data.message);
       if (data.success) {
-        // Reset the form
         setSemester(1);
         setFile(null);
         setIsRepeater(false);
         setName("");
 
-        // Reload the page after upload
         window.location.reload(); // Refresh the page
       }
     } catch (err) {
@@ -102,25 +109,38 @@ const ExamResults = () => {
     }
   };
 
+  const handleViewPdf = async (pdfData: string) => {
+    setSelectedPdf(pdfData);
+    setIsPdfModalOpen(true);
+  };
+
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-2xl shadow-lg">
       <h1 className="text-3xl font-bold text-center mb-6">Exam Results</h1>
       <div className="flex justify-center mb-4">
         <button
           onClick={() => setActiveTab("add")}
-          className={`px-6 py-2 rounded-lg transition duration-300 ${activeTab === "add" ? "bg-black text-white" : "bg-gray-200 text-black"}`}
+          className={`px-6 py-2 rounded-lg transition duration-300 ${
+            activeTab === "add"
+              ? "bg-black text-white"
+              : "bg-gray-200 text-black"
+          }`}
         >
           Add Result
         </button>
         <button
           onClick={() => setActiveTab("view")}
-          className={`ml-4 px-6 py-2 rounded-lg transition duration-300 ${activeTab === "view" ? "bg-black text-white" : "bg-gray-200 text-black"}`}
+          className={`ml-4 px-6 py-2 rounded-lg transition duration-300 ${
+            activeTab === "view"
+              ? "bg-black text-white"
+              : "bg-gray-200 text-black"
+          }`}
         >
           View Results
         </button>
       </div>
       {message && <p className="text-red-500 text-center mb-4">{message}</p>}
-      
+
       {activeTab === "add" ? (
         <>
           <div className="mb-4 flex items-center">
@@ -131,10 +151,20 @@ const ExamResults = () => {
               onChange={handleIsRepeaterChange}
               className="h-4 w-4 text-black border-gray-300 rounded focus:ring-black"
             />
-            <label htmlFor="isRepeater" className="ml-2 block text-sm text-gray-700">Is Repeater?</label>
+            <label
+              htmlFor="isRepeater"
+              className="ml-2 block text-sm text-gray-700"
+            >
+              Is Repeater?
+            </label>
           </div>
           <div className="mb-4">
-            <label htmlFor="semester" className="block text-sm font-medium text-gray-700">Select Semester</label>
+            <label
+              htmlFor="semester"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Select Semester
+            </label>
             <select
               id="semester"
               value={semester}
@@ -142,17 +172,24 @@ const ExamResults = () => {
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black transition duration-200 ease-in-out"
             >
               {availableSemesters.length > 0 ? (
-                availableSemesters.map(sem => (
-                  <option key={sem} value={sem}>Semester {sem}</option>
+                availableSemesters.map((sem) => (
+                  <option key={sem} value={sem}>
+                    Semester {sem}
+                  </option>
                 ))
               ) : (
                 <option value="">Loading...</option>
               )}
             </select>
           </div>
-          
+
           <div className="mb-4">
-            <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700">Upload Result (PDF)</label>
+            <label
+              htmlFor="file-upload"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Upload Result (PDF)
+            </label>
             <input
               id="file-upload"
               type="file"
@@ -177,27 +214,44 @@ const ExamResults = () => {
             <table className="min-w-full border border-gray-300">
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-4 py-2 text-left">Semester</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Is Repeater</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Action</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Semester
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Is Repeater
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                
                 {results.map((result, index) => (
                   <tr key={index} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-2">{result.semester}</td>
-                    <td className="border border-gray-300 px-4 py-2">{result.isRepeater ? "Yes" : "No"}</td>
                     <td className="border border-gray-300 px-4 py-2">
-                      <a href={`${result.resultFile}`} target="_blank" rel="noopener noreferrer" className="text-black hover:underline">
+                      {result.semester}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {result.isRepeater ? "Yes" : "No"}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <button
+                        onClick={() => handleViewPdf(result.resultFile)}
+                        className="text-black hover:underline"
+                      >
                         View Result
-                      </a>
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
+          <PDFViewerModal
+            isOpen={isPdfModalOpen}
+            onClose={() => setIsPdfModalOpen(false)}
+            pdfData={selectedPdf}
+          />
         </div>
       )}
     </div>

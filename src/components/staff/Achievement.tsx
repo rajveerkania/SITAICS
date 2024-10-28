@@ -46,7 +46,6 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
       }
 
       const data = await response.json();
-      console.log("Fetched achievements data:", data);
 
       setAchievements(Array.isArray(data.achievements) ? data.achievements : []);
     } catch (error) {

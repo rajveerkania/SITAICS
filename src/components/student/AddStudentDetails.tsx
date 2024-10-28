@@ -11,7 +11,7 @@ import {
 import { toast } from "sonner";
 
 interface AddStudentDetailsProps {
-  name: string;
+  id: string;
   setShowAddStudentDetails: (value: boolean) => void;
   fetchUserDetails: () => void;
 }
@@ -21,16 +21,17 @@ interface Course {
 }
 
 const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
-  name,
+  id,
   setShowAddStudentDetails,
   fetchUserDetails,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [courses, setCourses] = useState<{ courseName: string }[]>([]);
   const [batches, setBatches] = useState<{ batchName: string }[]>([]);
-  const userName = name;
+  const [userName, setUserName] = useState("User");
 
   const [studentFormData, setStudentFormData] = useState({
+    id,
     name: "",
     fatherName: "",
     motherName: "",
@@ -208,6 +209,15 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
       }
     };
 
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch(`/api/fetchUserDetails`);
+        const data = await response.json();
+        setUserName(data.user.name);
+      } catch (error) {
+        toast.error("Something went wrong. Please try again later");
+      }
+    };
     fetchUserDetails();
     fetchCourses();
   }, []);
