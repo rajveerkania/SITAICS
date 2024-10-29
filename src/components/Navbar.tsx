@@ -4,7 +4,6 @@ import { NotificationDialog } from "@/components/admin/AdminNotification";
 import BlurIn from "./magicui/blur-in";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import { StudentProfile } from "@/components/student/StudentProfile";
-import { StaffProfile } from "./staff/Staffprofile";
 import Profile from "./staff/Profile";
 
 interface NavBarProps {
