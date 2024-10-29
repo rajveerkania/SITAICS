@@ -148,13 +148,17 @@ export function Navbar({ name, role }: NavBarProps) {
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
                 <ul>
+              <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
+                <ul>
                   <li
+                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg"
                     className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg"
                     onClick={openProfile}
                   >
                     {role === "Admin" ? "Admin Profile" : "Student Profile"}
                   </li>
                   <li
+                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
                     className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
                     onClick={handleLogout}
                   >
@@ -171,6 +175,9 @@ export function Navbar({ name, role }: NavBarProps) {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3 text-center">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                Profile
+              </h3>
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Profile
               </h3>

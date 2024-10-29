@@ -16,7 +16,10 @@ const StudentTimetable: React.FC = () => {
 
         if (data.timetableExists && data.timetable) {
           const base64String = data.timetable;
-          const blob = new Blob([Uint8Array.from(atob(base64String), (c) => c.charCodeAt(0))], { type: "application/pdf" });
+          const blob = new Blob(
+            [Uint8Array.from(atob(base64String), (c) => c.charCodeAt(0))],
+            { type: "application/pdf" }
+          );
           const fileURL = URL.createObjectURL(blob);
           setTimetableURL(fileURL);
           setTitle("Your Timetable");
@@ -37,12 +40,19 @@ const StudentTimetable: React.FC = () => {
       <h2 className="text-4xl font-bold mb-8 text-center">{title}</h2>
 
       {/* Error Message */}
-      {errorMessage && <p className="text-red-500 text-lg mb-6">{errorMessage}</p>}
+      {errorMessage && (
+        <p className="text-red-500 text-lg mb-6">{errorMessage}</p>
+      )}
 
       {/* Display Timetable */}
       {timetableURL ? (
         <div className="flex flex-col items-center justify-center mb-8">
-          <iframe src={timetableURL} width="100%" height="800px" className="border border-gray-500 shadow-lg"></iframe>
+          <iframe
+            src={timetableURL}
+            width="100%"
+            height="800px"
+            className="border border-gray-500 shadow-lg"
+          ></iframe>
         </div>
       ) : (
         <p className="text-gray-500 text-center">Fetching timetable...</p>

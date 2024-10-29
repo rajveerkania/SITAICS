@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
         timetableExists: true,
         timetable: existingBatch.timetable.toString("base64"), // Sending as base64 to view it as a PDF
       });
-    }
+    } 
 
     return NextResponse.json({ message: "Timetable not found!" }, { status: 404 });
   } catch (error: any) {

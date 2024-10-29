@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 import type { Metadata } from "next";
 import AccessDenied from "@/components/accessDenied";

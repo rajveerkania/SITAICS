@@ -164,13 +164,16 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const updatedStudentDetails = await fetch(`/api/student/addStudentDetails`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(studentFormData),
-      });
+      const updatedStudentDetails = await fetch(
+        `/api/student/addStudentDetails`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(studentFormData),
+        }
+      );
 
       if (updatedStudentDetails.ok) {
         toast.success("Student details added successfully.");

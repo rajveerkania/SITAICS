@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
       ]);
     }
 
+    // Update BatchSubject table with the selected subjects and staff ID
     const batchSubjectUpdates = selectedSubjectIds.map((subjectId: string) =>
       prisma.batchSubject.upsert({
         where: {
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
         create: {
           batchId,
           subjectId,
-          semester: 1, 
+          semester: 1, // Adjust semester value as needed
           staffId: userId,
         },
       })

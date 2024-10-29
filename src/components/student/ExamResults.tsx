@@ -1,279 +1,259 @@
-import React, { useState, ChangeEvent } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle2, X, Upload, Eye, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import PDFViewerModal from "./PDFViewerModel";
 
-interface UploadedResult {
-  id: string;
-  semester: string;
-  file: File | null;
-  url: string;
-}
+const ExamResults = () => {
+  const [activeTab, setActiveTab] = useState("add");
+  const [semester, setSemester] = useState<number | string>(1);
+  const [file, setFile] = useState<File | null>(null);
+  const [isRepeater, setIsRepeater] = useState(false);
+  const [name, setName] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [availableSemesters, setAvailableSemesters] = useState<number[]>([]);
+  const [results, setResults] = useState<any[]>([]);
+  const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
-const SemesterCard: React.FC<{
-  semester: string;
-  result: UploadedResult | undefined;
-  onUpload: (file: File) => void;
-  onRemove: () => void;
-}> = ({ semester, result, onUpload, onRemove }) => (
-  <Card className="w-full sm:w-64">
-    <CardHeader>
-      <CardTitle className="text-lg">{semester}</CardTitle>
-    </CardHeader>
-    <CardContent>
-      {result ? (
-        <div className="space-y-2">
-          <p className="text-sm text-gray-500 truncate">{result.file?.name}</p>
-          <div className="flex justify-between">
-            <a
-              href={result.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline flex items-center"
-            >
-              <Eye className="w-4 h-4 mr-1" /> View
-            </a>
-            <Button variant="destructive" size="sm" onClick={onRemove}>
-              <X className="w-4 h-4 mr-1" /> Remove
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div>
-          <Input
-            type="file"
-            accept=".pdf"
-            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              const file = e.target.files?.[0];
-              if (file) onUpload(file);
-            }}
-            className="hidden"
-            id={`file-upload-${semester}`}
-          />
-          <label
-            htmlFor={`file-upload-${semester}`}
-            className="flex items-center justify-center p-2 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400"
-          >
-            <Upload className="w-5 h-5 mr-2" />
-            <span>Upload PDF</span>
-          </label>
-        </div>
-      )}
-    </CardContent>
-  </Card>
-);
+  useEffect(() => {
+    const fetchAvailableSemesters = async () => {
+      try {
+        const response = await fetch("/api/student/availableSemesters");
+        if (!response.ok)
+          throw new Error("Failed to fetch available semesters");
+        const semesters = await response.json();
+        setAvailableSemesters(semesters);
+      } catch (error) {
+        console.error("Error fetching semesters:", error);
+      }
+    };
 
-const RepeaterResultCard: React.FC<{
-  result: UploadedResult;
-  onUpload: (file: File) => void;
-  onRemove: () => void;
-}> = ({ result, onUpload, onRemove }) => (
-  <Card className="w-full sm:w-64">
-    <CardHeader>
-      <CardTitle className="text-lg">Repeater Result</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-2">
-        <p className="text-sm text-gray-500 truncate">{result.file?.name}</p>
-        <div className="flex justify-between">
-          <a
-            href={result.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 hover:underline flex items-center"
-          >
-            <Eye className="w-4 h-4 mr-1" /> View
-          </a>
-          <Button variant="destructive" size="sm" onClick={onRemove}>
-            <X className="w-4 h-4 mr-1" /> Remove
-          </Button>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+    fetchAvailableSemesters();
+  }, []);
 
-const ExamResults: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("upload");
-  const [uploadedResults, setUploadedResults] = useState<UploadedResult[]>([]);
-  const [repeaterResults, setRepeaterResults] = useState<UploadedResult[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  useEffect(() => {
+    if (activeTab === "view") {
+      const fetchResults = async () => {
+        try {
+          const response = await fetch("/api/student/viewResults");
+          if (!response.ok) throw new Error("Failed to fetch results");
+          const data = await response.json();
+          console.log(data);
+          setResults(data.results);
+        } catch (error) {
+          toast.error("Error while fetching results");
+        }
+      };
+      fetchResults();
+    }
+  }, [activeTab]);
 
-  const semesters = [
-    "Semester 1",
-    "Semester 2",
-    "Semester 3",
-    "Semester 4",
-    "Semester 5",
-    "Semester 6",
-    "Semester 7",
-    "Semester 8",
-  ];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) setFile(e.target.files[0]);
+  };
 
-  const handleFileUpload = (semester: string, file: File, isRepeater: boolean = false) => {
-    const validationMessage = validateFile(file);
-    if (validationMessage) {
-      setError(validationMessage);
+  const handleUpload = async () => {
+    if (!file || !semester) {
+      setMessage("Semester and file are required.");
       return;
     }
 
-    const newResult: UploadedResult = {
-      id: isRepeater ? `repeater-${Date.now()}` : semester,
-      semester: semester,
-      file: file,
-      url: URL.createObjectURL(file),
-    };
+    const formData = new FormData();
+    formData.append("semester", String(semester));
+    formData.append("result", file);
+    formData.append("isRepeater", String(isRepeater));
+    if (name) formData.append("name", name);
 
-    if (isRepeater) {
-      setRepeaterResults([...repeaterResults, newResult]);
-    } else {
-      const updatedResults = uploadedResults.filter((result) => result.semester !== semester);
-      setUploadedResults([...updatedResults, newResult]);
+    try {
+      const res = await fetch("/api/student/addResult", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      setMessage(data.message);
+      if (data.success) {
+        setSemester(1);
+        setFile(null);
+        setIsRepeater(false);
+        setName("");
+
+        window.location.reload(); // Refresh the page
+      }
+    } catch (err) {
+      console.error("Error uploading:", err);
+      setMessage("Failed to upload result.");
     }
-
-    setSuccessMessage("File uploaded successfully!");
-    setError(null);
   };
 
-  const handleRemoveFile = (id: string, isRepeater: boolean = false) => {
-    if (isRepeater) {
-      const newResults = repeaterResults.filter((result) => result.id !== id);
-      const removedFile = repeaterResults.find((result) => result.id === id);
-      if (removedFile) {
-        URL.revokeObjectURL(removedFile.url);
-      }
-      setRepeaterResults(newResults);
+  const handleIsRepeaterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setIsRepeater(checked);
+    // Update available semesters based on the checkbox state
+    if (checked) {
+      // If isRepeater is checked, set all semesters
+      setAvailableSemesters([1, 2, 3, 4, 5, 6, 7, 8]);
     } else {
-      const newResults = uploadedResults.filter((result) => result.id !== id);
-      const removedFile = uploadedResults.find((result) => result.id === id);
-      if (removedFile) {
-        URL.revokeObjectURL(removedFile.url);
-      }
-      setUploadedResults(newResults);
+      // If unchecked, fetch available semesters
+      fetchAvailableSemesters(); // Call the function here
     }
-    setSuccessMessage(null);
   };
 
-  const validateFile = (file: File) => {
-    if (file.type !== "application/pdf") {
-      return "Please upload a valid PDF file.";
+  // Fetch available semesters for the first time
+  const fetchAvailableSemesters = async () => {
+    try {
+      const response = await fetch("/api/student/availableSemesters");
+      if (!response.ok) throw new Error("Failed to fetch available semesters");
+      const semesters = await response.json();
+      setAvailableSemesters(semesters);
+    } catch (error) {
+      console.error("Error fetching semesters:", error);
     }
-    if (file.size > 5 * 1024 * 1024) {
-      return "File size exceeds 5MB. Please choose a smaller file.";
-    }
-    return null;
+  };
+
+  const handleViewPdf = async (pdfData: string) => {
+    setSelectedPdf(pdfData);
+    setIsPdfModalOpen(true);
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="upload">Upload Results</TabsTrigger>
-          <TabsTrigger value="view">View Results</TabsTrigger>
-        </TabsList>
+    <div className="p-6 max-w-4xl mx-auto bg-white rounded-2xl shadow-lg">
+      <h1 className="text-3xl font-bold text-center mb-6">Exam Results</h1>
+      <div className="flex justify-center mb-4">
+        <button
+          onClick={() => setActiveTab("add")}
+          className={`px-6 py-2 rounded-lg transition duration-300 ${
+            activeTab === "add"
+              ? "bg-black text-white"
+              : "bg-gray-200 text-black"
+          }`}
+        >
+          Add Result
+        </button>
+        <button
+          onClick={() => setActiveTab("view")}
+          className={`ml-4 px-6 py-2 rounded-lg transition duration-300 ${
+            activeTab === "view"
+              ? "bg-black text-white"
+              : "bg-gray-200 text-black"
+          }`}
+        >
+          View Results
+        </button>
+      </div>
+      {message && <p className="text-red-500 text-center mb-4">{message}</p>}
 
-        <TabsContent value="upload" className="mt-4">
-          {error && (
-            <div className="flex items-center p-4 mb-4 text-red-800 rounded-lg bg-red-50">
-              <AlertCircle className="flex-shrink-0 w-5 h-5 mr-2" />
-              <span className="sr-only">Error</span>
-              <div>{error}</div>
-            </div>
-          )}
-          {successMessage && (
-            <div className="flex items-center p-4 mb-4 text-green-800 rounded-lg bg-green-50">
-              <CheckCircle2 className="flex-shrink-0 w-5 h-5 mr-2" />
-              <span className="sr-only">Success</span>
-              <div>{successMessage}</div>
-            </div>
-          )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {semesters.map((semester) => (
-              <SemesterCard
-                key={semester}
-                semester={semester}
-                result={uploadedResults.find((r) => r.semester === semester)}
-                onUpload={(file) => handleFileUpload(semester, file)}
-                onRemove={() => handleRemoveFile(semester)}
-              />
-            ))}
+      {activeTab === "add" ? (
+        <>
+          <div className="mb-4 flex items-center">
+            <input
+              id="isRepeater"
+              type="checkbox"
+              checked={isRepeater}
+              onChange={handleIsRepeaterChange}
+              className="h-4 w-4 text-black border-gray-300 rounded focus:ring-black"
+            />
+            <label
+              htmlFor="isRepeater"
+              className="ml-2 block text-sm text-gray-700"
+            >
+              Is Repeater?
+            </label>
           </div>
-
-          <div className="mt-8">
-            <h3 className="text-xl font-semibold mb-4">Repeater Results</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {repeaterResults.map((result) => (
-                <RepeaterResultCard
-                  key={result.id}
-                  result={result}
-                  onUpload={(file) => handleFileUpload("Repeater", file, true)}
-                  onRemove={() => handleRemoveFile(result.id, true)}
-                />
-              ))}
-              <Card className="w-full sm:w-64 flex items-center justify-center">
-                <CardContent>
-                  <Input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileUpload("Repeater", file, true);
-                    }}
-                    className="hidden"
-                    id="repeater-upload"
-                  />
-                  <label
-                    htmlFor="repeater-upload"
-                    className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400"
-                  >
-                    <Plus className="w-8 h-8 mb-2" />
-                    <span>Add Repeater Result</span>
-                  </label>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="view" className="mt-4">
-          <h3 className="text-xl font-semibold mb-4">Your Uploaded Results</h3>
-          {uploadedResults.length > 0 || repeaterResults.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {uploadedResults.map((result) => (
-                  <SemesterCard
-                    key={result.id}
-                    semester={result.semester}
-                    result={result}
-                    onUpload={(file) => handleFileUpload(result.semester, file)}
-                    onRemove={() => handleRemoveFile(result.id)}
-                  />
-                ))}
-              </div>
-              {repeaterResults.length > 0 && (
-                <>
-                  <h3 className="text-xl font-semibold my-4">Repeater Results</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {repeaterResults.map((result) => (
-                      <RepeaterResultCard
-                        key={result.id}
-                        result={result}
-                        onUpload={(file) => handleFileUpload("Repeater", file, true)}
-                        onRemove={() => handleRemoveFile(result.id, true)}
-                      />
-                    ))}
-                  </div>
-                </>
+          <div className="mb-4">
+            <label
+              htmlFor="semester"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Select Semester
+            </label>
+            <select
+              id="semester"
+              value={semester}
+              onChange={(e) => setSemester(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black transition duration-200 ease-in-out"
+            >
+              {availableSemesters.length > 0 ? (
+                availableSemesters.map((sem) => (
+                  <option key={sem} value={sem}>
+                    Semester {sem}
+                  </option>
+                ))
+              ) : (
+                <option value="">Loading...</option>
               )}
-            </>
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label
+              htmlFor="file-upload"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Upload Result (PDF)
+            </label>
+            <input
+              id="file-upload"
+              type="file"
+              onChange={handleFileChange}
+              accept=".pdf"
+              className="mt-1 block w-full text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black transition duration-200 ease-in-out"
+            />
+          </div>
+          <button
+            onClick={handleUpload}
+            className="w-full bg-black text-white py-2 rounded-md hover:bg-black transition duration-200 ease-in-out"
+          >
+            Upload Result
+          </button>
+        </>
+      ) : (
+        <div className="mt-4">
+          <h2 className="text-lg font-bold mb-2">Your Results</h2>
+          {results.length === 0 ? (
+            <p>No results found.</p>
           ) : (
-            <p className="text-gray-500">You haven't uploaded any results yet.</p>
+            <table className="min-w-full border border-gray-300">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Semester
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Is Repeater
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((result, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-2">
+                      {result.semester}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {result.isRepeater ? "Yes" : "No"}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <button
+                        onClick={() => handleViewPdf(result.resultFile)}
+                        className="text-black hover:underline"
+                      >
+                        View Result
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
-        </TabsContent>
-      </Tabs>
+          <PDFViewerModal
+            isOpen={isPdfModalOpen}
+            onClose={() => setIsPdfModalOpen(false)}
+            pdfData={selectedPdf}
+          />
+        </div>
+      )}
     </div>
   );
 };
