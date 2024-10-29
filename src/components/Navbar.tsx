@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { NotificationDialog } from "@/components/admin/AdminNotification";
-import Notification from "@/components/staff/Notification"; // Adjusted import
 import BlurIn from "./magicui/blur-in";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import { StudentProfile } from "@/components/student/StudentProfile";
+import { StaffProfile } from "./staff/Staffprofile";
+import Profile from "./staff/Profile";
 
 interface NavBarProps {
   name?: string;
-  role?: string;
+  role?: "Admin" | "Staff" | "Student";
 }
 
 interface LoadingSkeletonProps {
@@ -134,12 +135,17 @@ export function Navbar({ name, role }: NavBarProps) {
         </div>
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">{dateTime}</div>
-          {role === "Admin" && <NotificationDialog />}
-          {role === "Staff" && <Notification />} 
+          <NotificationDialog />
           <div className="relative" ref={dropdownRef}>
             <div onClick={toggleDropdown} className="cursor-pointer">
               <Image
-                src={role === "Admin" ? "/Admin-logo.png" : "/User-logo.png"}
+                src={
+                  role === "Admin"
+                    ? "/Admin-logo.png"
+                    : role === "Staff"
+                    ? "/Staff-logo.png"
+                    : "/User-logo.png"
+                }
                 alt="Profile Logo"
                 width={60}
                 height={60}
@@ -148,17 +154,17 @@ export function Navbar({ name, role }: NavBarProps) {
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
                 <ul>
-              <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
-                <ul>
                   <li
-                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg"
                     className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg"
                     onClick={openProfile}
                   >
-                    {role === "Admin" ? "Admin Profile" : "Student Profile"}
+                    {role === "Admin"
+                      ? "Admin Profile"
+                      : role === "Staff"
+                      ? "Staff Profile"
+                      : "Student Profile"}
                   </li>
                   <li
-                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
                     className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
                     onClick={handleLogout}
                   >
@@ -178,15 +184,21 @@ export function Navbar({ name, role }: NavBarProps) {
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Profile
               </h3>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Profile
-              </h3>
               <div className="mt-2 px-7 py-3">
                 {role === "Admin" ? (
                   <AdminProfile
                     name={name || "Default Admin Name"}
                     email="admin@example.com"
                     username="admin123"
+                  />
+                ) : role === "Staff" ? (
+                  <Profile
+                    staffDetails={{
+                      department: "IT",
+                      position: "Lecturer",
+                      email: "staff@example.com",
+                      contactNo: "9876543210",
+                    }}
                   />
                 ) : (
                   <StudentProfile
