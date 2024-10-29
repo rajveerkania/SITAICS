@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { NotificationDialog } from "@/components/admin/AdminNotification";
+import Notification from "@/components/staff/Notification"; // Adjusted import
 import BlurIn from "./magicui/blur-in";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import { StudentProfile } from "@/components/student/StudentProfile";
@@ -134,7 +135,8 @@ export function Navbar({ name, role }: NavBarProps) {
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">{dateTime}</div>
           {role === "Admin" && <NotificationDialog />}
-          <div className="relative " ref={dropdownRef}>
+          {role === "Staff" && <Notification />} 
+          <div className="relative" ref={dropdownRef}>
             <div onClick={toggleDropdown} className="cursor-pointer">
               <Image
                 src={role === "Admin" ? "/Admin-logo.png" : "/User-logo.png"}
@@ -152,11 +154,6 @@ export function Navbar({ name, role }: NavBarProps) {
                   >
                     {role === "Admin" ? "Admin Profile" : "Student Profile"}
                   </li>
-                  {role === "Admin" && (
-                    <li className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer">
-                      Send Notification
-                    </li>
-                  )}
                   <li
                     className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
                     onClick={handleLogout}
@@ -170,7 +167,6 @@ export function Navbar({ name, role }: NavBarProps) {
         </div>
       </div>
 
-      {/* Profile Modal */}
       {profileOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
