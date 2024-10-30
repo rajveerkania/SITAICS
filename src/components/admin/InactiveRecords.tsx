@@ -19,6 +19,7 @@ import LoadingSkeleton from "../LoadingSkeleton";
 import AccessDenied from "../accessDenied";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
+import { TbRestore } from "react-icons/tb";
 
 interface Record {
   id?: string;
@@ -101,6 +102,34 @@ const InactiveRecords = () => {
 
   const filteredRecords = getFilteredRecords();
 
+  const markActive = async (id: string) => {
+    if (!id) {
+      toast.error("Invalid record ID");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/markActive/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id, category: selectedOption }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        toast.success(data.message);
+        fetchRecords();
+      } else {
+        toast.error(data.message || "Failed to activate record");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    }
+  };
+
   const getTableHeaders = () => {
     switch (selectedOption) {
       case "batch":
@@ -140,7 +169,7 @@ const InactiveRecords = () => {
           value={selectedOption}
           onValueChange={(value) => setSelectedOption(value)}
         >
-          <SelectTrigger className="sm:w-full lg:w-max">
+          <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select Category" />
           </SelectTrigger>
 
@@ -184,7 +213,16 @@ const InactiveRecords = () => {
                     </TableCell>
                   ))}
                   <TableCell>
-                    <Button>Edit</Button>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => markActive(record.id!)}
+                        style={{ backgroundColor: "black", color: "white" }}
+                        className="flex items-center"
+                      >
+                        <TbRestore />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

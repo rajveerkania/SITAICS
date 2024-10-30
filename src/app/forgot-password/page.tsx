@@ -9,7 +9,7 @@ export default function ForgotPassword() {
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [successMessage, setSuccessMessage] = useState(""); 
+  const [successMessage, setSuccessMessage] = useState("");
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
@@ -29,7 +29,7 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
       setErrors({});
-      setSuccessMessage(""); 
+      setSuccessMessage("");
 
       const res = await fetch("/api/forgot-password", {
         method: "POST",
@@ -41,15 +41,19 @@ export default function ForgotPassword() {
 
       const data = await res.json();
       if (!data.success) {
-        setErrors({ emailOrUsername: "No account found with that information" });
+        setErrors({
+          emailOrUsername: "No account found with that information",
+        });
         return;
       }
 
-      setSuccessMessage("Request has been shared with the existing email address."); 
-      
+      setSuccessMessage(
+        "Request has been shared with the existing email address."
+      );
+
       setTimeout(() => {
         router.push("./");
-      }, 2000); 
+      }, 2000);
     } catch (error) {
       console.error("An error occurred during password reset:", error);
       setErrors({ emailOrUsername: "An unexpected error occurred." });
