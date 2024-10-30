@@ -66,6 +66,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   const [availableSubjects, setAvailableSubjects] = useState<{
     subjectId: string;
     subjectName: string;
+    subjectCode: string;
   }[]>([]);
 
   useEffect(() => {
@@ -177,9 +178,10 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   };
 
   const handleSelectedSubjectChange = (index: number, subjectId: string) => {
-    setStaffFormData(prev => {
+    setStaffFormData((prev) => {
       const selectedSubjects = [...prev.selectedSubjectIds];
       selectedSubjects[index] = subjectId;
+
       return {
         ...prev,
         selectedSubjectIds: selectedSubjects,
@@ -281,6 +283,12 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
 
   const previousStep = () => {
     setCurrentStep((prevStep) => prevStep - 1);
+  };
+  const filteredSubjects = (index: number) => {
+    const selectedIds = staffFormData.selectedSubjectIds.slice(0, index);
+    return availableSubjects.filter(
+      (subject) => !selectedIds.includes(subject.subjectId)
+    );
   };
 
   return (
@@ -427,15 +435,17 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
             [...Array(staffFormData.subjectCount)].map((_, index) => (
               <Select
                 key={index}
-                onValueChange={(subjectId) => handleSelectedSubjectChange(index, subjectId)}
+                onValueChange={(subjectId) =>
+                  handleSelectedSubjectChange(index, subjectId)
+                }
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder={`Select Subject ${index + 1}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableSubjects.map((subject) => (
+                  {filteredSubjects(index).map((subject) => (
                     <SelectItem key={subject.subjectId} value={subject.subjectId}>
-                      {subject.subjectName}
+                      {`${subject.subjectName} (${subject.subjectCode})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
