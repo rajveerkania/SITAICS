@@ -203,7 +203,7 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="timetable">
-                <Timetable timetableData={[]} />
+            <Timetable timetableData={[]} />
           </TabsContent>
 
           <TabsContent value="subjects">
@@ -249,7 +249,7 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="achievements">
-                <Achievement />
+            <Achievement />
           </TabsContent>
           <TabsContent value="placement">
             <Card>

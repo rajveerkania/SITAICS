@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/utils/auth";
-import { v4 as uuidv4 } from 'uuid'; // For generating unique IDs for achievements
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   const decodedUser = verifyToken();
@@ -13,13 +13,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Parse the JSON input for the new achievement
+    
     const { title, description, date, category } = await request.json();
 
     let achievements = [];
 
     if (userRole === "Staff") {
-      // Fetch existing staff details and achievements
+      
       const staffDetails = await prisma.staffDetails.findUnique({
         where: { id: userId },
         select: { achievements: true },
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       achievements = staffDetails.achievements ? staffDetails.achievements : [];
 
     } else if (userRole === "Student") {
-      // Fetch existing student details and achievements
+
       const studentDetails = await prisma.studentDetails.findUnique({
         where: { id: userId },
         select: { achievements: true },
@@ -45,10 +45,9 @@ export async function POST(request: NextRequest) {
       achievements = studentDetails.achievements ? studentDetails.achievements : [];
     }
 
-    // Ensure achievements are in JSON format
+    
     achievements = Array.isArray(achievements) ? achievements : [];
 
-    // Check if the achievement already exists (by comparing title, description, date, and category)
     const achievementExists = achievements.some(
       (achievement: any) =>
         achievement.title === title &&
@@ -61,7 +60,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Achievement already exists!" }, { status: 409 });
     }
 
-    // Create a new achievement with a unique ID
     const newAchievement = {
       id: uuidv4(),
       title,
@@ -70,11 +68,10 @@ export async function POST(request: NextRequest) {
       category,
     };
 
-    // Append the new achievement to the existing array
+   
     achievements.push(newAchievement);
 
-    // Update the staff or student details in the database with the new achievement
-    if (userRole === "Staff") {
+      if (userRole === "Staff") {
       const updatedStaffDetails = await prisma.staffDetails.update({
         where: { id: userId },
         data: { achievements },
