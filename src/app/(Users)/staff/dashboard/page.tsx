@@ -8,7 +8,7 @@ import Result from "@/components/staff/Result";
 import Attendance from "@/components/staff/Attendance";
 import StudentList from "@/components/staff/StudentList";
 import Timetable from "@/components/staff/Timetable";
-import Achievements from "@/components/staff/Achievement";
+import Achievements from "@/components/staff/Achievements"
 import Leave from "@/components/staff/Leave";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Toaster, toast } from "sonner";

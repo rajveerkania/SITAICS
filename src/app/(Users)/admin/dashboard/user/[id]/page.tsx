@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import usePreviousRoute from "@/app/hooks/usePreviousRoute";
@@ -35,15 +35,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// const UserEditPage: React.FC = () => {
-//   const { id } = useParams();
-//   const { handleBack } = usePreviousRoute();
-//   const [user, setUser] = useState<UserDetails | null>(null);
-//   const [editedUser, setEditedUser] = useState<UserDetails | null>(null);
-//   const [isEditing, setIsEditing] = useState(false);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [basicInfoExpanded, setBasicInfoExpanded] = useState(true);
-//   const [additionalInfoExpanded, setAdditionalInfoExpanded] = useState(true);
+const UserEditPage: React.FC = () => {
+  const { id } = useParams();
+  const { handleBack } = usePreviousRoute();
+  const [user, setUser] = useState<UserDetails | null>(null);
+  const [editedUser, setEditedUser] = useState<UserDetails | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [basicInfoExpanded, setBasicInfoExpanded] = useState(true);
+  const [additionalInfoExpanded, setAdditionalInfoExpanded] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -63,13 +63,13 @@ import {
       }
     };
 
-//     if (id) {
-//       fetchUserData();
-//     }
-//   }, [id]);
+    if (id) {
+      fetchUserData();
+    }
+  }, [id]);
 
-//   const handleSave = async () => {
-//     if (!editedUser) return;
+  const handleSave = async () => {
+    if (!editedUser) return;
 
     try {
       const response = await fetch(`/api/admin/updateUserDetails/${id}`, {
@@ -84,20 +84,20 @@ import {
         throw new Error("Failed to update user");
       }
 
-//       const updatedUser = await response.json();
-//       setUser(updatedUser);
-//       setEditedUser(updatedUser);
-//       toast.success("User updated successfully");
-//       setIsEditing(false);
-//     } catch (error) {
-//       toast.error("Failed to update user");
-//       console.error(error);
-//     }
-//   };
+      const updatedUser = await response.json();
+      setUser(updatedUser);
+      setEditedUser(updatedUser);
+      toast.success("User updated successfully");
+      setIsEditing(false);
+    } catch (error) {
+      toast.error("Failed to update user");
+      console.error(error);
+    }
+  };
 
   const handleInputChange = (field: string, value: any) => {
     if (editedUser) {
-      setEditedUser((prevState) => ({
+      setEditedUser((prevState: any) => ({
         ...prevState!,
         [field]: value,
       }));
@@ -106,7 +106,7 @@ import {
 
   const handleRoleDetailsChange = (field: string, value: any) => {
     if (editedUser) {
-      setEditedUser((prevState) => ({
+      setEditedUser((prevState: any) => ({
         ...prevState!,
         roleDetails: {
           ...prevState!.roleDetails,
