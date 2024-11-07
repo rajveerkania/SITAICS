@@ -1,518 +1,416 @@
-"use client";
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format } from 'date-fns';
 
-import React, { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectItem,
-  SelectTrigger,
-  SelectContent,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-
-const mockAttendanceData = [
-  {
-    id: 1,
-    name: "John Doe",
-    course: "BTech",
-    batch: "2021-2025",
-    subject: "Data Structures",
-    attendance: {},
-  },
+const WEEKDAYS = [
+  { label: 'Mon', value: 'MONDAY' },
+  { label: 'Tue', value: 'TUESDAY' },
+  { label: 'Wed', value: 'WEDNESDAY' },
+  { label: 'Thu', value: 'THURSDAY' },
+  { label: 'Fri', value: 'FRIDAY' }
 ];
 
-const mockAttendanceRecords = [
-  {
-    id: 1,
-    name: "John Doe",
-    course: "BTech",
-    batch: "2021-2025",
-    subject: "Data Structures",
-    attendance: {
-      "2024-09-01": "Present",
-      "2024-09-02": "Absent",
-      "2024-09-03": "Present",
-    },
-  },
-];
+const AttendanceManagement = () => {
+  const [activeTab, setActiveTab] = useState('settings');
+  const [hasLab, setHasLab] = useState(false);
+  const [selectedLectureDays, setSelectedLectureDays] = useState<string[]>([]);
+  const [selectedLabDays, setSelectedLabDays] = useState<string[]>([]);
+  const [settings, setSettings] = useState({
+    subjectId: '',
+    batchId: '',
+    lecturesPerWeek: 0,
+    labsPerWeek: 0,
+    sessionStartDate: '',
+    sessionEndDate: ''
+  });
 
-const MarkAttendanceTab = ({ attendanceData, setAttendanceData }) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-  const [selectedBatch, setSelectedBatch] = useState<string | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState("");
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-  };
-
-  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedDate(event.target.value);
-  };
-
-  const handleAttendanceChange = (studentId: number, status: string) => {
-    setAttendanceData((prevData: any[]) =>
-      prevData.map((student: { id: number; attendance: any }) => {
-        if (student.id === studentId) {
-          const newAttendance = {
-            ...student.attendance,
-            [parseDate(selectedDate)]: status,
-          };
-          return { ...student, attendance: newAttendance };
-        }
-        return student;
-      })
-    );
-  };
-
-  const handleSubmitAttendance = () => {
-    console.log("Submitting attendance for date:", selectedDate);
-    console.log("Attendance data:", attendanceData);
-    setSelectedDate("");
-  };
-
-  const filteredData = attendanceData.filter(
-    (entry: {
-      name: string;
-      course: string;
-      batch: string;
-      subject: string;
-    }) => {
-      return (
-        entry.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        (selectedCourse === null || entry.course === selectedCourse) &&
-        (selectedBatch === null || entry.batch === selectedBatch) &&
-        (selectedSubject === null || entry.subject === selectedSubject)
+  const handleDaySelection = (day: string, type: 'lecture' | 'lab') => {
+    if (type === 'lecture') {
+      setSelectedLectureDays(prev => 
+        prev.includes(day) 
+          ? prev.filter(d => d !== day)
+          : [...prev, day]
+      );
+    } else {
+      setSelectedLabDays(prev => 
+        prev.includes(day) 
+          ? prev.filter(d => d !== day)
+          : [...prev, day]
       );
     }
-  );
+  };
+
+  const handleSettingsSave = async () => {
+    try {
+      const response = await fetch('/api/attendance/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...settings,
+          hasLab,
+          lectureDays: selectedLectureDays,
+          labDays: selectedLabDays,
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to save settings');
+      
+      // Handle success
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    }
+  };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 bg-white rounded-lg shadow-md">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
-        <div className="flex flex-col sm:flex-row sm:space-x-2 mb-4 sm:mb-0">
-          <Input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search by name"
-            className="px-4 py-2 border border-gray-300 rounded-md mb-2 sm:mb-0 sm:w-64"
-          />
-          <Select
-            onValueChange={setSelectedCourse}
-            value={selectedCourse || ""}
-          >
-            <SelectTrigger className="w-[200px]">
-              {selectedCourse || "Select Course"}
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Courses</SelectItem>
-              <SelectItem value="BTech">BTech</SelectItem>
-              <SelectItem value="MTech CS">MTech CS</SelectItem>
-              <SelectItem value="MTech AI/ML">MTech AI/ML</SelectItem>
-              <SelectItem value="MSCDF">MSCDF</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select onValueChange={setSelectedBatch} value={selectedBatch || ""}>
-            <SelectTrigger className="w-[200px]">
-              {selectedBatch || "Select Batch"}
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Batches</SelectItem>
-              <SelectItem value="2021-2025">2021-2025</SelectItem>
-              <SelectItem value="2022-2026">2022-2026</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={setSelectedSubject}
-            value={selectedSubject || ""}
-          >
-            <SelectTrigger className="w-[200px]">
-              {selectedSubject || "Select Subject"}
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Subjects</SelectItem>
-              <SelectItem value="Data Structures">Data Structures</SelectItem>
-              <SelectItem value="Machine Learning">Machine Learning</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input
-            type="text"
-            value={selectedDate}
-            onChange={handleDateChange}
-            placeholder="Date (dd/mm/yy)"
-            className="px-4 py-2 border border-gray-300 rounded-md mb-2 sm:mb-0 sm:w-32"
-          />
-        </div>
-        <div className="flex space-x-2">
-          <Button
-            className="bg-black text-white hover:bg-gray-800"
-            onClick={handleSubmitAttendance}
-            disabled={!selectedDate}
-          >
-            Submit Attendance
-          </Button>
-          <Button
-            variant="outline"
-            className="bg-gray-200 text-black hover:bg-gray-300"
-            onClick={() => {
-              setSearchQuery("");
-              setSelectedCourse(null);
-              setSelectedBatch(null);
-              setSelectedSubject(null);
-              setSelectedDate("");
-            }}
-          >
-            Clear
-          </Button>
-        </div>
-      </div>
+    <div className="container mx-auto p-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="settings">Attendance Settings</TabsTrigger>
+          <TabsTrigger value="marking">Mark Attendance</TabsTrigger>
+        </TabsList>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Course</TableHead>
-            <TableHead>Batch</TableHead>
-            <TableHead>Subject</TableHead>
-            <TableHead>Attendance</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredData.map(
-            (entry: {
-              id: React.Key | null | undefined;
-              name:
-                | string
-                | number
-                | bigint
-                | boolean
-                | React.ReactElement<
-                    any,
-                    string | React.JSXElementConstructor<any>
-                  >
-                | Iterable<React.ReactNode>
-                | React.ReactPortal
-                | Promise<React.AwaitedReactNode>
-                | null
-                | undefined;
-              course:
-                | string
-                | number
-                | bigint
-                | boolean
-                | React.ReactElement<
-                    any,
-                    string | React.JSXElementConstructor<any>
-                  >
-                | Iterable<React.ReactNode>
-                | React.ReactPortal
-                | Promise<React.AwaitedReactNode>
-                | null
-                | undefined;
-              batch:
-                | string
-                | number
-                | bigint
-                | boolean
-                | React.ReactElement<
-                    any,
-                    string | React.JSXElementConstructor<any>
-                  >
-                | Iterable<React.ReactNode>
-                | React.ReactPortal
-                | Promise<React.AwaitedReactNode>
-                | null
-                | undefined;
-              subject:
-                | string
-                | number
-                | bigint
-                | boolean
-                | React.ReactElement<
-                    any,
-                    string | React.JSXElementConstructor<any>
-                  >
-                | Iterable<React.ReactNode>
-                | React.ReactPortal
-                | Promise<React.AwaitedReactNode>
-                | null
-                | undefined;
-              attendance: { [x: string]: any };
-            }) => (
-              <TableRow
-                key={entry.id}
-                className="hover:bg-gray-100 transition-all"
-              >
-                <TableCell>{entry.name}</TableCell>
-                <TableCell>{entry.course}</TableCell>
-                <TableCell>{entry.batch}</TableCell>
-                <TableCell>{entry.subject}</TableCell>
-                <TableCell>
-                  <Select
-                    onValueChange={(status) =>
-                      handleAttendanceChange(entry.id, status)
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configure Attendance Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Select Subject</Label>
+                    <Select
+                      onValueChange={(value) => 
+                        setSettings(prev => ({ ...prev, subjectId: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose subject" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="math1">Mathematics-1</SelectItem>
+                        <SelectItem value="math2">Mathematics-2</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Select Batch</Label>
+                    <Select
+                      onValueChange={(value) => 
+                        setSettings(prev => ({ ...prev, batchId: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose batch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2021">BTech 2021-2025</SelectItem>
+                        <SelectItem value="2020">BTech 2020-2024</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Lectures per Week</Label>
+                  <Input 
+                    type="number" 
+                    min="1" 
+                    max="5"
+                    onChange={(e) => 
+                      setSettings(prev => ({ 
+                        ...prev, 
+                        lecturesPerWeek: parseInt(e.target.value) 
+                      }))
                     }
-                    value={entry.attendance[parseDate(selectedDate)] || ""}
-                    disabled={!selectedDate}
-                  >
-                    <SelectTrigger className="w-[120px]">
-                      {entry.attendance[parseDate(selectedDate)] || "Mark"}
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Present">Present</SelectItem>
-                      <SelectItem value="Absent">Absent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-              </TableRow>
-            )
-          )}
-        </TableBody>
-      </Table>
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch 
+                    id="lab-switch" 
+                    checked={hasLab}
+                    onCheckedChange={setHasLab}
+                  />
+                  <Label htmlFor="lab-switch">Has Lab Sessions</Label>
+                </div>
+
+                {hasLab && (
+                  <div className="space-y-2">
+                    <Label>Labs per Week</Label>
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      max="5"
+                      onChange={(e) => 
+                        setSettings(prev => ({ 
+                          ...prev, 
+                          labsPerWeek: parseInt(e.target.value) 
+                        }))
+                      }
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Select Lecture Days</Label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {WEEKDAYS.map((day) => (
+                      <Button
+                        key={day.value}
+                        variant={selectedLectureDays.includes(day.value) ? "default" : "outline"}
+                        className="w-full"
+                        onClick={() => handleDaySelection(day.value, 'lecture')}
+                      >
+                        {day.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {hasLab && (
+                  <div className="space-y-2">
+                    <Label>Select Lab Days</Label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {WEEKDAYS.map((day) => (
+                        <Button
+                          key={day.value}
+                          variant={selectedLabDays.includes(day.value) ? "default" : "outline"}
+                          className="w-full"
+                          onClick={() => handleDaySelection(day.value, 'lab')}
+                        >
+                          {day.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Session Start Date</Label>
+                  <Input 
+                    type="date" 
+                    onChange={(e) => 
+                      setSettings(prev => ({ 
+                        ...prev, 
+                        sessionStartDate: e.target.value 
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Session End Date</Label>
+                  <Input 
+                    type="date"
+                    onChange={(e) => 
+                      setSettings(prev => ({ 
+                        ...prev, 
+                        sessionEndDate: e.target.value 
+                      }))
+                    }
+                  />
+                </div>
+
+                <Button 
+                  className="w-full"
+                  onClick={handleSettingsSave}
+                >
+                  Save Settings
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="marking">
+          <AttendanceMarking />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
 
-const RecordsTab = ({ attendanceRecords }) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-  const [selectedBatch, setSelectedBatch] = useState<string | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+// Separate component for attendance marking
+const AttendanceMarking = () => {
+  const [attendanceData, setAttendanceData] = useState({
+    subjectId: '',
+    batchId: '',
+    isLab: false,
+    date: format(new Date(), 'yyyy-MM-dd'),
+    students: [] as Array<{ id: string; name: string; isPresent: boolean; overallPercentage: number }>
+  });
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-  };
-
-  const filteredRecords = attendanceRecords.filter(
-    (record: {
-      name: string;
-      course: string;
-      batch: string;
-      subject: string;
-    }) => {
-      return (
-        record.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        (selectedCourse === null || record.course === selectedCourse) &&
-        (selectedBatch === null || record.batch === selectedBatch) &&
-        (selectedSubject === null || record.subject === selectedSubject)
+  const loadStudents = async (subjectId: string, batchId: string) => {
+    try {
+      const response = await fetch(
+        `/api/attendance/students?subjectId=${subjectId}&batchId=${batchId}`
       );
+      if (!response.ok) throw new Error('Failed to load students');
+      const data = await response.json();
+      setAttendanceData(prev => ({ ...prev, students: data }));
+    } catch (error) {
+      console.error('Error loading students:', error);
     }
-  );
+  };
 
-  const calculateAttendance = (
-    attendance: { [s: string]: unknown } | ArrayLike<unknown>
-  ) => {
-    const totalDays = Object.keys(attendance).length;
-    const presentDays = Object.values(attendance).filter(
-      (status) => status === "Present"
-    ).length;
-    return `${presentDays} present out of ${totalDays}`;
+  const handleAttendanceSave = async () => {
+    try {
+      const response = await fetch('/api/attendance/record', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(attendanceData),
+      });
+      
+      if (!response.ok) throw new Error('Failed to save attendance');
+      
+      // Handle success
+    } catch (error) {
+      console.error('Error saving attendance:', error);
+    }
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 bg-white rounded-lg shadow-md">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
-        <div className="flex flex-col sm:flex-row sm:space-x-2 mb-4 sm:mb-0">
-          <Input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search by name"
-            className="px-4 py-2 border border-gray-300 rounded-md mb-2 sm:mb-0 sm:w-64"
-          />
-          <Select
-            onValueChange={setSelectedCourse}
-            value={selectedCourse || ""}
-          >
-            <SelectTrigger className="w-[200px]">
-              {selectedCourse || "Select Course"}
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Courses</SelectItem>
-              <SelectItem value="BTech">BTech</SelectItem>
-              <SelectItem value="MTech CS">MTech CS</SelectItem>
-              <SelectItem value="MTech AI/ML">MTech AI/ML</SelectItem>
-              <SelectItem value="MSCDF">MSCDF</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select onValueChange={setSelectedBatch} value={selectedBatch || ""}>
-            <SelectTrigger className="w-[200px]">
-              {selectedBatch || "Select Batch"}
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Batches</SelectItem>
-              <SelectItem value="2021-2025">2021-2025</SelectItem>
-              <SelectItem value="2022-2026">2022-2026</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={setSelectedSubject}
-            value={selectedSubject || ""}
-          >
-            <SelectTrigger className="w-[200px]">
-              {selectedSubject || "Select Subject"}
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Subjects</SelectItem>
-              <SelectItem value="Data Structures">Data Structures</SelectItem>
-              <SelectItem value="Machine Learning">Machine Learning</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Course</TableHead>
-            <TableHead>Batch</TableHead>
-            <TableHead>Subject</TableHead>
-            <TableHead>Attendance Record</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredRecords.map(
-            (record: {
-              id: React.Key | null | undefined;
-              name:
-                | string
-                | number
-                | bigint
-                | boolean
-                | React.ReactElement<
-                    any,
-                    string | React.JSXElementConstructor<any>
-                  >
-                | Iterable<React.ReactNode>
-                | React.ReactPortal
-                | Promise<React.AwaitedReactNode>
-                | null
-                | undefined;
-              course:
-                | string
-                | number
-                | bigint
-                | boolean
-                | React.ReactElement<
-                    any,
-                    string | React.JSXElementConstructor<any>
-                  >
-                | Iterable<React.ReactNode>
-                | React.ReactPortal
-                | Promise<React.AwaitedReactNode>
-                | null
-                | undefined;
-              batch:
-                | string
-                | number
-                | bigint
-                | boolean
-                | React.ReactElement<
-                    any,
-                    string | React.JSXElementConstructor<any>
-                  >
-                | Iterable<React.ReactNode>
-                | React.ReactPortal
-                | Promise<React.AwaitedReactNode>
-                | null
-                | undefined;
-              subject:
-                | string
-                | number
-                | bigint
-                | boolean
-                | React.ReactElement<
-                    any,
-                    string | React.JSXElementConstructor<any>
-                  >
-                | Iterable<React.ReactNode>
-                | React.ReactPortal
-                | Promise<React.AwaitedReactNode>
-                | null
-                | undefined;
-              attendance: any;
-            }) => (
-              <TableRow
-                key={record.id}
-                className="hover:bg-gray-100 transition-all"
+    <Card>
+      <CardHeader>
+        <CardTitle>Mark Attendance</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Select Subject</Label>
+              <Select
+                onValueChange={(value) => {
+                  setAttendanceData(prev => ({ ...prev, subjectId: value }));
+                  if (attendanceData.batchId) {
+                    loadStudents(value, attendanceData.batchId);
+                  }
+                }}
               >
-                <TableCell>{record.name}</TableCell>
-                <TableCell>{record.course}</TableCell>
-                <TableCell>{record.batch}</TableCell>
-                <TableCell>{record.subject}</TableCell>
-                <TableCell>{calculateAttendance(record.attendance)}</TableCell>
-              </TableRow>
-            )
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  );
-};
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="math1">Mathematics-1</SelectItem>
+                  <SelectItem value="math2">Mathematics-2</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Select Batch</Label>
+              <Select
+                onValueChange={(value) => {
+                  setAttendanceData(prev => ({ ...prev, batchId: value }));
+                  if (attendanceData.subjectId) {
+                    loadStudents(attendanceData.subjectId, value);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2021">BTech 2021-2025</SelectItem>
+                  <SelectItem value="2020">BTech 2020-2024</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-const AttendanceTab = () => {
-  const [attendanceData, setAttendanceData] = useState(mockAttendanceData);
-  const [attendanceRecords, setAttendanceRecords] = useState(
-    mockAttendanceRecords
-  );
-  const [activeTab, setActiveTab] = useState("mark");
+            <div className="space-y-2">
+              <Label>Session Type</Label>
+              <Select
+                onValueChange={(value) => 
+                  setAttendanceData(prev => ({ 
+                    ...prev, 
+                    isLab: value === 'lab' 
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lecture">Lecture</SelectItem>
+                  <SelectItem value="lab">Lab</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-  return (
-    <div className="p-15 mx-auto max-w-10xl">
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Attendance Management</h2>
+          <div className="space-y-2">
+            <Label>Date</Label>
+            <Input 
+              type="date" 
+              value={attendanceData.date}
+              onChange={(e) => 
+                setAttendanceData(prev => ({ 
+                  ...prev, 
+                  date: e.target.value 
+                }))
+              }
+            />
+          </div>
 
-        <div className="mb-4">
-          <Button
-            onClick={() => setActiveTab("mark")}
-            className={`mr-2 ${
-              activeTab === "mark"
-                ? "bg-black text-white"
-                : "bg-gray-200 text-black"
-            } py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
+          <div className="border rounded-md p-4">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-2">Roll No</th>
+                  <th className="text-left p-2">Student Name</th>
+                  <th className="text-center p-2">Attendance</th>
+                  <th className="text-right p-2">Overall %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendanceData.students.map((student) => (
+                  <tr key={student.id} className="border-b">
+                    <td className="p-2">{student.id}</td>
+                    <td className="p-2">{student.name}</td>
+                    <td className="p-2 text-center">
+                      <Switch
+                        checked={student.isPresent}
+                        onCheckedChange={(checked) => {
+                          setAttendanceData(prev => ({
+                            ...prev,
+                            students: prev.students.map(s => 
+                              s.id === student.id 
+                                ? { ...s, isPresent: checked }
+                                : s
+                            )
+                          }));
+                        }}
+                      />
+                    </td>
+                    <td className="p-2 text-right">{student.overallPercentage}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <Button 
+            className="w-full"
+            onClick={handleAttendanceSave}
           >
-            Mark Attendance
-          </Button>
-          <Button
-            onClick={() => setActiveTab("records")}
-            className={`${
-              activeTab === "records"
-                ? "bg-black text-white"
-                : "bg-gray-200 text-black"
-            } py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
-          >
-            Records
+            Save Attendance
           </Button>
         </div>
-
-        {activeTab === "mark" && (
-          <MarkAttendanceTab
-            attendanceData={attendanceData}
-            setAttendanceData={setAttendanceData}
-          />
-        )}
-        {activeTab === "records" && (
-          <RecordsTab attendanceRecords={attendanceRecords} />
-        )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
-export default AttendanceTab;
-
-const parseDate = (date: string) => {
-  const parts = date.split("/");
-  return `${parts[2]}-${parts[1]}-${parts[0]}`;
-};
+export default AttendanceManagement;
