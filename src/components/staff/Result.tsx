@@ -99,7 +99,6 @@ const Result: React.FC = () => {
 
   const fetchResults = async () => {
     try {
-      setIsLoading(true);
       const response = await fetch("/api/fetchResultStaff");
       const data = await response.json();
 
