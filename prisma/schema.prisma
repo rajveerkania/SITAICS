@@ -7,6 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum LeaveStatus {
+  Pending
+  Approved
+  Rejected
+}
+
+model Leave {
+  id         String         @id @default(uuid())
+  studentId  String
+  leaveType  String
+  fromDate   DateTime
+  toDate     DateTime
+  reason     String
+  status     LeaveStatus    @default(Pending) // New status field with default value
+  student    StudentDetails @relation(fields: [studentId], references: [id])
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+
 model User {
   id                       String          @id @default(uuid())
   email                    String          @unique
