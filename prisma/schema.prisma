@@ -79,7 +79,7 @@ model StaffDetails {
   email              String
   username           String
   name               String
-  isBatchCoordinator Boolean      @default(false)
+  isBatchCoordinator Boolean?      @default(false)
   batchId            String?
   dateOfBirth        DateTime?
   gender             String?
