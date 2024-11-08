@@ -91,7 +91,6 @@ const StaffPDFViewerModal: React.FC<StaffPDFViewerModalProps> = ({
               src={pdfUrl}
               className="w-full h-full rounded-b-lg"
               title="PDF Viewer"
-              onLoad={() => setLoading(false)}
             />
           ) : (
             <div className="flex items-center justify-center h-full">

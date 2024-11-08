@@ -124,15 +124,15 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
 
   const handleSubjectCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
+  
     if (/^[0-9]*$/.test(value)) {
       const newCount = value === "" ? 0 : parseInt(value, 10);
-
+  
       if (newCount > MAX_SUBJECTS) {
         toast.error(`Maximum ${MAX_SUBJECTS} subjects are allowed.`);
         return;
       }
-
+  
       setStaffFormData((prevData) => ({
         ...prevData,
         subjectCount: newCount,
@@ -146,6 +146,8 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
       }));
     }
   };
+  
+  
 
   const handleLogout = async () => {
     try {
@@ -252,7 +254,23 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep()) return;
+    if (!(() => {
+      let stepIsValid = true;
+      let stepErrors = { ...errors };
+
+      if (currentStep === 3) {
+        if (staffFormData.subjectCount > 0 && staffFormData.selectedSubjectIds.length === 0) {
+          stepErrors.subjectCount = "Please select subjects.";
+          stepIsValid = false;
+        }
+        if (staffFormData.subjectCount === 0 && staffFormData.selectedSubjectIds.length > 0) {
+          stepErrors.subjectCount = ""; // Clear error if subjects are selected but count is 0
+        }
+      }
+
+      setErrors(stepErrors);
+      return stepIsValid;
+    })()) return;
     try {
       const updatedStaffDetails = await fetch("/api/addStaffDetails", {
         method: "POST",
@@ -276,7 +294,23 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   };
 
   const nextStep = () => {
-    if (validateStep()) {
+    if ((() => {
+      let stepIsValid = true;
+      let stepErrors = { ...errors };
+
+      if (currentStep === 3) {
+        if (staffFormData.subjectCount > 0 && staffFormData.selectedSubjectIds.length === 0) {
+          stepErrors.subjectCount = "Please select subjects.";
+          stepIsValid = false;
+        }
+        if (staffFormData.subjectCount === 0 && staffFormData.selectedSubjectIds.length > 0) {
+          stepErrors.subjectCount = ""; // Clear error if subjects are selected but count is 0
+        }
+      }
+
+      setErrors(stepErrors);
+      return stepIsValid;
+    })()) {
       setCurrentStep((prevStep) => prevStep + 1);
     }
   };

@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
       isBatchCoordinator,
       batchId,
       selectedSubjectIds,
+      subjectCount,
     } = reqBody;
 
     const parsedDateOfBirth = new Date(`${dateOfBirth}`);
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
     let staffDetails;
 
     if (existingStaff) {
+      // Update the existing staff details
       staffDetails = await prisma.$transaction([
         prisma.staffDetails.update({
           where: { id: userId },
@@ -55,28 +57,40 @@ export async function POST(request: NextRequest) {
             isProfileCompleted: true,
           },
         }),
+        // Update the Batch table to add the staffId
+        prisma.batch.update({
+          where: { batchId }, // Find the batch by its ID
+          data: {
+            staffId: isBatchCoordinator ? userId : null, // Update staffId if the user is a batch coordinator
+          },
+        }),
       ]);
     }
 
-    // Update BatchSubject table with the selected subjects and staff ID
-    const batchSubjectUpdates = selectedSubjectIds.map((subjectId: string) =>
-      prisma.batchSubject.upsert({
-        where: {
-          batchId_subjectId: { batchId, subjectId },
-        },
-        update: {
-          staffId: userId,
-        },
-        create: {
-          batchId,
-          subjectId,
-          semester: 1, // Adjust semester value as needed
-          staffId: userId,
-        },
-      })
-    );
+    // Handle the subject updates conditionally based on subjectCount
+    const batchSubjectUpdates = selectedSubjectIds.length > 0
+      ? selectedSubjectIds.map((subjectId: string) =>
+          prisma.batchSubject.upsert({
+            where: {
+              batchId_subjectId: { batchId, subjectId },
+            },
+            update: {
+              staffId: userId,
+            },
+            create: {
+              batchId,
+              subjectId,
+              semester: 1, // Adjust semester value as needed
+              staffId: userId,
+            }
+          })
+        )
+      : []; // If subjectCount is 0, no updates should be made
 
-    await prisma.$transaction(batchSubjectUpdates);
+    // Execute the transaction if there are updates to process
+    if (batchSubjectUpdates.length > 0) {
+      await prisma.$transaction(batchSubjectUpdates);
+    }
 
     console.log(
       (existingStaff ? "Updated" : "Created") + " staff details:",
@@ -84,9 +98,7 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({
-      message: `Staff Details ${
-        existingStaff ? "updated" : "created"
-      } successfully, and subjects assigned.`,
+      message: `Staff Details ${existingStaff ? "updated" : "created"} successfully, and subjects assigned.`,
       success: true,
       staffDetails,
     });
