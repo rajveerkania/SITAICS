@@ -5,9 +5,9 @@ import BlurIn from "./magicui/blur-in";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import { StudentProfile } from "@/components/student/StudentProfile";
 import Profile from "@/components/staff/Profile";
-import { NotificationDialog } from "@/components/admin/AdminNotification";
 import { StaffNotification } from "@/components/staff/StaffNotification";
 import { StudentNotification } from "@/components/student/StudentNotification";
+import { useRouter } from "next/navigation";
 
 interface NavBarProps {
   name?: string;

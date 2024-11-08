@@ -55,22 +55,23 @@ const UpdateAcademicSession = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { handleBack } = usePreviousRoute();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("/api/getAcademicSession");
-        const data = await response.json();
-        setSession(data.session);
-        const currentYear = new Date().getFullYear();
-        setCurrentYear(currentYear);
-      } catch (error) {
-        toast.error("Error fetching batch data");
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
+  const fetchData = async () => {
+    try {
+      const response = await fetch("/api/getAcademicSession");
+      const data = await response.json();
+      setSession(data.session);
+      const currentYear = new Date().getFullYear();
+      setCurrentYear(currentYear);
+    } catch (error) {
+      toast.error("Error fetching batch data");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -107,7 +108,7 @@ const UpdateAcademicSession = () => {
       }
 
       toast.success("Academic session updated successfully");
-
+      fetchData();
       setIsModalOpen(false);
     } catch (error: any) {
       toast.error(error.message || "An error occurred");

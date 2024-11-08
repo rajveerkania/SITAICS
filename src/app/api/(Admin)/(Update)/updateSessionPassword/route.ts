@@ -36,7 +36,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: "Logged In Successfully",
+      message: "Session updated successfully",
+      
       success: true,
     });
   } catch (error: any) {
