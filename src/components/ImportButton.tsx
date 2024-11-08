@@ -7,7 +7,7 @@ import AccessDenied from "./accessDenied";
 interface CSVUploadButtonProps {
   fileCategory: string;
   onFileUpload: (file: File) => void;
-  onSuccess: () => void,
+  onSuccess: () => void;
   buttonText?: string;
   type?: "button" | "submit" | "reset";
 }
@@ -45,6 +45,11 @@ export default function ImportButton({
       const response = await fetch(`/api/${fileCategory}`, {
         method: "POST",
         body: formData,
+        headers: {
+          "Cache-Control": "no-store",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
       });
 
       const data = await response.json();

@@ -14,7 +14,7 @@ import { FaTrashAlt } from "react-icons/fa";
 interface ElectiveGroup {
   electiveGroupId: string;
   groupName: string;
-  courseId: string;
+  courseName: string;
   semester: number;
 }
 
@@ -95,7 +95,7 @@ const ManageElectiveGroup = () => {
       <TableHeader>
         <TableRow>
           <TableHead>Group Name</TableHead>
-          <TableHead>Course ID</TableHead>
+          <TableHead>Course</TableHead>
           <TableHead>Semester</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
@@ -104,7 +104,7 @@ const ManageElectiveGroup = () => {
         {electiveGroups.map((group) => (
           <TableRow key={group.electiveGroupId}>
             <TableCell>{group.groupName}</TableCell>
-            <TableCell>{group.courseId}</TableCell>
+            <TableCell>{group.courseName}</TableCell>
             <TableCell>{group.semester}</TableCell>
             <TableCell>
               <div className="flex space-x-2">

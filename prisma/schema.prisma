@@ -14,18 +14,17 @@ enum LeaveStatus {
 }
 
 model Leave {
-  id         String         @id @default(uuid())
-  studentId  String
-  leaveType  String
-  fromDate   DateTime
-  toDate     DateTime
-  reason     String
-  status     LeaveStatus    @default(Pending) // New status field with default value
-  student    StudentDetails @relation(fields: [studentId], references: [id])
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id        String         @id @default(uuid())
+  studentId String
+  leaveType String
+  fromDate  DateTime
+  toDate    DateTime
+  reason    String
+  status    LeaveStatus    @default(Pending)
+  student   StudentDetails @relation(fields: [studentId], references: [id])
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 }
-
 
 model User {
   id                       String          @id @default(uuid())
@@ -41,6 +40,16 @@ model User {
   staffDetails             StaffDetails?
   resetPasswordToken       String?
   resetPasswordTokenExpiry DateTime?
+}
+
+model Result {
+  id         String         @id @default(uuid())
+  studentId  String
+  student    StudentDetails @relation("StudentResults", fields: [studentId], references: [id])
+  semester   Int
+  resultFile Bytes
+  uploadedAt DateTime       @default(now())
+  isRepeater Boolean        @default(false)
 }
 
 model StudentDetails {
@@ -66,30 +75,32 @@ model StudentDetails {
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
   isProfileCompleted Boolean                 @default(false)
+  isSemesterUpdated  Boolean                 @default(true)
   user               User                    @relation(fields: [id], references: [id])
   course             Course?                 @relation(fields: [courseName], references: [courseName])
   batch              Batch?                  @relation(fields: [batchName], references: [batchName])
   electiveChoices    ElectiveSubjectChoice[]
-  attendances        Attendance[]
   results            Result[]                @relation("StudentResults")
+  attendances        Attendance[]
+  leaves             Leave[]
 }
 
 model AttendanceSettings {
-  id                String    @id @default(uuid())
-  subjectId         String
-  batchId           String
-  lecturesPerWeek   Int
-  labsPerWeek       Int
-  hasLabs           Boolean   @default(false)
-  lectureDays       String    // JSON string of lecture days
-  labDays           String    // JSON string of lab days
-  sessionStartDate  DateTime
-  sessionEndDate    DateTime
-  attendanceSchedule String    // JSON string of schedule
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  subject           Subject   @relation("SubjectAttendanceSettings", fields: [subjectId], references: [subjectId])
-  batch             Batch     @relation("BatchAttendanceSettings", fields: [batchId], references: [batchId])
+  id                 String   @id @default(uuid())
+  subjectId          String
+  batchId            String
+  lecturesPerWeek    Int
+  labsPerWeek        Int
+  hasLabs            Boolean  @default(false)
+  lectureDays        String
+  labDays            String
+  sessionStartDate   DateTime
+  sessionEndDate     DateTime
+  attendanceSchedule String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  subject            Subject  @relation("SubjectAttendanceSettings", fields: [subjectId], references: [subjectId])
+  batch              Batch    @relation("BatchAttendanceSettings", fields: [batchId], references: [batchId])
 
   @@unique([subjectId, batchId])
 }
@@ -112,6 +123,7 @@ model StaffDetails {
   pinCode            Int?
   isActive           Boolean      @default(true)
   isProfileCompleted Boolean      @default(false)
+  isSemesterUpdated  Boolean      @default(false)
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
   user               User         @relation(fields: [id], references: [id])
@@ -120,28 +132,29 @@ model StaffDetails {
 }
 
 model Subject {
-  subjectId             String               @id @default(uuid())
+  subjectId             String                  @id @default(uuid())
   subjectName           String
-  subjectCode           String               @unique
+  subjectCode           String                  @unique
   semester              Int
   courseId              String
-  isElective            Boolean              @default(false)
-  course                Course               @relation(fields: [courseId], references: [courseId])
-  electiveGroup         ElectiveGroup?       @relation(fields: [electiveGroupId], references: [electiveGroupId])
+  isElective            Boolean                 @default(false)
+  course                Course                  @relation(fields: [courseId], references: [courseId])
+  electiveGroup         ElectiveGroup?          @relation(fields: [electiveGroupId], references: [electiveGroupId])
   electiveGroupId       String?
   staff                 StaffDetails[]
-  batches              BatchSubject[]
-  isActive             Boolean               @default(true)
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  batches               BatchSubject[]
+  isActive              Boolean                 @default(true)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
   ElectiveSubjectChoice ElectiveSubjectChoice[]
-  attendances          Attendance[]
-  attendanceSettings   AttendanceSettings[]  @relation("SubjectAttendanceSettings")
+  attendances           Attendance[]
+  attendanceSettings    AttendanceSettings[]    @relation("SubjectAttendanceSettings")
 }
 
 model Course {
   courseId       String           @id @default(uuid())
   courseName     String           @unique
+  duration       Int
   subjects       Subject[]
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
@@ -152,59 +165,47 @@ model Course {
 }
 
 model Batch {
-  batchId             String               @id @default(uuid())
-  batchName           String               @unique
-  courseId            String
-  batchDuration       Int
-  currentSemester     Int
-  students            StudentDetails[]
-  staffMembers        StaffDetails[]
-  subjects            BatchSubject[]
-  isActive            Boolean              @default(true)
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  course              Course               @relation(fields: [courseId], references: [courseId])
-  timetable           Bytes?
-  attendances         Attendance[]
-  attendanceSettings  AttendanceSettings[] @relation("BatchAttendanceSettings")
+  batchId            String               @id @default(uuid())
+  batchName          String               @unique
+  courseId           String
+  currentSemester    Int
+  students           StudentDetails[]
+  staffMembers       StaffDetails[]
+  subjects           BatchSubject[]
+  isActive           Boolean              @default(true)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  course             Course               @relation(fields: [courseId], references: [courseId])
+  timetable          Bytes?
+  attendances        Attendance[]
+  attendanceSettings AttendanceSettings[] @relation("BatchAttendanceSettings")
 }
 
 model BatchSubject {
   batchId   String
   subjectId String
-  semester  Int
   staffId   String?
-  batch     Batch    @relation(fields: [batchId], references: [batchId])
-  subject   Subject  @relation(fields: [subjectId], references: [subjectId])
+  batch     Batch   @relation(fields: [batchId], references: [batchId])
+  subject   Subject @relation(fields: [subjectId], references: [subjectId])
 
   @@id([batchId, subjectId])
 }
 
 model Attendance {
-  id         String         @id @default(uuid())
-  studentId  String
-  subjectId  String
-  batchId    String
-  date       DateTime
-  isPresent  Boolean
-  type       AttendanceType
-  staff      StaffDetails   @relation(fields: [staffId], references: [id])
-  staffId    String
-  student    StudentDetails @relation(fields: [studentId], references: [id])
-  subject    Subject        @relation(fields: [subjectId], references: [subjectId])
-  batch      Batch          @relation(fields: [batchId], references: [batchId])
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-}
-
-model Result {
-  id         String         @id @default(uuid())
-  studentId  String
-  student    StudentDetails @relation("StudentResults", fields: [studentId], references: [id])
-  semester   Int
-  resultFile Bytes
-  uploadedAt DateTime       @default(now())
-  isRepeater Boolean        @default(false)
+  id        String         @id @default(uuid())
+  studentId String
+  subjectId String
+  batchId   String
+  date      DateTime
+  isPresent Boolean
+  type      AttendanceType
+  staff     StaffDetails   @relation(fields: [staffId], references: [id])
+  staffId   String
+  student   StudentDetails @relation(fields: [studentId], references: [id])
+  subject   Subject        @relation(fields: [subjectId], references: [subjectId])
+  batch     Batch          @relation(fields: [batchId], references: [batchId])
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 }
 
 model ElectiveGroup {

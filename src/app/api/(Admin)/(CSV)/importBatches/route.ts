@@ -58,14 +58,12 @@ export async function POST(request: NextRequest) {
     const failedBatches: {
       batchName: string;
       courseName: string;
-      duration: number;
       currentSemester: number;
       reason: string;
     }[] = [];
     const duplicateBatches: {
       batchName: string;
       courseName: string;
-      duration: number;
       currentSemester: number;
       reason: string;
     }[] = [];
@@ -84,7 +82,6 @@ export async function POST(request: NextRequest) {
             failedBatches.push({
               batchName: batch.batchName,
               courseName: batch.courseName,
-              duration: batch.duration,
               currentSemester: batch.currentSemester,
               reason: "Inactive batch found",
             });
@@ -101,7 +98,6 @@ export async function POST(request: NextRequest) {
             duplicateBatches.push({
               batchName: batch.batchName,
               courseName: batch.courseName,
-              duration: batch.duration,
               currentSemester: batch.currentSemester,
               reason: "Batch already exists",
             });
@@ -122,7 +118,6 @@ export async function POST(request: NextRequest) {
               data: {
                 batchName: batch.batchName,
                 courseId: courseId.courseId,
-                batchDuration: parseInt(batch.duration, 5),
                 currentSemester: parseInt(batch.currentSemester, 9),
               },
             });
@@ -134,7 +129,6 @@ export async function POST(request: NextRequest) {
           failedBatches.push({
             batchName: batch.batchName,
             courseName: batch.courseName,
-            duration: batch.duration,
             currentSemester: batch.currentSemester,
             reason: error.message,
           });

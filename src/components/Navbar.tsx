@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { NotificationDialog } from "@/components/admin/AdminNotification";
 import BlurIn from "./magicui/blur-in";
 import { AdminProfile } from "@/components/admin/AdminProfile";
@@ -8,6 +9,7 @@ import Profile from "./staff/Profile";
 
 interface NavBarProps {
   name?: string;
+  id?: string;
   role?: "Admin" | "Staff" | "Student";
 }
 
@@ -26,14 +28,16 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({ loadingText }) => {
   );
 };
 
-export function Navbar({ name, role }: NavBarProps) {
+export function Navbar({ name, id, role }: NavBarProps) {
   const [dateTime, setDateTime] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const isAdmin = role === "Admin" ? true : false;
   const dropdownRef = useRef<HTMLDivElement>(null);
   const greeting = `Welcome, ${name}`;
   const shortGreeting = `Welcome, ${name?.split(" ")[0]}`;
+  const router = useRouter();
 
   useEffect(() => {
     const updateTime = () => {
@@ -93,9 +97,12 @@ export function Navbar({ name, role }: NavBarProps) {
 
       window.location.href = "/";
     } catch (err) {
-      console.error("Logout failed", err);
       setIsLoggingOut(false);
     }
+  };
+
+  const handleSession = () => {
+    router.push(`/admin/dashboard/session/${id}`);
   };
 
   const openProfile = () => {
@@ -108,7 +115,7 @@ export function Navbar({ name, role }: NavBarProps) {
   };
 
   if (isLoggingOut) {
-    return <LoadingSkeleton loadingText="Logging out..." />;
+    return <LoadingSkeleton loadingText="logout" />;
   }
 
   return (
@@ -138,13 +145,7 @@ export function Navbar({ name, role }: NavBarProps) {
           <div className="relative" ref={dropdownRef}>
             <div onClick={toggleDropdown} className="cursor-pointer">
               <Image
-                src={
-                  role === "Admin"
-                    ? "/Admin-logo.png"
-                    : role === "Staff"
-                    ? "/Staff-logo.png"
-                    : "/User-logo.png"
-                }
+                src={role === "Admin" ? "/Admin-logo.png" : "/User-logo.png"}
                 alt="Profile Logo"
                 width={60}
                 height={60}
@@ -163,6 +164,14 @@ export function Navbar({ name, role }: NavBarProps) {
                       ? "Staff Profile"
                       : "Student Profile"}
                   </li>
+                  {isAdmin && (
+                    <li
+                      className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
+                      onClick={handleSession}
+                    >
+                      Academic Session
+                    </li>
+                  )}
                   <li
                     className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
                     onClick={handleLogout}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import usePreviousRoute from "@/app/hooks/usePreviousRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,7 @@ interface Course {
 
 const SubjectEditPage = () => {
   const { id } = useParams();
-  const {handleBack} = usePreviousRoute();
+  const { handleBack } = usePreviousRoute();
   const [subject, setSubject] = useState<Subject | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -56,7 +56,6 @@ const SubjectEditPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch subject data
         const subjectResponse = await fetch("/api/fetchSubjects");
         const subjectData = await subjectResponse.json();
         const currentSubject = subjectData.find(
@@ -73,7 +72,6 @@ const SubjectEditPage = () => {
           });
         }
 
-        // Fetch courses for the dropdown
         const courseResponse = await fetch("/api/fetchCourses");
         const courseData = await courseResponse.json();
         setCourses(courseData.courses);
@@ -121,7 +119,6 @@ const SubjectEditPage = () => {
       console.error(error);
     }
   };
-
 
   const toggleDetails = () => {
     setDetailsExpanded(!detailsExpanded);

@@ -4,12 +4,9 @@ import ImportButton from "@/components/ImportButton";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-
-
 interface CSVData {
   [key: string]: string;
 }
-
 
 const AddCourseForm = ({
   onAddCourseSuccess,
@@ -17,6 +14,7 @@ const AddCourseForm = ({
   onAddCourseSuccess: () => void;
 }) => {
   const [courseName, setCourseName] = useState("");
+  const [courseDuration, setCourseDuration] = useState("");
   const [csvData, setCSVData] = useState<CSVData[]>([]);
 
   const handleFileUpload = async (file: File) => {
@@ -24,8 +22,9 @@ const AddCourseForm = ({
       const text = await file.text();
       const result = parseCSV(text);
       setCSVData(result);
+      toast.success("CSV file parsed successfully");
     } catch (error: any) {
-      toast.error(error);
+      toast.error("Failed to parse CSV file");
     }
   };
 
@@ -50,15 +49,16 @@ const AddCourseForm = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ courseName }),
+        body: JSON.stringify({ courseName, courseDuration }),
       });
       const data = await response.json();
       if (response.ok) {
         toast.success("Course added successfully");
-         onAddCourseSuccess();
+        onAddCourseSuccess();
         setCourseName("");
+        setCourseDuration("");
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to add course");
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
@@ -72,6 +72,13 @@ const AddCourseForm = ({
         value={courseName}
         onChange={(e) => setCourseName(e.target.value)}
         placeholder="Enter course name"
+        required
+      />
+      <Input
+        placeholder="Duration (in years)"
+        type="number"
+        value={courseDuration}
+        onChange={(e) => setCourseDuration(e.target.value)}
         required
       />
       <div className="flex justify-between pt-5">

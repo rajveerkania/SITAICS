@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { FaTrashAlt, FaUpload } from "react-icons/fa"; // React icons for delete and upload
+import { FaTrashAlt, FaUpload } from "react-icons/fa";
+import { Button } from "../ui/button";
 
 const Timetable: React.FC = () => {
   const [timetableFile, setTimetableFile] = useState<File | null>(null);
@@ -19,7 +20,10 @@ const Timetable: React.FC = () => {
         const data = await res.json();
         if (data.timetableExists && data.timetable) {
           const base64String = data.timetable;
-          const blob = new Blob([Uint8Array.from(atob(base64String), (c) => c.charCodeAt(0))], { type: "application/pdf" });
+          const blob = new Blob(
+            [Uint8Array.from(atob(base64String), (c) => c.charCodeAt(0))],
+            { type: "application/pdf" }
+          );
           const fileURL = URL.createObjectURL(blob);
           setTimetableURL(fileURL);
           setShowManagement(false);
@@ -120,7 +124,10 @@ const Timetable: React.FC = () => {
       {/* File Upload Section */}
       {showManagement && !timetableFile && (
         <div className="mb-8">
-          <label htmlFor="timetable" className="block text-xl font-medium text-gray-700">
+          <label
+            htmlFor="timetable"
+            className="block text-xl font-medium text-gray-700"
+          >
             Upload Timetable
           </label>
           <input
@@ -141,7 +148,9 @@ const Timetable: React.FC = () => {
       )}
 
       {/* Error Message */}
-      {errorMessage && <p className="text-red-500 text-lg mb-6">{errorMessage}</p>}
+      {errorMessage && (
+        <p className="text-red-500 text-lg mb-6">{errorMessage}</p>
+      )}
 
       {/* Upload Button */}
       {!timetableURL && timetableFile && (
@@ -149,7 +158,9 @@ const Timetable: React.FC = () => {
           <button
             onClick={handleUpload}
             disabled={isUploading}
-            className={`bg-black text-white text-lg font-semibold py-4 px-8 rounded-lg shadow-lg transition-transform transform ${isUploading ? "opacity-50" : "hover:scale-105"}`}
+            className={`bg-black text-white text-lg font-semibold py-4 px-8 rounded-lg shadow-lg transition-transform transform ${
+              isUploading ? "opacity-50" : "hover:scale-105"
+            }`}
           >
             <FaUpload className="inline mr-2" />
             {isUploading ? "Uploading..." : "Upload"}
@@ -160,20 +171,22 @@ const Timetable: React.FC = () => {
       {/* Display Timetable */}
       {timetableURL && (
         <div className="flex flex-col items-center justify-center mb-8">
-          <iframe src={timetableURL} width="80%" height="500px" className="border border-gray-500 shadow-lg"></iframe>
+          <iframe
+            src={timetableURL}
+            width="80%"
+            height="500px"
+            className="border border-gray-500 shadow-lg"
+          ></iframe>
         </div>
       )}
 
       {/* Delete Timetable Button */}
       {timetableURL && (
         <div className="flex justify-end mb-8">
-          <button
-            onClick={handleDelete}
-            className="bg-red-600 text-white text-lg font-semibold py-4 px-8 rounded-lg shadow-lg hover:scale-105 transition-transform transform"
-          >
+          <Button onClick={handleDelete}>
             <FaTrashAlt className="inline mr-2" />
             Delete Timetable
-          </button>
+          </Button>
         </div>
       )}
     </div>

@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
           user = await prisma.user.findUnique({
             where: { id },
             select: {
+              id: true,
               name: true,
               email: true,
               username: true,
@@ -67,6 +68,7 @@ export async function GET(request: NextRequest) {
               pinCode: true,
               achievements: true,
               isProfileCompleted: true,
+              isSemesterUpdated: true,
             },
           });
           return NextResponse.json({ user, role: "Student" }, { status: 200 });
@@ -95,6 +97,7 @@ export async function GET(request: NextRequest) {
               subjects: true,
               achievements: true,
               isProfileCompleted: true,
+              isSemesterUpdated: true,
             },
           });
           return NextResponse.json({ user, role: "Staff" }, { status: 200 });

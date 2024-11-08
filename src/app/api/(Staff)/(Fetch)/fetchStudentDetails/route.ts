@@ -4,24 +4,22 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
-  console.log("API route hit: /api/fetchStudentDetails");
   try {
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
-    console.log("Token:", token ? "Present" : "Not present");
-    let id = null, role = null;
+
+    let id = null,
+      role = null;
 
     if (token) {
       const decodedToken = verifyToken();
       if (decodedToken && typeof decodedToken === "object") {
         id = decodedToken.id;
         role = decodedToken.role;
-        console.log("Decoded token - ID:", id, "Role:", role);
       }
     }
 
     if (!id || role !== "Staff") {
-      console.log("Unauthorized access attempt");
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -32,8 +30,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (!staffDetails || !staffDetails.batchId) {
-      console.log("No primary batch ID found for staff member");
-      return NextResponse.json({ message: "No batch assigned" }, { status: 404 });
+      return NextResponse.json(
+        { message: "No batch assigned" },
+        { status: 404 }
+      );
     }
 
     const primaryBatchId = staffDetails.batchId;
@@ -44,8 +44,12 @@ export async function POST(request: NextRequest) {
       select: { batchId: true },
     });
 
-    const additionalBatchIds = associatedBatchSubjects.map((subject) => subject.batchId);
-    const batchIds = Array.from(new Set([primaryBatchId, ...additionalBatchIds])); // Deduplicate batch IDs
+    const additionalBatchIds = associatedBatchSubjects.map(
+      (subject) => subject.batchId
+    );
+    const batchIds = Array.from(
+      new Set([primaryBatchId, ...additionalBatchIds])
+    ); // Deduplicate batch IDs
 
     // Step 3: Fetch batch names for all gathered batch IDs
     const batchDetails = await prisma.batch.findMany({
@@ -74,10 +78,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log("Number of students fetched:", students.length);
     return NextResponse.json({ students }, { status: 200 });
   } catch (error) {
     console.error("Error fetching students:", error);
-    return NextResponse.json({ message: "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { message: "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 }

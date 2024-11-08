@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
@@ -13,6 +13,7 @@ import Leave from "@/components/staff/Leave";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Toaster, toast } from "sonner";
 import AddStaffDetails from "@/components/staff/AddStaffDetails";
+import ChooseSubjects from "@/components/staff/ChooseSubjects";
 
 const FacultyDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -20,6 +21,7 @@ const FacultyDashboard: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [ShowAddStaffDetails, setShowAddStaffDetails] = useState(false);
+  const [chooseSubjects, setChooseSubjects] = useState(false);
 
   const tabs = [
     "Overview",
@@ -38,6 +40,7 @@ const FacultyDashboard: React.FC = () => {
       if (response.status !== 200) {
         toast.error(data.message || "Error fetching user data");
       }
+
       if (data.user.isProfileCompleted) {
         setUserInfo(data.user);
       } else {
@@ -47,6 +50,10 @@ const FacultyDashboard: React.FC = () => {
           isProfileCompleted: false,
         });
         setShowAddStaffDetails(true);
+      }
+
+      if (data.user.isSemesterUpdated) {
+        setChooseSubjects(true);
       }
     } catch (error) {
       toast.error("Error fetching user details!");
@@ -64,7 +71,7 @@ const FacultyDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSkeleton loadingText="Faculty Dashboard" />;
+    return <LoadingSkeleton loadingText="Dashboard" />;
   }
 
   if (ShowAddStaffDetails) {
@@ -79,10 +86,23 @@ const FacultyDashboard: React.FC = () => {
     );
   }
 
+  if (chooseSubjects) {
+    return (
+      <ChooseSubjects
+        name={userInfo.name}
+        id={userInfo.id}
+        setSemesterUpdate={setChooseSubjects}
+        fetchUserDetails={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Toaster />
-      <Navbar name={userInfo?.name || ""} role="Faculty" />
+      <Navbar name={userInfo?.name || ""} role="Staff" />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button

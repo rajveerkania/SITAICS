@@ -1,30 +1,30 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import usePreviousRoute from '@/app/hooks/usePreviousRoute';
+import React, { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import usePreviousRoute from "@/app/hooks/usePreviousRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { 
-  User, 
-  Mail, 
-  Users, 
-  ChevronDown, 
-  ChevronUp, 
-  ArrowLeft, 
-  Phone 
-} from 'lucide-react';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
-import ResultComponent from '@/components/admin/UserDetails/result';
-import AchievementComponent from '@/components/admin/UserDetails/achievment';
+import {
+  User,
+  Mail,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  ArrowLeft,
+  Phone,
+} from "lucide-react";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import ResultComponent from "@/components/admin/UserDetails/result";
+import AchievementComponent from "@/components/admin/UserDetails/achievment";
 import {
   Select,
   SelectContent,
@@ -32,12 +32,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
- 
-type UserDetails = {
-  name: string;
-  email: string;
-  role: "Student" | "Staff" | "Admin";
-  roleDetails: {
+
+const UserEditPage: React.FC = () => {
+  const { id } = useParams();
+  const { handleBack } = usePreviousRoute();
+  const [user, setUser] = useState<User | null>(null);
+  const [editedUser, setEditedUser] = useState<User | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [basicInfoExpanded, setBasicInfoExpanded] = useState(true);
+  const [additionalInfoExpanded, setAdditionalInfoExpanded] = useState(true);
+
+  interface UserRoleDetails {
     enrollmentNumber?: string;
     courseName?: string;
     batchName?: string;
@@ -48,33 +54,23 @@ type UserDetails = {
     city?: string;
     state?: string;
     pinCode?: string;
-    results?: any; // Define this with a more specific type if you know the structure
-    achievements?: Array<{
-      title: string;
-      description: string;
-      date: string;
-      category: string;
-    }>;
-  };
-};
+    results?: any;
+    achievements?: any;
+  }
 
-
-const UserEditPage: React.FC = () => {
-  const { id } = useParams();
-  const { handleBack } = usePreviousRoute();
-  const [user, setUser] = useState<UserDetails | null>(null);
-  const [editedUser, setEditedUser] = useState<UserDetails | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [basicInfoExpanded, setBasicInfoExpanded] = useState(true);
-  const [additionalInfoExpanded, setAdditionalInfoExpanded] = useState(true);
+  interface User {
+    name: string;
+    email: string;
+    role: "Student" | "Staff" | "Admin";
+    roleDetails: UserRoleDetails;
+  }
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await fetch(`/api/users/${id}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch user data');
+          throw new Error("Failed to fetch user data");
         }
         const data = await response.json();
         setUser(data);
@@ -97,15 +93,15 @@ const UserEditPage: React.FC = () => {
 
     try {
       const response = await fetch(`/api/admin/updateUserDetails/${id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(editedUser),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update user');
+        throw new Error("Failed to update user");
       }
 
       const updatedUser = await response.json();
@@ -119,18 +115,21 @@ const UserEditPage: React.FC = () => {
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: keyof User, value: any) => {
     if (editedUser) {
-      setEditedUser((prevState: any) => ({
+      setEditedUser((prevState) => ({
         ...prevState!,
         [field]: value,
       }));
     }
   };
 
-  const handleRoleDetailsChange = (field: string, value: any) => {
+  const handleRoleDetailsChange = (
+    field: keyof UserRoleDetails,
+    value: any
+  ) => {
     if (editedUser) {
-      setEditedUser((prevState: any) => ({
+      setEditedUser((prevState) => ({
         ...prevState!,
         roleDetails: {
           ...prevState!.roleDetails,
@@ -141,7 +140,7 @@ const UserEditPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return <LoadingSkeleton loadingText='user details' />;
+    return <LoadingSkeleton loadingText="user details" />;
   }
 
   if (!user || !editedUser) {
@@ -149,11 +148,7 @@ const UserEditPage: React.FC = () => {
       <div className="container mx-auto py-8 px-4">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-600">User not found</h2>
-          <Button 
-            variant="outline" 
-            onClick={handleBack}
-            className="mt-4"
-          >
+          <Button variant="outline" onClick={handleBack} className="mt-4">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
         </div>
@@ -163,17 +158,13 @@ const UserEditPage: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Button 
-        variant="outline" 
-        onClick={handleBack}
-        className="mb-6"
-      >
+      <Button variant="outline" onClick={handleBack} className="mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" /> Back
       </Button>
 
       <Card className="mb-6">
-        <CardHeader 
-          className="cursor-pointer" 
+        <CardHeader
+          className="cursor-pointer"
           onClick={() => setBasicInfoExpanded(!basicInfoExpanded)}
         >
           <div className="flex justify-between items-center">
@@ -193,7 +184,7 @@ const UserEditPage: React.FC = () => {
                 {isEditing ? (
                   <Input
                     value={editedUser.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
                     className="w-full"
                   />
                 ) : (
@@ -208,7 +199,7 @@ const UserEditPage: React.FC = () => {
                 {isEditing ? (
                   <Input
                     value={editedUser.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
                     className="w-full"
                   />
                 ) : (
@@ -223,7 +214,7 @@ const UserEditPage: React.FC = () => {
                 {isEditing ? (
                   <Select
                     value={editedUser.role}
-                    onValueChange={(value) => handleInputChange('role', value)}
+                    onValueChange={(value) => handleInputChange("role", value)}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select role" />
@@ -239,71 +230,48 @@ const UserEditPage: React.FC = () => {
                 )}
               </div>
 
-              {(user.role === 'Student' || editedUser.role === 'Student') && (
-                <>
-                  <div>
-                    <label className="text-sm font-medium flex items-center mb-2">
-                      <Users className="mr-2 h-4 w-4" /> Enrollment Number
-                    </label>
-                    {isEditing ? (
-                      <Input
-                        value={editedUser.roleDetails.enrollmentNumber || ''}
-                        onChange={(e) => handleRoleDetailsChange('enrollmentNumber', e.target.value)}
-                        className="w-full"
-                        placeholder="Enter enrollment number"
-                      />
-                    ) : (
-                      <p className="text-lg">{user.roleDetails.enrollmentNumber || 'Not provided'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium flex items-center mb-2">
-                      <Users className="mr-2 h-4 w-4" /> Course Name
-                    </label>
-                    {isEditing ? (
-                      <Input
-                        value={editedUser.roleDetails.courseName || ''}
-                        onChange={(e) => handleRoleDetailsChange('courseName', e.target.value)}
-                        className="w-full"
-                        placeholder="Enter course name"
-                      />
-                    ) : (
-                      <p className="text-lg">{user.roleDetails.courseName || 'Not provided'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium flex items-center mb-2">
-                      <Users className="mr-2 h-4 w-4" /> Batch Name
-                    </label>
-                    {isEditing ? (
-                      <Input
-                        value={editedUser.roleDetails.batchName || ''}
-                        onChange={(e) => handleRoleDetailsChange('batchName', e.target.value)}
-                        className="w-full"
-                        placeholder="Enter batch name"
-                      />
-                    ) : (
-                      <p className="text-lg">{user.roleDetails.batchName || 'Not provided'}</p>
-                    )}
-                  </div>
-                </>
+              {(user?.role === "Student" || editedUser?.role === "Student") && (
+                <div>
+                  <label className="text-sm font-medium flex items-center mb-2">
+                    <Users className="mr-2 h-4 w-4" /> Enrollment Number
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      value={editedUser?.roleDetails?.enrollmentNumber || ""}
+                      onChange={(e) =>
+                        handleRoleDetailsChange(
+                          "enrollmentNumber",
+                          e.target.value
+                        )
+                      }
+                      className="w-full"
+                      placeholder="Enter enrollment number"
+                    />
+                  ) : (
+                    <p className="text-lg">
+                      {user?.roleDetails?.enrollmentNumber || "Not provided"}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </CardContent>
         )}
       </Card>
 
-      {(user.role !== 'Admin' || editedUser.role !== 'Admin') && (
+      {(user.role !== "Admin" || editedUser.role !== "Admin") && (
         <Card className="mb-6">
-          <CardHeader 
-            className="cursor-pointer" 
+          <CardHeader
+            className="cursor-pointer"
             onClick={() => setAdditionalInfoExpanded(!additionalInfoExpanded)}
           >
             <div className="flex justify-between items-center">
               <CardTitle className="text-2xl">Additional Information</CardTitle>
               {additionalInfoExpanded ? <ChevronUp /> : <ChevronDown />}
             </div>
-            <CardDescription>Role-specific details and information</CardDescription>
+            <CardDescription>
+              Role-specific details and information
+            </CardDescription>
           </CardHeader>
 
           {additionalInfoExpanded && (
@@ -311,64 +279,91 @@ const UserEditPage: React.FC = () => {
               <Tabs defaultValue="personal" className="space-y-6">
                 <TabsList>
                   <TabsTrigger value="personal">Personal Details</TabsTrigger>
-                  {(user.role === 'Student' || editedUser.role === 'Student') && (
+                  {(user.role === "Student" ||
+                    editedUser.role === "Student") && (
                     <>
                       <TabsTrigger value="result">Results</TabsTrigger>
-                      <TabsTrigger value="achievement">Achievements</TabsTrigger>
+                      <TabsTrigger value="achievement">
+                        Achievements
+                      </TabsTrigger>
                     </>
                   )}
-                  {(user.role === 'Staff' || editedUser.role === 'Staff') && 
+                  {(user.role === "Staff" || editedUser.role === "Staff") && (
                     <TabsTrigger value="achievement">Achievements</TabsTrigger>
-                  }
+                  )}
                 </TabsList>
 
                 <TabsContent value="personal">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="text-sm font-medium flex items-center mb-2">
-                        <User className="mr-2 h-4 w-4" /> Father's Name
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedUser.roleDetails.fatherName || ''}
-                          onChange={(e) => handleRoleDetailsChange('fatherName', e.target.value)}
-                          className="w-full"
-                          placeholder="Enter father's name"
-                        />
-                      ) : (
-                        <p className="text-lg">{user.roleDetails.fatherName || 'Not provided'}</p>
-                      )}
-                    </div>
+                    {user.role !== "Staff" && (
+                      <>
+                        <div>
+                          <label className="text-sm font-medium flex items-center mb-2">
+                            <User className="mr-2 h-4 w-4" /> Father's Name
+                          </label>
+                          {isEditing ? (
+                            <Input
+                              value={editedUser.roleDetails.fatherName || ""}
+                              onChange={(e) =>
+                                handleRoleDetailsChange(
+                                  "fatherName",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full"
+                              placeholder="Enter father's name"
+                            />
+                          ) : (
+                            <p className="text-lg">
+                              {user.roleDetails.fatherName || "Not provided"}
+                            </p>
+                          )}
+                        </div>
 
-                    <div>
-                      <label className="text-sm font-medium flex items-center mb-2">
-                        <User className="mr-2 h-4 w-4" /> Mother's Name
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedUser.roleDetails.motherName || ''}
-                          onChange={(e) => handleRoleDetailsChange('motherName', e.target.value)}
-                          className="w-full"
-                          placeholder="Enter mother's name"
-                        />
-                      ) : (
-                        <p className="text-lg">{user.roleDetails.motherName || 'Not provided'}</p>
-                      )}
-                    </div>
-
+                        <div>
+                          <label className="text-sm font-medium flex items-center mb-2">
+                            <User className="mr-2 h-4 w-4" /> Mother's Name
+                          </label>
+                          {isEditing ? (
+                            <Input
+                              value={editedUser.roleDetails.motherName || ""}
+                              onChange={(e) =>
+                                handleRoleDetailsChange(
+                                  "motherName",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full"
+                              placeholder="Enter mother's name"
+                            />
+                          ) : (
+                            <p className="text-lg">
+                              {user.roleDetails.motherName || "Not provided"}
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    )}
                     <div>
                       <label className="text-sm font-medium flex items-center mb-2">
                         <Phone className="mr-2 h-4 w-4" /> Contact Number
                       </label>
                       {isEditing ? (
                         <Input
-                          value={editedUser.roleDetails.contactNumber || ''}
-                          onChange={(e) => handleRoleDetailsChange('contactNumber', e.target.value)}
+                          value={editedUser.roleDetails.contactNumber || ""}
+                          onChange={(e) =>
+                            handleRoleDetailsChange(
+                              "contactNumber",
+                              e.target.value
+                            )
+                          }
                           className="w-full"
                           placeholder="Enter contact number"
                         />
                       ) : (
-                        <p className="text-lg">{user.roleDetails.contactNumber || 'Not provided'}</p>
+                        <p className="text-lg">
+                          {user.roleDetails.contactNumber || "Not provided"}
+                        </p>
                       )}
                     </div>
 
@@ -378,13 +373,17 @@ const UserEditPage: React.FC = () => {
                       </label>
                       {isEditing ? (
                         <Input
-                          value={editedUser.roleDetails.address || ''}
-                          onChange={(e) => handleRoleDetailsChange('address', e.target.value)}
+                          value={editedUser.roleDetails.address || ""}
+                          onChange={(e) =>
+                            handleRoleDetailsChange("address", e.target.value)
+                          }
                           className="w-full"
                           placeholder="Enter address"
                         />
                       ) : (
-                        <p className="text-lg">{user.roleDetails.address || 'Not provided'}</p>
+                        <p className="text-lg">
+                          {user.roleDetails.address || "Not provided"}
+                        </p>
                       )}
                     </div>
 
@@ -394,13 +393,17 @@ const UserEditPage: React.FC = () => {
                       </label>
                       {isEditing ? (
                         <Input
-                          value={editedUser.roleDetails.city || ''}
-                          onChange={(e) => handleRoleDetailsChange('city', e.target.value)}
+                          value={editedUser.roleDetails.city || ""}
+                          onChange={(e) =>
+                            handleRoleDetailsChange("city", e.target.value)
+                          }
                           className="w-full"
                           placeholder="Enter city"
                         />
                       ) : (
-                        <p className="text-lg">{user.roleDetails.city || 'Not provided'}</p>
+                        <p className="text-lg">
+                          {user.roleDetails.city || "Not provided"}
+                        </p>
                       )}
                     </div>
 
@@ -410,13 +413,17 @@ const UserEditPage: React.FC = () => {
                       </label>
                       {isEditing ? (
                         <Input
-                          value={editedUser.roleDetails.state || ''}
-                          onChange={(e) => handleRoleDetailsChange('state', e.target.value)}
+                          value={editedUser.roleDetails.state || ""}
+                          onChange={(e) =>
+                            handleRoleDetailsChange("state", e.target.value)
+                          }
                           className="w-full"
                           placeholder="Enter state"
                         />
                       ) : (
-                        <p className="text-lg">{user.roleDetails.state || 'Not provided'}</p>
+                        <p className="text-lg">
+                          {user.roleDetails.state || "Not provided"}
+                        </p>
                       )}
                     </div>
 
@@ -424,92 +431,54 @@ const UserEditPage: React.FC = () => {
                       <label className="text-sm font-medium flex items-center mb-2">
                         <User className="mr-2 h-4 w-4" /> Pin Code
                       </label>
-                      {isEditing ? (<Input
-                          value={editedUser.roleDetails.pinCode || ''}
-                          onChange={(e) => handleRoleDetailsChange('pinCode', e.target.value)}
+                      {isEditing ? (
+                        <Input
+                          value={editedUser.roleDetails.pinCode || ""}
+                          onChange={(e) =>
+                            handleRoleDetailsChange("pinCode", e.target.value)
+                          }
                           className="w-full"
                           placeholder="Enter pin code"
                         />
                       ) : (
-                        <p className="text-lg">{user.roleDetails.pinCode || 'Not provided'}</p>
+                        <p className="text-lg">
+                          {user.roleDetails.pinCode || "Not provided"}
+                        </p>
                       )}
                     </div>
                   </div>
                 </TabsContent>
 
-                {(user.role === 'Student' || editedUser.role === 'Student') && (
+                {(user.role === "Student" || editedUser.role === "Student") && (
                   <>
                     <TabsContent value="result">
-                      <ResultComponent 
-                        results={user.roleDetails.results} 
+                      <ResultComponent
+                        results={user.roleDetails.results}
                         isEditing={isEditing}
-                        onResultsChange={(updatedResults: any) => 
-                          handleRoleDetailsChange('results', updatedResults)
+                        onResultsChange={(updatedResults: any) =>
+                          handleRoleDetailsChange("results", updatedResults)
                         }
                       />
                     </TabsContent>
                     <TabsContent value="achievement">
-                    <Card className="mb-6">
-          <CardHeader 
-            className="cursor-pointer" 
-            onClick={() => setAdditionalInfoExpanded(!additionalInfoExpanded)}
-          >
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-2xl">Achievements</CardTitle>
-              {additionalInfoExpanded ? <ChevronUp /> : <ChevronDown />}
-            </div>
-            <CardDescription>Student's achievements</CardDescription>
-          {/* Result section */}
-          {Array.isArray(user.roleDetails.achievements) && (
-            <div className="mt-4 text-lg font-semibold">
-              Total Achievements: {user.roleDetails.achievements.length}
-            </div>
-            )}
-          </CardHeader>
-
-          {additionalInfoExpanded && (
-            <CardContent>
-              <p className="text-lg">
-                {/* If achievements is an array, we render each item */}
-                {Array.isArray(user.roleDetails.achievements) ? (
-                  user.roleDetails.achievements.map((achievement: { title: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; description: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; date: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; category: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; }, index: React.Key | null | undefined) => (
-                    <div
-                      key={index}
-                      className="border p-4 rounded shadow-md flex justify-between items-center"
-                    >
-                      <div>
-                        <h3 className="text-xl font-semibold">
-                          {achievement.title}
-                        </h3>
-                        <p className="text-gray-600">
-                          {achievement.description}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Date: {achievement.date} | Category:{" "}
-                          {achievement.category}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  // Otherwise, we display it directly as a string
-                  user.roleDetails.achievements
-                )}
-              </p>
-            </CardContent>
-          )}
-        </Card>
+                      <AchievementComponent
+                        achievements={user.roleDetails.achievements}
+                        isEditing={isEditing}
+                        handleRoleDetailsChange={(field, value) =>
+                          handleRoleDetailsChange("achievements", value)
+                        }
+                      />
                     </TabsContent>
                   </>
                 )}
 
-                {(user.role === 'Staff' || editedUser.role === 'Staff') && (
+                {(user.role === "Staff" || editedUser.role === "Staff") && (
                   <TabsContent value="achievement">
-                    <AchievementComponent 
-                      achievements={user.roleDetails.achievements} 
+                    <AchievementComponent
+                      achievements={user.roleDetails.achievements}
                       isEditing={isEditing}
-                      handleRoleDetailsChange={(field, value) => 
-                        handleRoleDetailsChange('achievements', value)
+                      handleRoleDetailsChange={(field, value) =>
+                        handleRoleDetailsChange("achievements", value)
                       }
                     />
                   </TabsContent>
@@ -523,20 +492,19 @@ const UserEditPage: React.FC = () => {
       <div className="flex justify-end gap-4">
         {isEditing ? (
           <>
-            <Button variant="outline" onClick={() => {
-              setEditedUser(user);
-              setIsEditing(false);
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditedUser(user);
+                setIsEditing(false);
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={handleSave}>
-              Save Changes
-            </Button>
+            <Button onClick={handleSave}>Save Changes</Button>
           </>
         ) : (
-          <Button onClick={() => setIsEditing(true)}>
-            Edit User
-          </Button>
+          <Button onClick={() => setIsEditing(true)}>Edit User</Button>
         )}
       </div>
     </div>

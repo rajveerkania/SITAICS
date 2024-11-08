@@ -15,6 +15,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const headers = new Headers();
+  headers.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -55,6 +61,7 @@ export async function POST(request: NextRequest) {
     });
 
     var successRate = 0;
+    var updateRate = 0;
     const failedSubjects: {
       subjectName: string;
       subjectCode: string;
@@ -73,6 +80,20 @@ export async function POST(request: NextRequest) {
     await prisma.$transaction(async (prisma) => {
       for (const subject of results) {
         try {
+          // First, fetch the courseId
+          const courseId = await prisma.course.findUnique({
+            where: {
+              courseName: subject.courseName,
+            },
+            select: {
+              courseId: true,
+            },
+          });
+
+          if (!courseId?.courseId) {
+            throw new Error("courseId is required and must be defined.");
+          }
+
           const inactiveSubject = await prisma.subject.findFirst({
             where: {
               subjectName: subject.subjectName,
@@ -94,45 +115,58 @@ export async function POST(request: NextRequest) {
           const existingSubject = await prisma.subject.findFirst({
             where: {
               subjectName: subject.subjectName,
+              semester: parseInt(subject.semester),
+              courseId: courseId.courseId,
             },
           });
 
+          const hasValidElectiveGroup =
+            subject.electiveGroupId && subject.electiveGroupId.trim() !== "";
+
+          const subjectData = {
+            subjectCode: subject.subjectCode,
+            semester: parseInt(subject.semester),
+            courseId: courseId.courseId,
+
+            isElective: hasValidElectiveGroup
+              ? true
+              : subject.isElective === "true" || subject.isElective === "1",
+
+            ...(hasValidElectiveGroup
+              ? { electiveGroupId: subject.electiveGroupId.trim() }
+              : { electiveGroupId: null }),
+          };
+
           if (existingSubject) {
+            await prisma.subject.update({
+              where: {
+                subjectId: existingSubject.subjectId,
+              },
+              data: subjectData,
+            });
+            updateRate++;
             duplicateSubjects.push({
               subjectName: subject.subjectName,
               subjectCode: subject.subjectCode,
               semester: subject.semester,
               courseName: subject.courseName,
-              reason: "Subject already exists",
+              reason: `Subject updated with ${
+                hasValidElectiveGroup ? "elective group" : ""
+              } information`,
             });
             continue;
           }
 
-          const courseId = await prisma.course.findUnique({
-            where: {
-              courseName: subject.courseName,
-            },
-            select: {
-              courseId: true,
+          await prisma.subject.create({
+            data: {
+              subjectName: subject.subjectName,
+              ...subjectData,
             },
           });
-
-          if (courseId?.courseId) {
-            await prisma.subject.create({
-              data: {
-                subjectName: subject.subjectName,
-                courseId: courseId.courseId,
-                subjectCode: subject.subjectCode,
-                semester: parseInt(subject.semester),
-              },
-            });
-          } else {
-            throw new Error("courseId is required and must be defined.");
-          }
           successRate++;
         } catch (error: any) {
           failedSubjects.push({
-            subjectName: subject.batchName,
+            subjectName: subject.subjectName,
             courseName: subject.courseName,
             subjectCode: subject.subjectCode,
             semester: subject.semester,
@@ -149,8 +183,11 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         successRate,
+        updateRate,
         failureRate,
         duplicationRate,
+        duplicateSubjects,
+        failedSubjects,
       },
       { status: 200 }
     );

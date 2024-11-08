@@ -26,15 +26,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(
-      "File received:",
-      file.name,
-      "Size:",
-      file.size,
-      "Type:",
-      file.type
-    );
-
     const buffer = await file.arrayBuffer();
     const results: any[] = [];
 
@@ -61,6 +52,16 @@ export async function POST(request: NextRequest) {
     await prisma.$transaction(async (prisma) => {
       for (const course of results) {
         try {
+          const courseDuration = parseInt(course.duration, 10); 
+
+          if (isNaN(courseDuration)) {
+            failedCourses.push({
+              courseName: course.courseName,
+              reason: "Invalid duration",
+            });
+            continue;
+          }
+
           const inactiveCourse = await prisma.course.findFirst({
             where: {
               courseName: course.courseName,
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
           await prisma.course.create({
             data: {
               courseName: course.courseName,
+              duration: courseDuration, 
             },
           });
 
