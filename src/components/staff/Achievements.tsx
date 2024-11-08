@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 
@@ -13,7 +14,7 @@ interface AchievementProps {
   userRole: string;
 }
 
-const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
+const Achievements: React.FC<AchievementProps> = ({ userId, userRole }) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -268,4 +269,4 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
     </div>
   );
 };
-export default Achievement;
+export default Achievements;

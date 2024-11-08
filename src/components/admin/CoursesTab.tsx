@@ -38,7 +38,6 @@ const CoursesTab: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("manage");
   const coursesPerPage = 5;
-
  
 
   const fetchCourses = async () => {

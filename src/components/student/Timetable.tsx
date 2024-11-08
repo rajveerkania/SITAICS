@@ -5,7 +5,6 @@ const StudentTimetable: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [title, setTitle] = useState<string>("Student Timetable");
 
-  // Fetch timetable on load
   useEffect(() => {
     const fetchTimetable = async () => {
       try {

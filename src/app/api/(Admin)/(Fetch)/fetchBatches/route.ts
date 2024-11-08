@@ -38,7 +38,6 @@ export async function GET(req: Request) {
         batchId: batch.batchId,
         batchName: batch.batchName,
         courseName: batch.course.courseName,
-        batchDuration: batch.batchDuration,
         currentSemester: batch.currentSemester,
         studentCount: batch.students.length,
       };
@@ -61,7 +60,6 @@ export async function GET(req: Request) {
         batchId: batch.batchId,
         batchName: batch.batchName,
         courseName: batch.course.courseName,
-        batchDuration: batch.batchDuration,
         currentSemester: batch.currentSemester,
         studentCount: batch.students.length,
       }));

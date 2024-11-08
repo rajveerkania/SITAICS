@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
             isBatchCoordinator,
             batchId: isBatchCoordinator ? batchId : null,
             isProfileCompleted: true,
+            isSemesterUpdated: true,
           },
         }),
       ]);

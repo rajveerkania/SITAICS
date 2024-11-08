@@ -104,7 +104,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Toaster />
-      <Navbar name={userData?.name} role={userData?.role} />
+      <Navbar name={userData?.name} id={userData?.id} role={userData?.role} />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button
@@ -172,7 +172,6 @@ const AdminDashboard = () => {
             ))}
           </ul>
         </div>
-
         {/* Desktop Tabs */}
         <Tabs
           value={activeTab}

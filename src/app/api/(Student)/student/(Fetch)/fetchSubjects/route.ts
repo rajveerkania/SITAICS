@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
         },
         batch: {
           select: {
+            currentSemester: true,
             subjects: {
               select: {
                 subject: {
@@ -116,7 +117,12 @@ export async function GET(request: NextRequest) {
       })) || []),
     ];
 
-    const uniqueSubjects = allSubjects.reduce(
+    const filteredSubjects = allSubjects.filter(
+      (subject) =>
+        subject.semester === studentWithSubjects.batch?.currentSemester
+    );
+
+    const uniqueSubjects = filteredSubjects.reduce(
       (acc, subject) => {
         if (!acc.some((s) => s.subjectId === subject.subjectId)) {
           const staffFromMap = staffMap.get(subject.subjectId) || [];

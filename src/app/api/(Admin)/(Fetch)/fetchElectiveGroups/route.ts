@@ -13,11 +13,22 @@ export async function GET(req: Request) {
 
     const electiveGroups = await prisma.electiveGroup.findMany({
       include: {
-        course: true,
+        course: {
+          select: {
+            courseName: true,
+          },
+        },
+        subjects: true,
       },
     });
 
-    return NextResponse.json({ groups: electiveGroups }, { status: 200 });
+    const groupsWithCourseName = electiveGroups.map((group) => ({
+      ...group,
+      courseName: group.course.courseName,
+      course: undefined,
+    }));
+
+    return NextResponse.json({ groups: groupsWithCourseName }, { status: 200 });
   } catch (error) {
     console.error("Error fetching elective groups:", error);
     return NextResponse.json(

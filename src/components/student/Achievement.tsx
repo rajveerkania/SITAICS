@@ -48,7 +48,9 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
       const data = await response.json();
       console.log("Fetched achievements data:", data);
 
-      setAchievements(Array.isArray(data.achievements) ? data.achievements : []);
+      setAchievements(
+        Array.isArray(data.achievements) ? data.achievements : []
+      );
     } catch (error) {
       console.error("Error fetching achievements:", error);
       setAchievements([]);
@@ -199,20 +201,20 @@ const Achievement: React.FC<AchievementProps> = ({ userId, userRole }) => {
                       <h3 className="text-xl font-semibold">
                         {achievement.title}
                       </h3>
-                      <p className="text-gray-600">
-                        {achievement.description}
-                      </p>
+                      <p className="text-gray-600">{achievement.description}</p>
                       <p className="text-sm text-gray-500">
                         Date: {achievement.date} | Category:{" "}
                         {achievement.category}
                       </p>
                     </div>
                     <button
-                    onClick={() => handleDelete(userId, userRole, achievement)}
-                    className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 w-full sm:w-auto flex items-center justify-center"
-                  >
-                    <FaTrashAlt className="mr-2" /> Delete
-                  </button>
+                      onClick={() =>
+                        handleDelete(userId, userRole, achievement)
+                      }
+                      className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 w-full sm:w-auto flex items-center justify-center"
+                    >
+                      <FaTrashAlt className="mr-2" /> Delete
+                    </button>
                   </div>
                 ))
             ) : (

@@ -47,8 +47,9 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
   const [electiveGroups, setElectiveGroups] = useState<ElectiveGroup[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [csvData, setCSVData] = useState<CSVData[]>([]);
-  const [availableElectiveGroups, setAvailableElectiveGroups] = useState<ElectiveGroup[]>([]);
-
+  const [availableElectiveGroups, setAvailableElectiveGroups] = useState<
+    ElectiveGroup[]
+  >([]);
 
   useEffect(() => {
     console.log("Current subject state:", newSubject);
@@ -100,7 +101,7 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
       const data = await response.json();
       if (Array.isArray(data.groups)) {
         setElectiveGroups(data.groups);
-        console.log("Fetched elective groups:", data.groups); // Debug log
+        console.log("Fetched elective groups:", data.groups);
       } else {
         throw new Error("Failed to fetch groups");
       }
@@ -113,7 +114,6 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
     fetchCourses();
     fetchElectiveGroups();
   }, []);
-
 
   useEffect(() => {
     if (newSubject.courseName && newSubject.semester) {
@@ -128,7 +128,7 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
             group.semester === parseInt(newSubject.semester, 10)
         );
 
-        console.log("Matching groups found:", matchingGroups); 
+        console.log("Matching groups found:", matchingGroups);
         setAvailableElectiveGroups(matchingGroups);
 
         if (matchingGroups.length === 0) {
@@ -175,9 +175,9 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
         },
         body: JSON.stringify(subjectData),
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok) {
         setNewSubject({
           subjectName: "",
@@ -246,6 +246,7 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
         placeholder="Semester"
         type="number"
         min="1"
+        max="8"
         value={newSubject.semester}
         onChange={(e) =>
           setNewSubject({ ...newSubject, semester: e.target.value })
@@ -261,7 +262,8 @@ const AddSubjectForm: React.FC<AddSubjectFormProps> = ({
               setNewSubject({
                 ...newSubject,
                 isElective: value,
-                electiveGroupId: value === "false" ? "" : newSubject.electiveGroupId,
+                electiveGroupId:
+                  value === "false" ? "" : newSubject.electiveGroupId,
               });
             }}
           >

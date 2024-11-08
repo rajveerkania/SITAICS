@@ -11,33 +11,18 @@ export async function POST(req: Request) {
   }
   try {
     const body = await req.json();
-    const {
-      batchName,
-      courseName,
-      batchDuration,
-      currentSemester,
-      currentSemster,
-    } = body;
+    const { batchName, courseName, currentSemester, currentSemster } = body;
 
     const actualCurrentSemester = currentSemester || currentSemster;
 
     const missingFields = [];
     if (!batchName) missingFields.push("batchName");
     if (!courseName) missingFields.push("courseName");
-    if (!batchDuration) missingFields.push("batchDuration");
     if (!actualCurrentSemester) missingFields.push("currentSemester");
 
     if (missingFields.length > 0) {
       return NextResponse.json(
         { error: `Missing required fields: ${missingFields.join(", ")}` },
-        { status: 400 }
-      );
-    }
-
-    const durationInYears = parseInt(batchDuration);
-    if (isNaN(durationInYears)) {
-      return NextResponse.json(
-        { error: "Invalid batch duration" },
         { status: 400 }
       );
     }
@@ -70,7 +55,6 @@ export async function POST(req: Request) {
       data: {
         batchName,
         courseId: course.courseId,
-        batchDuration: durationInYears,
         currentSemester: semester,
       },
       include: {

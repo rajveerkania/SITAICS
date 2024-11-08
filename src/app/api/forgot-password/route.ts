@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
+       return NextResponse.json(
         { success: false, message: "No account found with that information." },
         { status: 404 }
       );

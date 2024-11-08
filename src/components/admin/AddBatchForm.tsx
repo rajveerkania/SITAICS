@@ -148,15 +148,7 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
           )}
         </SelectContent>
       </Select>
-      <Input
-        placeholder="Duration (in years)"
-        type="number"
-        value={newBatch.batchDuration}
-        onChange={(e) =>
-          setNewBatch({ ...newBatch, batchDuration: e.target.value })
-        }
-        required
-      />
+      
       <Input
         placeholder="Current Semester"
         type="number"

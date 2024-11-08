@@ -9,8 +9,16 @@ export async function POST(req: Request) {
   if (userRole !== "Admin") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
+
   try {
-    const { courseName } = await req.json();
+    const { courseName, courseDuration } = await req.json();
+
+    if (!courseName || courseDuration === undefined) {
+      return NextResponse.json(
+        { error: "Course name and duration are required" },
+        { status: 401 }
+      );
+    }
 
     const existingCourse = await prisma.course.findUnique({
       where: { courseName },
@@ -19,12 +27,12 @@ export async function POST(req: Request) {
     if (existingCourse) {
       return NextResponse.json(
         { error: "Course already exists" },
-        { status: 400 }
+        { status: 403 }
       );
     }
 
     const course = await prisma.course.create({
-      data: { courseName },
+      data: { courseName, duration: parseInt(courseDuration, 10) },
     });
 
     return NextResponse.json(course, { status: 201 });
