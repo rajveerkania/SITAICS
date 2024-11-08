@@ -1,54 +1,64 @@
-"use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-interface TimetableRow {
-  time: string;
-  monday: string;
-  tuesday: string;
-  wednesday: string;
-  thursday: string;
-  friday: string;
-  saturday: string;
-}
+const StudentTimetable: React.FC = () => {
+  const [timetableURL, setTimetableURL] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [title, setTitle] = useState<string>("Student Timetable");
 
-interface TimetableProps {
-  timetableData: TimetableRow[];
-}
+  // Fetch timetable on load
+  useEffect(() => {
+    const fetchTimetable = async () => {
+      try {
+        const res = await fetch("/api/student/fetchTimetable", {
+          method: "POST",
+        });
+        const data = await res.json();
 
-const Timetable: React.FC<TimetableProps> = ({ timetableData }) => {
+        if (data.timetableExists && data.timetable) {
+          const base64String = data.timetable;
+          const blob = new Blob(
+            [Uint8Array.from(atob(base64String), (c) => c.charCodeAt(0))],
+            { type: "application/pdf" }
+          );
+          const fileURL = URL.createObjectURL(blob);
+          setTimetableURL(fileURL);
+          setTitle("Your Timetable");
+        } else {
+          setErrorMessage("No timetable found.");
+        }
+      } catch (error) {
+        console.error("Error fetching timetable:", error);
+        setErrorMessage("Failed to fetch timetable.");
+      }
+    };
+
+    fetchTimetable();
+  }, []);
+
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-4">Student Timetable</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border p-2 text-left">Time Slot</th>
-              <th className="border p-2 text-left">Monday</th>
-              <th className="border p-2 text-left">Tuesday</th>
-              <th className="border p-2 text-left">Wednesday</th>
-              <th className="border p-2 text-left">Thursday</th>
-              <th className="border p-2 text-left">Friday</th>
-              <th className="border p-2 text-left">Saturday</th>
-            </tr>
-          </thead>
-          <tbody>
-            {timetableData.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
-                <td className="border p-2">{row.time}</td>
-                <td className="border p-2">{row.monday}</td>
-                <td className="border p-2">{row.tuesday}</td>
-                <td className="border p-2">{row.wednesday}</td>
-                <td className="border p-2">{row.thursday}</td>
-                <td className="border p-2">{row.friday}</td>
-                <td className="border p-2">{row.saturday}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="max-w-full mx-auto my-16 p-12 bg-white shadow-2xl rounded-2xl border border-gray-300">
+      <h2 className="text-4xl font-bold mb-8 text-center">{title}</h2>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <p className="text-red-500 text-lg mb-6">{errorMessage}</p>
+      )}
+
+      {/* Display Timetable */}
+      {timetableURL ? (
+        <div className="flex flex-col items-center justify-center mb-8">
+          <iframe
+            src={timetableURL}
+            width="100%"
+            height="800px"
+            className="border border-gray-500 shadow-lg"
+          ></iframe>
+        </div>
+      ) : (
+        <p className="text-gray-500 text-center">Fetching timetable...</p>
+      )}
     </div>
   );
 };
 
-export default Timetable;
+export default StudentTimetable;

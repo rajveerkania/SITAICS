@@ -25,39 +25,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Step 1: Fetch the batch ID of the staff member
+    // Step 1: Fetch the primary batch ID assigned to the staff
     const staffDetails = await prisma.staffDetails.findUnique({
       where: { id },
       select: { batchId: true },
     });
 
     if (!staffDetails || !staffDetails.batchId) {
-      console.log("No batch ID found for staff member");
+      console.log("No primary batch ID found for staff member");
       return NextResponse.json({ message: "No batch assigned" }, { status: 404 });
     }
 
-    const batchId = staffDetails.batchId;
+    const primaryBatchId = staffDetails.batchId;
 
-    // Step 2: Fetch the batch name using the batch ID
-    const batchDetails = await prisma.batch.findUnique({
-      where: { batchId },
-      select: { batchName: true },
+    // Step 2: Fetch additional batch IDs where the staff is associated in BatchSubject table
+    const associatedBatchSubjects = await prisma.batchSubject.findMany({
+      where: { staffId: id },
+      select: { batchId: true },
     });
 
-    if (!batchDetails) {
-      console.log("No batch found for the given batch ID");
-      return NextResponse.json({ message: "Batch not found" }, { status: 404 });
-    }
+    const additionalBatchIds = associatedBatchSubjects.map((subject) => subject.batchId);
+    const batchIds = Array.from(new Set([primaryBatchId, ...additionalBatchIds])); // Deduplicate batch IDs
 
-    const batchName = batchDetails.batchName;
-    console.log("Fetched batch name:", batchName);
+    // Step 3: Fetch batch names for all gathered batch IDs
+    const batchDetails = await prisma.batch.findMany({
+      where: { batchId: { in: batchIds } },
+      select: { batchId: true, batchName: true },
+    });
 
-    // Step 3: Fetch the students associated with the batch name
+    const batchNames = batchDetails.map((batch) => batch.batchName);
+
+    // Step 4: Fetch students associated with the batch names
     const students = await prisma.studentDetails.findMany({
       where: {
-        batchName: batchName,
+        batchName: { in: batchNames },
         isActive: true,
       },
+      distinct: ["id"], // Ensure each student is listed only once
       select: {
         id: true,
         email: true,
@@ -72,8 +76,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Number of students fetched:", students.length);
     return NextResponse.json({ students }, { status: 200 });
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("Error fetching students:", error);
     return NextResponse.json({ message: "An unexpected error occurred" }, { status: 500 });
   }

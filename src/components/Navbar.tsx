@@ -1,13 +1,39 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { NotificationDialog } from "@/components/admin/AdminNotification";
-import BlurIn from "./magicui/blur-in";
+import BlurIn from "@/components/magicui/blur-in";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import { StudentProfile } from "@/components/student/StudentProfile";
+import Profile from "@/components/staff/Profile";
+import { NotificationDialog } from "@/components/admin/AdminNotification";
+import { StaffNotification } from "@/components/staff/StaffNotification";
+import { StudentNotification } from "@/components/student/StudentNotification";
 
 interface NavBarProps {
   name?: string;
-  role?: string;
+  role?: "Admin" | "Staff" | "Student";
+}
+
+interface StudentDetails {
+  fatherName: string;
+  motherName: string;
+  enrollmentNumber: string;
+  courseName: string;
+  batchName: string;
+  dateOfBirth: string;
+  gender: string;
+  contactNo: string;
+  address: string;
+  city: string;
+  state: string;
+  pinCode: string;
+  bloodGroup: string;
+}
+
+interface StaffDetails {
+  department: string;
+  position: string;
+  email: string;
+  contactNo: string;
 }
 
 interface LoadingSkeletonProps {
@@ -47,39 +73,38 @@ export function Navbar({ name, role }: NavBarProps) {
       };
       setDateTime(now.toLocaleString("en-US", options));
     };
+
     updateTime();
     const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      dropdownRef.current &&
-      !dropdownRef.current.contains(event.target as Node)
-    ) {
-      setDropdownOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    if (dropdownOpen) {
-      document.addEventListener("click", handleClickOutside);
-    } else {
-      document.removeEventListener("click", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [dropdownOpen]);
-
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      const response = await fetch("/api/logout", {
+      const response = await fetch("/api/auth/logout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -91,8 +116,8 @@ export function Navbar({ name, role }: NavBarProps) {
       }
 
       window.location.href = "/";
-    } catch (err) {
-      console.error("Logout failed", err);
+    } catch (error) {
+      console.error("Logout failed:", error);
       setIsLoggingOut(false);
     }
   };
@@ -106,12 +131,25 @@ export function Navbar({ name, role }: NavBarProps) {
     setProfileOpen(false);
   };
 
+  const renderNotification = () => {
+    switch (role) {
+      case "Admin":
+        return <NotificationDialog />;
+      case "Staff":
+        return <StaffNotification />;
+      case "Student":
+        return <StudentNotification />;
+      default:
+        return null;
+    }
+  };
+
   if (isLoggingOut) {
     return <LoadingSkeleton loadingText="Logging out..." />;
   }
 
   return (
-    <nav className="bg-white shadow-md p-4 transition-all duration-300 hover:shadow-lg relative z-50">
+    <nav className="bg-white shadow-md p-4 transition-all duration-300 hover:shadow-lg relative z-40">
       <div className="container-fluid mx-auto flex flex-row justify-between items-center">
         <div className="flex items-center space-x-2">
           <div className="hidden sm:block pl-8">
@@ -126,39 +164,51 @@ export function Navbar({ name, role }: NavBarProps) {
           <span className="text-xl font-medium text-gray-900">
             <BlurIn
               word={
-                name ? (window.innerWidth < 640 ? shortGreeting : greeting) : ""
+                name
+                  ? window.innerWidth < 640
+                    ? shortGreeting
+                    : greeting
+                  : ""
               }
             />
           </span>
         </div>
+
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">{dateTime}</div>
-          {role === "Admin" && <NotificationDialog />}
+          
+          <div className="z-50">
+            {renderNotification()}
+          </div>
+
           <div className="relative" ref={dropdownRef}>
             <div onClick={toggleDropdown} className="cursor-pointer">
               <Image
-                src={role === "Admin" ? "/Admin-logo.png" : "/User-logo.png"}
+                src={
+                  role === "Admin"
+                    ? "/Admin-logo.png"
+                    : "/User-logo.png"
+                }
                 alt="Profile Logo"
                 width={60}
                 height={60}
               />
             </div>
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-lg z-50">
-                <ul className="py-2">
+              <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
+                <ul>
                   <li
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-900"
+                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg transition-colors duration-200"
                     onClick={openProfile}
                   >
-                    {role === "Admin" ? "Admin Profile" : "Student Profile"}
+                    {role === "Admin"
+                      ? "Admin Profile"
+                      : role === "Staff"
+                      ? "Staff Profile"
+                      : "Student Profile"}
                   </li>
-                  {role === "Admin" && (
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-900">
-                      Send Notification
-                    </li>
-                  )}
                   <li
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-900"
+                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg transition-colors duration-200"
                     onClick={handleLogout}
                   >
                     Logout
@@ -170,18 +220,28 @@ export function Navbar({ name, role }: NavBarProps) {
         </div>
       </div>
 
-      {/* Profile Modal */}
       {profileOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Profile</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                Profile
+              </h3>
               <div className="mt-2 px-7 py-3">
                 {role === "Admin" ? (
                   <AdminProfile
-                    name={name || "Default Admin Name"}
+                    name={name || "Admin"}
                     email="admin@example.com"
                     username="admin123"
+                  />
+                ) : role === "Staff" ? (
+                  <Profile
+                    staffDetails={{
+                      department: "IT",
+                      position: "Lecturer",
+                      email: "staff@example.com",
+                      contactNo: "9876543210",
+                    }}
                   />
                 ) : (
                   <StudentProfile
@@ -205,9 +265,8 @@ export function Navbar({ name, role }: NavBarProps) {
               </div>
               <div className="items-center px-4 py-3">
                 <button
-                  id="ok-btn"
-                  className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   onClick={closeProfile}
+                  className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors duration-200"
                 >
                   Close
                 </button>

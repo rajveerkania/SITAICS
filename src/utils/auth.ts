@@ -8,7 +8,7 @@ interface DecodedUser {
   role: string;
 }
 
-export const verifyToken = (): DecodedUser | null => {
+export const verifyToken = (token?: string): DecodedUser | null => {
   try {
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;

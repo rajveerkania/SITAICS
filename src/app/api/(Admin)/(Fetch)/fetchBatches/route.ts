@@ -8,9 +8,9 @@ export async function GET(req: Request) {
   const decodedUser = verifyToken();
   const userRole = decodedUser?.role;
 
-  // if (!["Admin", "Staff"].includes(userRole!)) {
-  //   return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
-  // }
+  if (userRole !== "Admin") {
+    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+  }
 
   const { searchParams } = new URL(req.url);
   const batchId = searchParams.get("batchId");

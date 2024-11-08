@@ -7,7 +7,7 @@ export async function PATCH(request: NextRequest) {
   const userRole = decodedUser?.role;
   const userId = decodedUser?.id;
 
-  if (userRole !== "Staff") {
+  if (userRole !== "Staff" && userRole !== "Student") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
 
@@ -15,17 +15,34 @@ export async function PATCH(request: NextRequest) {
     // Parse the request body to get the achievement details to be deleted
     const { title, description, date, category } = await request.json();
 
-    // Fetch the staff details including their achievements
-    const staffDetails = await prisma.staffDetails.findUnique({
-      where: { id: userId },
-      select: { achievements: true },
-    });
+    let achievements = [];
 
-    if (!staffDetails) {
-      return NextResponse.json({ message: "Staff not found!" }, { status: 404 });
+    if (userRole === "Staff") {
+      // Fetch the staff details including their achievements
+      const staffDetails = await prisma.staffDetails.findUnique({
+        where: { id: userId },
+        select: { achievements: true },
+      });
+
+      if (!staffDetails) {
+        return NextResponse.json({ message: "Staff not found!" }, { status: 404 });
+      }
+
+      achievements = staffDetails.achievements ? staffDetails.achievements : [];
+
+    } else if (userRole === "Student") {
+      // Fetch the student details including their achievements
+      const studentDetails = await prisma.studentDetails.findUnique({
+        where: { id: userId },
+        select: { achievements: true },
+      });
+
+      if (!studentDetails) {
+        return NextResponse.json({ message: "Student not found!" }, { status: 404 });
+      }
+
+      achievements = studentDetails.achievements ? studentDetails.achievements : [];
     }
-
-    let achievements = staffDetails.achievements ? staffDetails.achievements : [];
 
     // Ensure achievements is an array
     achievements = Array.isArray(achievements) ? achievements : [];
@@ -49,11 +66,18 @@ export async function PATCH(request: NextRequest) {
     // Remove the achievement from the array
     achievements.splice(achievementIndex, 1);
 
-    // Update the staff details with the updated achievements array
-    await prisma.staffDetails.update({
-      where: { id: userId },
-      data: { achievements },
-    });
+    // Update the corresponding user details with the updated achievements array
+    if (userRole === "Staff") {
+      await prisma.staffDetails.update({
+        where: { id: userId },
+        data: { achievements },
+      });
+    } else if (userRole === "Student") {
+      await prisma.studentDetails.update({
+        where: { id: userId },
+        data: { achievements },
+      });
+    }
 
     return NextResponse.json({
       message: "Achievement deleted successfully!",
@@ -64,4 +88,4 @@ export async function PATCH(request: NextRequest) {
     console.error("Error deleting achievement:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-} 
+}

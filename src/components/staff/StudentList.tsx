@@ -43,6 +43,7 @@ const StudentList: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 5;
+
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -51,30 +52,26 @@ const StudentList: React.FC = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ batchName: "all" }), // or any batch name you want to send
         });
         const data = await response.json();
-        console.log(data);
         if (response.status !== 200) {
           toast.error(data.message || "Error while fetching user data");
         } else {
           setStudents(data.students);
         }
-  
-        // Fetch unique batches after getting student data
+
         const uniqueBatches: string[] = Array.from(
           new Set(data.students.map((student: Student) => student.batchName))
         );
-  
+
         setBatches(["all", ...uniqueBatches]);
       } catch (error) {
         console.error("Error fetching students:", error);
       }
     };
-  
+
     fetchStudents();
   }, []);
-  
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -107,7 +104,6 @@ const StudentList: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          {/* Batch Filter Dropdown */}
           <Select onValueChange={handleBatchChange} value={selectedBatch}>
             <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Select Batch" />
@@ -121,7 +117,6 @@ const StudentList: React.FC = () => {
             </SelectContent>
           </Select>
 
-          {/* Search Input */}
           <Input
             type="text"
             placeholder="Search by name"
@@ -131,7 +126,6 @@ const StudentList: React.FC = () => {
           />
         </div>
 
-        {/* Student Table */}
         <Table>
           <TableHeader>
             <TableRow>
@@ -150,7 +144,6 @@ const StudentList: React.FC = () => {
                 <TableCell>{student.email}</TableCell>
                 <TableCell>{student.batchName}</TableCell>
                 <TableCell>
-                  {/* View Details Dialog */}
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button
@@ -187,7 +180,6 @@ const StudentList: React.FC = () => {
           </TableBody>
         </Table>
 
-        {/* Pagination Controls */}
         <div className="mt-4">
           {Array.from({ length: totalPages }, (_, index) => (
             <Button

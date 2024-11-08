@@ -35,7 +35,7 @@ const Timetable: React.FC = () => {
 
   const validateFile = (file: File) => {
     const validTypes = ["application/pdf"];
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 1 * 1024 * 1024; // 1MB
 
     if (!validTypes.includes(file.type)) {
       setErrorMessage("Only PDF files are allowed.");
@@ -43,7 +43,7 @@ const Timetable: React.FC = () => {
     }
 
     if (file.size > maxSize) {
-      setErrorMessage("File size should be less than 10MB.");
+      setErrorMessage("File size should be less than 1MB.");
       return false;
     }
 
@@ -133,6 +133,13 @@ const Timetable: React.FC = () => {
         </div>
       )}
 
+      {/* Display the file name if a file is selected */}
+      {timetableFile && (
+        <p className="mb-4 text-lg text-blue-600">
+          File selected: {timetableFile.name}
+        </p>
+      )}
+
       {/* Error Message */}
       {errorMessage && <p className="text-red-500 text-lg mb-6">{errorMessage}</p>}
 
@@ -153,7 +160,6 @@ const Timetable: React.FC = () => {
       {/* Display Timetable */}
       {timetableURL && (
         <div className="flex flex-col items-center justify-center mb-8">
-          <h3 className="text-2xl font-semibold mb-6">Uploaded Timetable</h3>
           <iframe src={timetableURL} width="80%" height="500px" className="border border-gray-500 shadow-lg"></iframe>
         </div>
       )}

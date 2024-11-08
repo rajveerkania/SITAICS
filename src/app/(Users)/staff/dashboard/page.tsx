@@ -14,7 +14,6 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Toaster, toast } from "sonner";
 import AddStaffDetails from "@/components/staff/AddStaffDetails";
 
-
 const FacultyDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
@@ -42,7 +41,11 @@ const FacultyDashboard: React.FC = () => {
       if (data.user.isProfileCompleted) {
         setUserInfo(data.user);
       } else {
-        setUserInfo({ id: data.user.id, name: "", isProfileCompleted: false });
+        setUserInfo({
+          id: data.user.id,
+          name: data.user.name,
+          isProfileCompleted: false,
+        });
         setShowAddStaffDetails(true);
       }
     } catch (error) {
@@ -67,7 +70,7 @@ const FacultyDashboard: React.FC = () => {
   if (ShowAddStaffDetails) {
     return (
       <AddStaffDetails
-        id={userInfo.id}
+        name={userInfo.name}
         setShowAddStaffDetails={setShowAddStaffDetails}
         fetchUserDetails={function (): void {
           throw new Error("Function not implemented.");
@@ -79,7 +82,7 @@ const FacultyDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Toaster />
-      <Navbar name={userInfo?.name || ""} role="Faculty" />
+      <Navbar name={userInfo?.name} role="Staff" />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button
