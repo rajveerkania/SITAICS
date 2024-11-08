@@ -249,7 +249,7 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="achievements">
-            <Achievement />
+            <Achievement userId={""} userRole={""} />
           </TabsContent>
           <TabsContent value="placement">
             <Card>

@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const course = await prisma.course.findFirst({
+    const course = await prisma.course.findFirst({ 
       where: {
         courseName: {
           contains: courseName,

@@ -82,7 +82,7 @@ const FacultyDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Toaster />
-      <Navbar name={userInfo?.name || ""} role="Faculty" />
+      <Navbar name={userInfo?.name} role="Staff" />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button

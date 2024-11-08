@@ -51,7 +51,7 @@ export async function GET(req: Request) {
             },
           },
           students: true,
-        },
+        },  
       });
 
       const formattedBatches = batches.map((batch) => ({
