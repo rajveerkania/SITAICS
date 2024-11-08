@@ -88,20 +88,13 @@ async function main() {
       });
       createdSubjects.push(createdSubject);
 
-      // Associate subject with batch via BatchSubject
-      await prisma.batchSubject.upsert({
-        where: {
-          batchId_subjectId: {
-            batchId: batch.batchId,
-            subjectId: createdSubject.subjectId,
-          },
-        },
-        update: {},
-        create: {
+      // Associate subject with batch via BatchSubject with semester field
+      await prisma.batchSubject.create({
+        data: {
           batchId: batch.batchId,
           subjectId: createdSubject.subjectId,
-          semester: 1,
-          staffId : null,
+          semester: createdSubject.semester, // Use the semester value from the createdSubject
+          staffId: null,
         },
       });
     }

@@ -24,9 +24,8 @@ export async function POST(request: NextRequest) {
       contactNumber,
       dateOfBirth,
       isBatchCoordinator,
-      batchId,
+      batchId, // this is the batchId for the batch coordinator
       selectedSubjectIds,
-      subjectCount,
     } = reqBody;
 
     const parsedDateOfBirth = new Date(`${dateOfBirth}`);
@@ -36,60 +35,82 @@ export async function POST(request: NextRequest) {
     });
 
     let staffDetails;
+    const updateStaffData = {
+      name,
+      email,
+      gender,
+      address,
+      city,
+      state,
+      pinCode,
+      contactNumber,
+      dateOfBirth: parsedDateOfBirth,
+      isBatchCoordinator,
+      batchId: isBatchCoordinator ? batchId : null, // Only update batchId if the user is a batch coordinator
+      isProfileCompleted: true,
+    };
 
     if (existingStaff) {
-      // Update the existing staff details
-      staffDetails = await prisma.$transaction([
-        prisma.staffDetails.update({
-          where: { id: userId },
-          data: {
-            name,
-            email,
-            gender,
-            address,
-            city,
-            state,
-            pinCode,
-            contactNumber,
-            dateOfBirth: parsedDateOfBirth,
-            isBatchCoordinator,
-            batchId: isBatchCoordinator ? batchId : null,
-            isProfileCompleted: true,
-          },
-        }),
-        // Update the Batch table to add the staffId
-        prisma.batch.update({
-          where: { batchId }, // Find the batch by its ID
-          data: {
-            staffId: isBatchCoordinator ? userId : null, // Update staffId if the user is a batch coordinator
-          },
-        }),
-      ]);
+      // Update existing staff details
+      staffDetails = await prisma.staffDetails.update({
+        where: { id: userId },
+        data: updateStaffData,
+      });
+    } else {
+      // Create new staff details
+      staffDetails = await prisma.staffDetails.create({
+        data: { id: userId, ...updateStaffData },
+      });
     }
 
-    // Handle the subject updates conditionally based on subjectCount
-    const batchSubjectUpdates = selectedSubjectIds.length > 0
-      ? selectedSubjectIds.map((subjectId: string) =>
+    if (isBatchCoordinator && batchId) {
+      // If the user is a batch coordinator, update the batch table with their staffId
+      await prisma.batch.update({
+        where: { batchId },
+        data: {
+          staffId: userId,
+        },
+      });
+    }
+
+    if (selectedSubjectIds && selectedSubjectIds.length > 0) {
+      // Retrieve the courseId and semester for each subject ID from the Subject table
+      const subjectDetails = await prisma.subject.findMany({
+        where: { subjectId: { in: selectedSubjectIds } },
+        select: { subjectId: true, semester: true, courseId: true },
+      });
+
+      // Loop through each subject to find the associated batch IDs for each course
+      for (const subject of subjectDetails) {
+        const { courseId, subjectId, semester } = subject;
+
+        // Get all batchIds associated with this courseId
+        const batches = await prisma.batch.findMany({
+          where: { courseId },
+          select: { batchId: true },
+        });
+
+        const batchSubjectUpdates = batches.map((batch) =>
           prisma.batchSubject.upsert({
             where: {
-              batchId_subjectId: { batchId, subjectId },
+              batchId_subjectId: { batchId: batch.batchId, subjectId },
             },
             update: {
               staffId: userId,
+              semester, // Assign the semester fetched from the subject table
             },
             create: {
-              batchId,
+              batchId: batch.batchId,
               subjectId,
-              semester: 1, // Adjust semester value as needed
+              semester, // Assign the semester fetched from the subject table
               staffId: userId,
-            }
+            },
           })
-        )
-      : []; // If subjectCount is 0, no updates should be made
+        );
 
-    // Execute the transaction if there are updates to process
-    if (batchSubjectUpdates.length > 0) {
-      await prisma.$transaction(batchSubjectUpdates);
+        // Execute all batchSubject updates within a transaction
+        await prisma.$transaction(batchSubjectUpdates);
+      }
     }
 
     console.log(
