@@ -74,7 +74,7 @@ model StaffDetails {
   dateOfBirth        DateTime?
   gender             String?
   subjects           Subject[]
-  contactNumber      String?
+  contactNo      String?
   achievements       Json?
   address            String?
   city               String?

@@ -104,7 +104,7 @@ export function Navbar({ name, role }: NavBarProps) {
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      const response = await fetch("/api/auth/logout", {
+      const response = await fetch("/api/logout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
