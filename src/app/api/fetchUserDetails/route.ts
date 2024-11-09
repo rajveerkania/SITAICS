@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
               state: true,
               pinCode: true,
               dateOfBirth: true,
-              contactNumber: true,
+              contactNo: true,
               isBatchCoordinator: true,
               batchId: true,
               subjects: true,

@@ -74,7 +74,7 @@ const StudentDashboard: React.FC = () => {
       } else {
         setUserInfo({
           id: data.user.id,
-          name: "",
+          name: data.user.name,
           isProfileCompleted: false,
           isSemesterUpdated: true,
         } as UserInfo);
@@ -83,10 +83,14 @@ const StudentDashboard: React.FC = () => {
     } catch (error) {
       toast.error("Error fetching user details");
     }
+    finally{
+      setLoading(false);
+    }
   };
 
   const fetchElectiveStatus = async (batchName: string, courseName: string) => {
     try {
+      console.log("Elective Status fetch hit")
       const response = await fetch(`/api/student/fetchElectiveStatus/`, {
         method: "POST",
         headers: {
@@ -99,7 +103,6 @@ const StudentDashboard: React.FC = () => {
       });
 
       const data = await response.json();
-      console.log(data);
       if (data.required) {
         setElectiveData(data.electiveGroups);
         setSemesterUpdated(true);
