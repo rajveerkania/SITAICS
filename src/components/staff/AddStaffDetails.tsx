@@ -240,9 +240,20 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
         stepErrors.subjectCount = "Please select number of subjects";
         stepIsValid = false;
       }
+
+      // Only validate batchId if the staff is a batch coordinator
       if (staffFormData.isBatchCoordinator && !staffFormData.batchId) {
         stepErrors.batchId = "Batch is required for coordinators.";
         stepIsValid = false;
+      }
+
+      // Validation for subjects
+      if (staffFormData.subjectCount > 0 && staffFormData.selectedSubjectIds.length === 0) {
+        stepErrors.subjectCount = "Please select subjects.";
+        stepIsValid = false;
+      }
+      if (staffFormData.subjectCount === 0 && staffFormData.selectedSubjectIds.length > 0) {
+        stepErrors.subjectCount = ""; // Clear error if subjects are selected but count is 0
       }
     }
 
@@ -284,6 +295,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   const previousStep = () => {
     setCurrentStep((prevStep) => prevStep - 1);
   };
+
   const filteredSubjects = (index: number) => {
     const selectedIds = staffFormData.selectedSubjectIds.slice(0, index);
     return availableSubjects.filter(
@@ -294,7 +306,8 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   return (
     <div className="relative min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="absolute top-4 right-4">
-        <Button onClick={handleLogout}>Logout</Button>
+        <Button
+           onClick={handleLogout}>Logout</Button>
       </div>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-3xl font-bold mb-3 text-center">{username}</h1>
@@ -475,7 +488,6 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                           target: { name: "batchId", value },
                         } as React.ChangeEvent<HTMLSelectElement>)
                       }
-                      required
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select Batch" />

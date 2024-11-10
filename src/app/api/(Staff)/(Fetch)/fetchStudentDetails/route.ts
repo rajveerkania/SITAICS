@@ -5,12 +5,13 @@ import { verifyToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
   console.log("API route hit: /api/fetchStudentDetails");
+
   try {
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
     console.log("Token:", token ? "Present" : "Not present");
-    let id = null, role = null;
 
+    let id = null, role = null;
     if (token) {
       const decodedToken = verifyToken();
       if (decodedToken && typeof decodedToken === "object") {
@@ -31,21 +32,22 @@ export async function POST(request: NextRequest) {
       select: { batchId: true },
     });
 
-    if (!staffDetails || !staffDetails.batchId) {
-      console.log("No primary batch ID found for staff member");
-      return NextResponse.json({ message: "No batch assigned" }, { status: 404 });
-    }
-
-    const primaryBatchId = staffDetails.batchId;
-
-    // Step 2: Fetch additional batch IDs where the staff is associated in BatchSubject table
+    // Step 2: Fetch additional batch IDs from the BatchSubject table if any
     const associatedBatchSubjects = await prisma.batchSubject.findMany({
       where: { staffId: id },
       select: { batchId: true },
     });
-
     const additionalBatchIds = associatedBatchSubjects.map((subject) => subject.batchId);
-    const batchIds = Array.from(new Set([primaryBatchId, ...additionalBatchIds])); // Deduplicate batch IDs
+
+    // Combine primary batch and associated batches if primary batch exists
+    let batchIds = staffDetails?.batchId
+      ? Array.from(new Set([staffDetails.batchId, ...additionalBatchIds])) // Deduplicate batch IDs
+      : additionalBatchIds;
+
+    if (batchIds.length === 0) {
+      console.log("No batches found for staff member");
+      return NextResponse.json({ message: "No batches assigned" }, { status: 404 });
+    }
 
     // Step 3: Fetch batch names for all gathered batch IDs
     const batchDetails = await prisma.batch.findMany({

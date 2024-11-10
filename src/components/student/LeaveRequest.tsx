@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface Leave {
-  type: string;
-  startDate: string;
-  endDate: string;
+  leaveType: string;
+  fromDate: string;
+  toDate: string;
   reason: string;
   status: string;
 }
@@ -14,30 +14,73 @@ const LeaveRequest: React.FC = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
-  const [leaves, setLeaves] = useState<Leave[]>([
-    {
-      type: "Sick Leave",
-      startDate: "2023-08-01",
-      endDate: "2023-08-03",
-      reason: "Fever",
-      status: "Approved",
-    },
-  ]);
+  const [leaves, setLeaves] = useState<Leave[]>([]);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchLeaves = async () => {
+    try {
+      const response = await fetch("/api/student/fetchLeaveRequests");
+      const data = await response.json();
+      if (response.ok) {
+        setLeaves(data.leaves);
+        setErrorMessage("");
+      } else {
+        setErrorMessage(data.message || "Failed to load leave requests.");
+      }
+    } catch (error) {
+      console.error("Error fetching leaves:", error);
+      setErrorMessage("Failed to fetch leave requests. Please try again.");
+    }
+  };
+
+  useEffect(() => {
+    if (currentTab === "view_leaves") {
+      fetchLeaves();
+    }
+  }, [currentTab]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newLeave: Leave = {
-      type: leaveType,
-      startDate,
-      endDate,
-      reason,
-      status: "Pending",
-    };
-    setLeaves([...leaves, newLeave]);
-    setLeaveType("");
-    setStartDate("");
-    setEndDate("");
-    setReason("");
+
+    try {
+      const response = await fetch("/api/student/addLeaveRequest", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: leaveType,
+          startDate,
+          endDate,
+          reason,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const newLeave: Leave = {
+          type: leaveType,
+          startDate,
+          endDate,
+          reason,
+          status: "Pending",
+        };
+        setLeaves([...leaves, newLeave]);
+        setLeaveType("");
+        setStartDate("");
+        setEndDate("");
+        setReason("");
+        setSuccessMessage("Leave request submitted successfully.");
+        setErrorMessage("");
+      } else {
+        setErrorMessage(data.message || "Error submitting leave request.");
+      }
+    } catch (error) {
+      console.error("Error submitting leave request:", error);
+      setErrorMessage("Failed to submit leave request. Please try again.");
+    }
   };
 
   return (
@@ -67,6 +110,9 @@ const LeaveRequest: React.FC = () => {
 
       {currentTab === "apply_leave" && (
         <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
+          {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+          {successMessage && <p className="text-green-500">{successMessage}</p>}
+
           <select
             className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
             value={leaveType}
@@ -126,9 +172,9 @@ const LeaveRequest: React.FC = () => {
             <tbody>
               {leaves.map((leave, index) => (
                 <tr key={index}>
-                  <td className="border p-2">{leave.type}</td>
-                  <td className="border p-2">{leave.startDate}</td>
-                  <td className="border p-2">{leave.endDate}</td>
+                  <td className="border p-2">{leave.leaveType}</td>
+                  <td className="border p-2">{leave.fromDate}</td>
+                  <td className="border p-2">{leave.toDate}</td>
                   <td className="border p-2">{leave.status}</td>
                 </tr>
               ))}
