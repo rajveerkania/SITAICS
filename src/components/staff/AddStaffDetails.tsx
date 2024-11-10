@@ -81,7 +81,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
         toast.error("Failed to fetch batches. Please try again.");
       }
     };
-
+ 
     const fetchSubjects = async () => {
       try {
         const response = await fetch("/api/fetchSubjectStaff");

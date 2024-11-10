@@ -1,5 +1,6 @@
+//This API IS FETCHING BATCH COORDINATIOR'S BATCH STUDENTS LIST & DETAILS 
 import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma"; 
 import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 

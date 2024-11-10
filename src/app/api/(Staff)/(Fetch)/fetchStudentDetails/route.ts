@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
-  console.log("API route hit: /api/fetchStudentDetails");
+  console.log("API route hit: /api/fetchStudentDetails"); 
 
   try {
     const cookieStore = cookies();

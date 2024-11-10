@@ -51,7 +51,7 @@ const Attendance = () => {
 
   const loadBatches = async () => {
     try {
-      const response = await fetch('/api/fetchBatchRecord', {
+      const response = await fetch('/api/fetchAssignedBatches', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
