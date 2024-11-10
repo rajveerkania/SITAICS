@@ -139,7 +139,7 @@ const CourseEditPage = () => {
   };
 
   if (isLoading) {
-    return <LoadingSkeleton loadingText="course details" />;
+    return <LoadingSkeleton loadingText="Course Details" />;
   }
 
   if (!course) {

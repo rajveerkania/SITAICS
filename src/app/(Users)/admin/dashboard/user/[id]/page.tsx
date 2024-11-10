@@ -140,7 +140,7 @@ const UserEditPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return <LoadingSkeleton loadingText="user details" />;
+    return <LoadingSkeleton loadingText="User Details" />;
   }
 
   if (!user || !editedUser) {

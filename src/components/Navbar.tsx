@@ -46,9 +46,13 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({ loadingText }) => {
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
-      <p className="mt-4 text-lg font-semibold text-gray-700">
-        Loading {loadingText}
-      </p>
+      {loadingText !== "logout" ? (
+        <p className="mt-4 text-lg font-semibold text-gray-700">
+          Loading {loadingText}
+        </p>
+      ) : (
+        <p className="mt-4 text-lg font-semibold text-gray-700">Logging Out</p>
+      )}
     </div>
   );
 };
@@ -172,11 +176,7 @@ export function Navbar({ name, id, role }: NavBarProps) {
           <span className="text-xl font-medium text-gray-900">
             <BlurIn
               word={
-                name
-                  ? window.innerWidth < 640
-                    ? shortGreeting
-                    : greeting
-                  : ""
+                name ? (window.innerWidth < 640 ? shortGreeting : greeting) : ""
               }
             />
           </span>
@@ -184,21 +184,13 @@ export function Navbar({ name, id, role }: NavBarProps) {
 
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">{dateTime}</div>
-          
-          <div className="z-50">
-            {renderNotification()}
-          </div>
+
+          <div className="z-50">{renderNotification()}</div>
 
           <div className="relative" ref={dropdownRef}>
             <div onClick={toggleDropdown} className="cursor-pointer">
               <Image
-                src={
-                  role === "Admin"
-                    ? "/Admin-logo.png"
-                    : role === "Staff"
-                    ? "/Staff-logo.png"
-                    : "/User-logo.png"
-                }
+                src={role === "Admin" ? "/Admin-logo.png" : "/User-logo.png"}
                 alt="Profile Logo"
                 width={60}
                 height={60}
@@ -219,7 +211,7 @@ export function Navbar({ name, id, role }: NavBarProps) {
                   </li>
                   {isAdmin && (
                     <li
-                      className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
+                      className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer"
                       onClick={handleSession}
                     >
                       Academic Session

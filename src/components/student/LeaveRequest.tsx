@@ -1,4 +1,12 @@
 import React, { useState, useEffect } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 interface Leave {
   leaveType: string;
@@ -61,9 +69,9 @@ const LeaveRequest: React.FC = () => {
 
       if (response.ok) {
         const newLeave: Leave = {
-          type: leaveType,
-          startDate,
-          endDate,
+          leaveType,
+          fromDate: startDate,
+          toDate: endDate,
           reason,
           status: "Pending",
         };
@@ -113,17 +121,17 @@ const LeaveRequest: React.FC = () => {
           {errorMessage && <p className="text-red-500">{errorMessage}</p>}
           {successMessage && <p className="text-green-500">{successMessage}</p>}
 
-          <select
-            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-            value={leaveType}
-            onChange={(e) => setLeaveType(e.target.value)}
-            required
-          >
-            <option value="">Leave Type</option>
-            <option value="Sick Leave">Sick Leave</option>
-            <option value="Vacation">Vacation</option>
-            <option value="Personal Leave">Personal Leave</option>
-          </select>
+          <Select onValueChange={setLeaveType} value={leaveType}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Leave Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+              <SelectItem value="Vacation">Vacation</SelectItem>
+              <SelectItem value="Personal Leave">Personal Leave</SelectItem>
+            </SelectContent>
+          </Select>
+
           <div className="grid grid-cols-2 gap-4">
             <input
               type="date"
@@ -149,12 +157,12 @@ const LeaveRequest: React.FC = () => {
             onChange={(e) => setReason(e.target.value)}
             required
           />
-          <button
+          <Button
             type="submit"
             className="w-full bg-black hover:bg-gray-900 text-white font-bold py-2 px-4 rounded"
           >
             Apply for Leave
-          </button>
+          </Button>
         </form>
       )}
 
