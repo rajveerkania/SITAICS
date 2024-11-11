@@ -18,7 +18,10 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Eye } from "lucide-react";
 
-const SECRET_KEY = process.env.NEXT_PUBLIC_ID_SECRET;
+interface CoursesTabProps {
+  setLoading: (value: boolean) => void;
+  setLoadingText: (value: string) => void;
+}
 
 interface Course {
   courseId: string;
@@ -28,8 +31,10 @@ interface Course {
   totalSubjects: number;
 }
 
-
-const CoursesTab: React.FC = () => {
+const CoursesTab: React.FC<CoursesTabProps> = ({
+  setLoading,
+  setLoadingText,
+}) => {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,8 +43,6 @@ const CoursesTab: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("manage");
   const coursesPerPage = 5;
-
- 
 
   const fetchCourses = async () => {
     setIsLoading(true);
@@ -94,6 +97,8 @@ const CoursesTab: React.FC = () => {
   };
 
   const handleViewCourse = (courseId: string) => {
+    setLoading(true);
+    setLoadingText("Course Details");
     router.push(`/admin/dashboard/course/${courseId}`);
   };
 

@@ -35,6 +35,47 @@ export async function POST(request: NextRequest) {
     });
 
     let staffDetails;
+
+    if (existingStaff) {
+      staffDetails = await prisma.$transaction([
+        prisma.staffDetails.update({
+          where: { id: userId },
+          data: {
+            name,
+            email,
+            gender,
+            address,
+            city,
+            state,
+            pinCode,
+            contactNumber,
+            dateOfBirth: parsedDateOfBirth,
+            isBatchCoordinator,
+            batchId: isBatchCoordinator ? batchId : null,
+            isProfileCompleted: true,
+            isSemesterUpdated: true,
+          },
+        }),
+      ]);
+    }
+
+    // Update BatchSubject table with the selected subjects and staff ID
+    const batchSubjectUpdates = selectedSubjectIds.map((subjectId: string) =>
+      prisma.batchSubject.upsert({
+        where: {
+          batchId_subjectId: { batchId, subjectId },
+        },
+        update: {
+          staffId: userId,
+        },
+        create: {
+          batchId,
+          subjectId,
+          semester: 1, // Adjust semester value as needed
+          staffId: userId,
+        },
+      })
+    );
     const updateStaffData = {
       name,
       email,

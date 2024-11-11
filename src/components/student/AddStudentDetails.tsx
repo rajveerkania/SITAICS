@@ -12,23 +12,22 @@ import { toast } from "sonner";
 
 interface AddStudentDetailsProps {
   id: string;
+  name: string;
   setShowAddStudentDetails: (value: boolean) => void;
   fetchUserDetails: () => void;
-}
-
-interface Course {
-  courseName: string;
+  fetchElectiveStatus: (batchName: string, courseName: string) => void;
 }
 
 const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
   id,
+  name,
   setShowAddStudentDetails,
   fetchUserDetails,
+  fetchElectiveStatus,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [courses, setCourses] = useState<{ courseName: string }[]>([]);
   const [batches, setBatches] = useState<{ batchName: string }[]>([]);
-  const [userName, setUserName] = useState("User");
 
   const [studentFormData, setStudentFormData] = useState({
     id,
@@ -179,6 +178,10 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
         toast.success("Student details added successfully.");
         setShowAddStudentDetails(false);
         fetchUserDetails();
+        fetchElectiveStatus(
+          studentFormData.batchName,
+          studentFormData.courseName
+        );
       } else {
         toast.error("Failed to add student details.");
       }
@@ -209,15 +212,6 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
       }
     };
 
-    const fetchUserDetails = async () => {
-      try {
-        const response = await fetch(`/api/fetchUserDetails`);
-        const data = await response.json();
-        setUserName(data.user.name);
-      } catch (error) {
-        toast.error("Something went wrong. Please try again later");
-      }
-    };
     fetchUserDetails();
     fetchCourses();
   }, []);
@@ -228,7 +222,7 @@ const AddStudentDetails: React.FC<AddStudentDetailsProps> = ({
         <Button onClick={handleLogout}>Logout</Button>
       </div>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-3 text-center">{userName}</h1>
+        <h1 className="text-3xl font-bold mb-3 text-center">{name}</h1>
         <p className="text-sm text-gray-400 text-center mb-6">
           Enter your details to continue
         </p>

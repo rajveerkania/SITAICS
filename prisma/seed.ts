@@ -167,11 +167,6 @@ async function main() {
   // Log created data for verification
   console.log({
     adminUser,
-    courses: createdCourses,
-    batches: createdBatches,
-    subjects: createdSubjects,
-    students: createdStudents,
-    staffMembers: createdStaffMembers,
   });
 }
 

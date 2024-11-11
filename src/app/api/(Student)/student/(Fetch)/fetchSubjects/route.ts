@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const studentWithSubjects = await prisma.studentDetails.findUnique({
+    const coreSubjects = await prisma.studentDetails.findUnique({
       where: { id: studentId },
       select: {
         courseName: true,
@@ -27,6 +27,9 @@ export async function GET(request: NextRequest) {
         course: {
           select: {
             subjects: {
+              where: {
+                isElective: false,
+              },
               select: {
                 subjectId: true,
                 subjectName: true,
@@ -45,6 +48,7 @@ export async function GET(request: NextRequest) {
         },
         batch: {
           select: {
+            currentSemester: true,
             subjects: {
               select: {
                 subject: {
@@ -83,12 +87,39 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    if (!studentWithSubjects) {
+    if (!coreSubjects) {
       throw new Error("Student not found");
     }
 
+    // Fetch elective choices for the student's current semester
+    const electiveChoices = await prisma.electiveSubjectChoice.findMany({
+      where: {
+        studentId,
+        electiveGroup: {
+          semester: coreSubjects.batch?.currentSemester,
+        },
+      },
+      select: {
+        subject: {
+          select: {
+            subjectId: true,
+            subjectName: true,
+            subjectCode: true,
+            semester: true,
+            staff: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
     const staffMap = new Map();
-    studentWithSubjects.batch?.staffMembers.forEach((staff) => {
+    coreSubjects.batch?.staffMembers.forEach((staff) => {
       staff.subjects.forEach((subject) => {
         if (!staffMap.has(subject.subjectId)) {
           staffMap.set(subject.subjectId, [
@@ -109,14 +140,25 @@ export async function GET(request: NextRequest) {
     });
 
     const allSubjects = [
-      ...(studentWithSubjects.course?.subjects || []),
-      ...(studentWithSubjects.batch?.subjects.map((bs) => ({
+      ...(coreSubjects.course?.subjects || []),
+      ...(coreSubjects.batch?.subjects.map((bs) => ({
         ...bs.subject,
         semester: bs.semester,
       })) || []),
     ];
 
-    const uniqueSubjects = allSubjects.reduce(
+    const filteredSubjects = allSubjects.filter(
+      (subject) =>
+        subject.semester === coreSubjects.batch?.currentSemester
+    );
+
+    // Combine core subjects with elective choices
+    const allCoreAndElectiveSubjects = [
+      ...filteredSubjects,
+      ...electiveChoices.map((choice) => choice.subject),
+    ];
+
+    const uniqueSubjects = allCoreAndElectiveSubjects.reduce(
       (acc, subject) => {
         if (!acc.some((s) => s.subjectId === subject.subjectId)) {
           const staffFromMap = staffMap.get(subject.subjectId) || [];
@@ -130,7 +172,7 @@ export async function GET(request: NextRequest) {
             subjectId: subject.subjectId,
             subjectName: subject.subjectName,
             subjectCode: subject.subjectCode,
-            semester: subject.semester,
+            semester: subject.semester || 0,
             staff: combinedStaff.length > 0 ? combinedStaff : "NA",
           });
         }
@@ -147,8 +189,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       studentId,
-      courseName: studentWithSubjects.courseName,
-      batchName: studentWithSubjects.batchName,
+      courseName: coreSubjects.courseName,
+      batchName: coreSubjects.batchName,
       subjects: uniqueSubjects,
     });
   } catch (error) {

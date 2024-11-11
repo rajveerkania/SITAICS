@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import usePreviousRoute from "@/app/hooks/usePreviousRoute";
@@ -24,7 +24,6 @@ import {
 import { toast } from "sonner";
 import { Book, Layers, Edit3, ArrowLeft, Eye } from "lucide-react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
-import { AES, enc } from "crypto-js";
 
 interface Course {
   courseId: string;
@@ -140,7 +139,7 @@ const CourseEditPage = () => {
   };
 
   if (isLoading) {
-    return <LoadingSkeleton loadingText="course details" />;
+    return <LoadingSkeleton loadingText="Course Details" />;
   }
 
   if (!course) {
@@ -259,7 +258,9 @@ const CourseEditPage = () => {
                                 backgroundColor: "black",
                                 color: "white",
                               }}
-                              onClick={() => redirectToBatchDetails(batch.batchId)}
+                              onClick={() =>
+                                redirectToBatchDetails(batch.batchId)
+                              }
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -308,7 +309,9 @@ const CourseEditPage = () => {
                                 backgroundColor: "black",
                                 color: "white",
                               }}
-                              onClick={() => redirectToSubjectDetails(subject.subjectId)} 
+                              onClick={() =>
+                                redirectToSubjectDetails(subject.subjectId)
+                              }
                             >
                               <Eye className="h-4 w-4" />
                             </Button>

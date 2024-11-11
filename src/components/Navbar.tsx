@@ -4,11 +4,38 @@ import { NotificationDialog } from "@/components/admin/AdminNotification";
 import BlurIn from "./magicui/blur-in";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import { StudentProfile } from "@/components/student/StudentProfile";
-import Profile from "./staff/Profile";
+import Profile from "@/components/staff/Profile";
+import { StaffNotification } from "@/components/staff/StaffNotification";
+import { StudentNotification } from "@/components/student/StudentNotification";
+import { useRouter } from "next/navigation";
 
 interface NavBarProps {
   name?: string;
+  id?: string;
   role?: "Admin" | "Staff" | "Student";
+}
+
+interface StudentDetails {
+  fatherName: string;
+  motherName: string;
+  enrollmentNumber: string;
+  courseName: string;
+  batchName: string;
+  dateOfBirth: string;
+  gender: string;
+  contactNo: string;
+  address: string;
+  city: string;
+  state: string;
+  pinCode: string;
+  bloodGroup: string;
+}
+
+interface StaffDetails {
+  department: string;
+  position: string;
+  email: string;
+  contactNo: string;
 }
 
 interface LoadingSkeletonProps {
@@ -19,21 +46,27 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({ loadingText }) => {
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
-      <p className="mt-4 text-lg font-semibold text-gray-700">
-        Loading {loadingText}
-      </p>
+      {loadingText !== "logout" ? (
+        <p className="mt-4 text-lg font-semibold text-gray-700">
+          Loading {loadingText}
+        </p>
+      ) : (
+        <p className="mt-4 text-lg font-semibold text-gray-700">Logging Out</p>
+      )}
     </div>
   );
 };
 
-export function Navbar({ name, role }: NavBarProps) {
+export function Navbar({ name, id, role }: NavBarProps) {
   const [dateTime, setDateTime] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const isAdmin = role === "Admin" ? true : false;
   const dropdownRef = useRef<HTMLDivElement>(null);
   const greeting = `Welcome, ${name}`;
   const shortGreeting = `Welcome, ${name?.split(" ")[0]}`;
+  const router = useRouter();
 
   useEffect(() => {
     const updateTime = () => {
@@ -48,34 +81,33 @@ export function Navbar({ name, role }: NavBarProps) {
       };
       setDateTime(now.toLocaleString("en-US", options));
     };
+
     updateTime();
     const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
-
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      dropdownRef.current &&
-      !dropdownRef.current.contains(event.target as Node)
-    ) {
-      setDropdownOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    if (dropdownOpen) {
-      document.addEventListener("click", handleClickOutside);
-    } else {
-      document.removeEventListener("click", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [dropdownOpen]);
 
   const handleLogout = async () => {
     try {
@@ -98,6 +130,10 @@ export function Navbar({ name, role }: NavBarProps) {
     }
   };
 
+  const handleSession = () => {
+    router.push(`/admin/dashboard/session/${id}`);
+  };
+
   const openProfile = () => {
     setProfileOpen(true);
     setDropdownOpen(false);
@@ -107,12 +143,25 @@ export function Navbar({ name, role }: NavBarProps) {
     setProfileOpen(false);
   };
 
+  const renderNotification = () => {
+    switch (role) {
+      case "Admin":
+        return <NotificationDialog />;
+      case "Staff":
+        return <StaffNotification />;
+      case "Student":
+        return <StudentNotification />;
+      default:
+        return null;
+    }
+  };
+
   if (isLoggingOut) {
-    return <LoadingSkeleton loadingText="Logging out..." />;
+    return <LoadingSkeleton loadingText="logout" />;
   }
 
   return (
-    <nav className="bg-white shadow-md p-4 transition-all duration-300 hover:shadow-lg relative z-50">
+    <nav className="bg-white shadow-md p-4 transition-all duration-300 hover:shadow-lg relative z-40">
       <div className="container-fluid mx-auto flex flex-row justify-between items-center">
         <div className="flex items-center space-x-2">
           <div className="hidden sm:block pl-8">
@@ -132,19 +181,16 @@ export function Navbar({ name, role }: NavBarProps) {
             />
           </span>
         </div>
+
         <div className="flex items-center space-x-4">
           <div className="hidden lg:block text-gray-600">{dateTime}</div>
-          <NotificationDialog />
+
+          <div className="z-50">{renderNotification()}</div>
+
           <div className="relative" ref={dropdownRef}>
             <div onClick={toggleDropdown} className="cursor-pointer">
               <Image
-                src={
-                  role === "Admin"
-                    ? "/Admin-logo.png"
-                    : role === "Staff"
-                    ? "/Staff-logo.png"
-                    : "/User-logo.png"
-                }
+                src={role === "Admin" ? "/Admin-logo.png" : "/User-logo.png"}
                 alt="Profile Logo"
                 width={60}
                 height={60}
@@ -154,7 +200,7 @@ export function Navbar({ name, role }: NavBarProps) {
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
                 <ul>
                   <li
-                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg"
+                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-t-lg transition-colors duration-200"
                     onClick={openProfile}
                   >
                     {role === "Admin"
@@ -163,8 +209,16 @@ export function Navbar({ name, role }: NavBarProps) {
                       ? "Staff Profile"
                       : "Student Profile"}
                   </li>
+                  {isAdmin && (
+                    <li
+                      className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer"
+                      onClick={handleSession}
+                    >
+                      Academic Session
+                    </li>
+                  )}
                   <li
-                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg"
+                    className="block px-4 py-2 text-black hover:bg-black hover:text-white cursor-pointer hover:rounded-b-lg transition-colors duration-200"
                     onClick={handleLogout}
                   >
                     Logout
@@ -186,7 +240,7 @@ export function Navbar({ name, role }: NavBarProps) {
               <div className="mt-2 px-7 py-3">
                 {role === "Admin" ? (
                   <AdminProfile
-                    name={name || "Default Admin Name"}
+                    name={name || "Admin"}
                     email="admin@example.com"
                     username="admin123"
                   />
@@ -221,9 +275,8 @@ export function Navbar({ name, role }: NavBarProps) {
               </div>
               <div className="items-center px-4 py-3">
                 <button
-                  id="ok-btn"
-                  className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   onClick={closeProfile}
+                  className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors duration-200"
                 >
                   Close
                 </button>

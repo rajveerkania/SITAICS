@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import usePreviousRoute from "@/app/hooks/usePreviousRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Book, Edit3, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { Book, Edit3, ArrowLeft, ChevronDown, ChevronUp, Bookmark, Users } from "lucide-react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 interface Subject {
@@ -30,6 +30,10 @@ interface Subject {
   subjectCode: string;
   semester: number;
   courseName: string;
+  isElective: boolean;
+  electiveGroup?: {
+    groupName: string;
+  };
 }
 
 interface Course {
@@ -39,7 +43,7 @@ interface Course {
 
 const SubjectEditPage = () => {
   const { id } = useParams();
-  const {handleBack} = usePreviousRoute();
+  const { handleBack } = usePreviousRoute();
   const [subject, setSubject] = useState<Subject | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -51,12 +55,13 @@ const SubjectEditPage = () => {
     subjectCode: "",
     semester: 1,
     courseName: "",
+    isElective: false,
+    electiveGroupName: "",
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch subject data
         const subjectResponse = await fetch("/api/fetchSubjects");
         const subjectData = await subjectResponse.json();
         const currentSubject = subjectData.find(
@@ -70,10 +75,11 @@ const SubjectEditPage = () => {
             subjectCode: currentSubject.subjectCode,
             semester: currentSubject.semester,
             courseName: currentSubject.courseName,
+            isElective: currentSubject.isElective,
+            electiveGroupName: currentSubject.electiveGroup?.groupName || "",
           });
         }
 
-        // Fetch courses for the dropdown
         const courseResponse = await fetch("/api/fetchCourses");
         const courseData = await courseResponse.json();
         setCourses(courseData.courses);
@@ -110,6 +116,9 @@ const SubjectEditPage = () => {
           ? {
               ...prev,
               ...editedSubject,
+              electiveGroup: editedSubject.electiveGroupName 
+                ? { groupName: editedSubject.electiveGroupName }
+                : undefined,
             }
           : null
       );
@@ -122,13 +131,12 @@ const SubjectEditPage = () => {
     }
   };
 
-
   const toggleDetails = () => {
     setDetailsExpanded(!detailsExpanded);
   };
 
   if (isLoading) {
-    return <LoadingSkeleton loadingText="subject details" />;
+    return <LoadingSkeleton loadingText="Subject Details" />;
   }
 
   if (!subject) {
@@ -259,6 +267,56 @@ const SubjectEditPage = () => {
                       <p className="text-lg">{subject.courseName}</p>
                     )}
                   </div>
+
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Bookmark className="mr-2 h-4 w-4" /> Subject Type
+                    </label>
+                    {isEditing ? (
+                      <Select
+                        value={editedSubject.isElective.toString()}
+                        onValueChange={(value) =>
+                          setEditedSubject({
+                            ...editedSubject,
+                            isElective: value === "true",
+                          })
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select subject type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="false">Core</SelectItem>
+                          <SelectItem value="true">Elective</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-lg">{subject.isElective ? "Elective" : "Core"}</p>
+                    )}
+                  </div>
+
+                  {(editedSubject.isElective || subject.isElective) && (
+                    <div>
+                      <label className="text-sm font-medium flex items-center mb-2">
+                        <Users className="mr-2 h-4 w-4" /> Elective Group
+                      </label>
+                      {isEditing ? (
+                        <Input
+                          value={editedSubject.electiveGroupName}
+                          onChange={(e) =>
+                            setEditedSubject({
+                              ...editedSubject,
+                              electiveGroupName: e.target.value,
+                            })
+                          }
+                          className="w-full"
+                          placeholder="Enter elective group name"
+                        />
+                      ) : (
+                        <p className="text-lg">{subject.electiveGroup?.groupName || "Not assigned"}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -277,6 +335,8 @@ const SubjectEditPage = () => {
                         subjectCode: subject.subjectCode,
                         semester: subject.semester,
                         courseName: subject.courseName,
+                        isElective: subject.isElective,
+                        electiveGroupName: subject.electiveGroup?.groupName || "",
                       });
                     }}
                   >

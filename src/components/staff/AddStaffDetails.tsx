@@ -57,22 +57,26 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     subjectCount: "",
   });
 
-  const [batches, setBatches] = useState<{
-    batchId: string;
-    batchName: string;
-    courseName: string;
-  }[]>([]);
+  const [batches, setBatches] = useState<
+    {
+      batchId: string;
+      batchName: string;
+      courseName: string;
+    }[]
+  >([]);
 
-  const [availableSubjects, setAvailableSubjects] = useState<{
-    subjectId: string;
-    subjectName: string;
-    subjectCode: string;
-  }[]>([]);
+  const [availableSubjects, setAvailableSubjects] = useState<
+    {
+      subjectId: string;
+      subjectName: string;
+      subjectCode: string;
+    }[]
+  >([]);
 
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const response = await fetch("/api/fetchBatchStaff");
+        const response = await fetch("/api/fetchBatchstaff");
         if (!response.ok) throw new Error("Failed to fetch batches");
         const data = await response.json();
         setBatches(data);
@@ -89,7 +93,6 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
         const data = await response.json();
         setAvailableSubjects(data);
       } catch (error) {
-        console.error("Error fetching subjects:", error);
         toast.error("Failed to fetch subjects. Please try again.");
       }
     };
@@ -164,17 +167,6 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     } catch (err) {
       console.error("Logout failed", err);
     }
-  };
-
-  const handleSubjectChange = (index: number, value: string) => {
-    setStaffFormData((prevData) => {
-      const newSubjects = [...prevData.subjects];
-      newSubjects[index] = value;
-      return {
-        ...prevData,
-        subjects: newSubjects,
-      };
-    });
   };
 
   const handleSelectedSubjectChange = (index: number, subjectId: string) => {
@@ -445,25 +437,30 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                 <p className="text-red-500">{errors.subjectCount}</p>
               )}
               {staffFormData.subjectCount > 0 &&
-            [...Array(staffFormData.subjectCount)].map((_, index) => (
-              <Select
-                key={index}
-                onValueChange={(subjectId) =>
-                  handleSelectedSubjectChange(index, subjectId)
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={`Select Subject ${index + 1}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredSubjects(index).map((subject) => (
-                    <SelectItem key={subject.subjectId} value={subject.subjectId}>
-                      {`${subject.subjectName} (${subject.subjectCode})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ))}
+                [...Array(staffFormData.subjectCount)].map((_, index) => (
+                  <Select
+                    key={index}
+                    onValueChange={(subjectId) =>
+                      handleSelectedSubjectChange(index, subjectId)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={`Select Subject ${index + 1}`}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredSubjects(index).map((subject) => (
+                        <SelectItem
+                          key={subject.subjectId}
+                          value={subject.subjectId}
+                        >
+                          {`${subject.subjectName} (${subject.subjectCode})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ))}
 
               <div className="space-y-2">
                 <label className="flex items-center space-x-2">

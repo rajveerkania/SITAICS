@@ -18,7 +18,6 @@ export async function GET() {
         batches: {
           select: {
             batchId: true,
-            batchDuration: true,
           },
         },
         subjects: {
@@ -32,6 +31,7 @@ export async function GET() {
     const formattedCourses = courses.map((course) => ({
       courseId: course.courseId,
       courseName: course.courseName,
+      duration: course.duration,
       totalBatches: course.batches.length,
       totalSubjects: course.subjects.length,
       isActive: true,

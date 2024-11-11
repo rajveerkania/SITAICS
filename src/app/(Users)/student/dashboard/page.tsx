@@ -14,11 +14,13 @@ import AddStudentDetails from "@/components/student/AddStudentDetails";
 import { toast } from "sonner";
 import Placement from "@/components/student/Placement";
 import AttendanceTab from "@/components/student/AttendanceTab";
+import ChooseElective from "@/components/student/ChooseElective";
 
 interface UserInfo {
   id: string;
   name: string;
   isProfileCompleted: boolean;
+  isSemesterUpdated: boolean;
   email: string;
   username: string;
   fatherName: string;
@@ -44,6 +46,8 @@ const StudentDashboard: React.FC = () => {
   const [showAddStudentDetails, setShowAddStudentDetails] =
     useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [semesterUpdated, setSemesterUpdated] = useState(false);
+  const [electiveData, setElectiveData] = useState([]);
 
   const tabs = [
     "Overview",
@@ -61,12 +65,18 @@ const StudentDashboard: React.FC = () => {
       const response = await fetch(`/api/fetchUserDetails`);
       const data = await response.json();
       if (data.user.isProfileCompleted) {
-        setUserInfo(data.user);
+        fetchElectiveStatus(data.user.batchName, data.user.courseName).then(
+          () => {
+            setUserInfo(data.user);
+            setLoading(false);
+          }
+        );
       } else {
         setUserInfo({
           id: data.user.id,
-          name: "",
+          name: data.user.name,
           isProfileCompleted: false,
+          isSemesterUpdated: true,
         } as UserInfo);
         setShowAddStudentDetails(true);
       }
@@ -74,6 +84,31 @@ const StudentDashboard: React.FC = () => {
       toast.error("Error fetching user details");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchElectiveStatus = async (batchName: string, courseName: string) => {
+    try {
+      console.log("Elective Status fetch hit");
+      const response = await fetch(`/api/student/fetchElectiveStatus/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          courseName: courseName,
+          batchName: batchName,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.required) {
+        setElectiveData(data.electiveGroups);
+        setSemesterUpdated(true);
+      }
+    } catch (error: any) {
+      console.log(error);
+      toast.error("Error while fetching elective subjects");
     }
   };
 
@@ -93,15 +128,28 @@ const StudentDashboard: React.FC = () => {
     return (
       <AddStudentDetails
         id={userInfo.id}
+        name={userInfo.name}
         setShowAddStudentDetails={setShowAddStudentDetails}
         fetchUserDetails={fetchUserDetails}
+        fetchElectiveStatus={fetchElectiveStatus}
+      />
+    );
+  }
+
+  if (semesterUpdated) {
+    return (
+      <ChooseElective
+        id={userInfo?.id || ""}
+        name={userInfo?.name || ""}
+        setSemesterUpdated={setSemesterUpdated}
+        electiveGroups={electiveData}
       />
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar name={userInfo?.name || ""} role={"Student"} />
+      <Navbar name={userInfo?.name} role={"Student"} />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button
@@ -187,7 +235,7 @@ const StudentDashboard: React.FC = () => {
         transition-all duration-200 ease-in-out
         ${
           activeTab === tab.toLowerCase()
-            ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative" // Active tab styles with top shadow
+            ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative"
             : "bg-gray-200 text-black hover:bg-gray-300"
         }
       `}
@@ -203,7 +251,7 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="timetable">
-            <Timetable timetableData={[]} />
+            <Timetable />
           </TabsContent>
 
           <TabsContent value="subjects">
@@ -249,7 +297,7 @@ const StudentDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="achievements">
-            <Achievement />
+            <Achievement userId={""} userRole={""} />
           </TabsContent>
           <TabsContent value="placement">
             <Card>

@@ -33,7 +33,12 @@ interface User {
   role: string;
 }
 
-const UsersTab = () => {
+interface UserTabProps {
+  setLoading: (value: boolean) => void;
+  setLoadingText: (value: string) => void;
+}
+
+const UsersTab: React.FC<UserTabProps> = ({ setLoading, setLoadingText }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -104,6 +109,8 @@ const UsersTab = () => {
   };
 
   const handleViewUser = async (userId: string) => {
+    setLoading(true);
+    setLoadingText("User Details");
     router.push(`/admin/dashboard/user/${userId}`);
   };
 

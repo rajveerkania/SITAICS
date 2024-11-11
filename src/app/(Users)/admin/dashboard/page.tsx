@@ -45,6 +45,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingText, setLoadingText] = useState("Dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [overviewStats, setOverviewStats] = useState<Stats | null>(null);
 
@@ -96,7 +97,7 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="">
-        <LoadingSkeleton loadingText="Dashboard" />;
+        <LoadingSkeleton loadingText={loadingText} />;
       </div>
     );
   }
@@ -104,7 +105,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Toaster />
-      <Navbar name={userData?.name} role={userData?.role} />
+      <Navbar name={userData?.name} id={userData?.id} role={userData?.role} />
       <div className="container mx-auto mt-8 px-4">
         <div className="lg:hidden mb-4">
           <button
@@ -172,7 +173,6 @@ const AdminDashboard = () => {
             ))}
           </ul>
         </div>
-
         {/* Desktop Tabs */}
         <Tabs
           value={activeTab}
@@ -259,7 +259,10 @@ const AdminDashboard = () => {
                 <CardTitle>User Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <UsersTab />
+                <UsersTab
+                  setLoading={setLoading}
+                  setLoadingText={setLoadingText}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -269,7 +272,10 @@ const AdminDashboard = () => {
                 <CardTitle>Course Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <CoursesTab />
+                <CoursesTab
+                  setLoading={setLoading}
+                  setLoadingText={setLoadingText}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -279,7 +285,10 @@ const AdminDashboard = () => {
                 <CardTitle>Batch Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <BatchTab />
+                <BatchTab
+                  setLoading={setLoading}
+                  setLoadingText={setLoadingText}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -289,7 +298,10 @@ const AdminDashboard = () => {
                 <CardTitle>Subject Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <SubjectsTab />
+                <SubjectsTab
+                  setLoading={setLoading}
+                  setLoadingText={setLoadingText}
+                />
               </CardContent>
             </Card>
           </TabsContent>

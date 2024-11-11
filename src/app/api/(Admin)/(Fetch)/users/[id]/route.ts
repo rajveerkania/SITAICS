@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 const prisma = new PrismaClient();
 
 export async function GET(
-  request: Request,
+  request: Request, 
   { params }: { params: { id: string } }
 ) {
   const { id } = params;
@@ -51,6 +51,7 @@ export async function GET(
 
       roleDetails = {
         ...studentDetails,
+        contactNo: user.studentDetails.contactNo,
         courseName: user.studentDetails.course?.courseName,
         batchName: user.studentDetails.batch?.batchName,
         electiveSubjects: user.studentDetails.electiveChoices.map((choice) => ({
@@ -60,7 +61,6 @@ export async function GET(
         })),
       };
     } else if (user.role === Role.Staff && user.staffDetails) {
-      // Destructure without the 'user' property since it doesn't exist
       const {
         id: _id,
         batch: _batch,
@@ -89,7 +89,6 @@ export async function GET(
       updatedAt: user.updatedAt,
       roleDetails,
     };
-
     return NextResponse.json(detailedUser);
   } catch (error: any) {
     console.error("Error fetching user details:", error);
@@ -119,7 +118,6 @@ export async function PUT(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Update basic user information
     const updatedUser = await prisma.user.update({
       where: { id },
       data: {
@@ -128,7 +126,6 @@ export async function PUT(
       },
     });
 
-    // Update role-specific details
     if (user.role === Role.Student) {
       await prisma.studentDetails.update({
         where: { id },
@@ -150,7 +147,7 @@ export async function PUT(
       await prisma.staffDetails.update({
         where: { id },
         data: {
-          contactNumber: roleDetails.contactNo,
+          contactNo: roleDetails.contactNo,
           address: roleDetails.address,
           city: roleDetails.city,
           state: roleDetails.state,

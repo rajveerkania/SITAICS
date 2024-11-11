@@ -19,6 +19,16 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Checkbox } from "../ui/checkbox";
 
+// Define types for Course and Batch
+interface Course {
+  courseName: string;
+}
+
+interface Batch {
+  id: string;
+  name: string;
+}
+
 export function NotificationDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const [notificationType, setNotificationType] = useState("specific");
@@ -27,37 +37,54 @@ export function NotificationDialog() {
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedBatch, setSelectedBatch] = useState("");
   const [sendToAllBatches, setSendToAllBatches] = useState(false);
-  const [batches, setBatches] = useState([]);
-
-
-  const courses = [
-    { id: "course1", name: "Course 1" },
-    { id: "course2", name: "Course 2" },
-  ];
-
-  const fetchBatchesForCourse = (courseId: string) => {
-    if (courseId === "course1") {
-      return [
-        { id: "batch1", name: "Batch 1" },
-        { id: "batch2", name: "Batch 2" },
-      ];
-    } else if (courseId === "course2") {
-      return [
-        { id: "batch3", name: "Batch 3" },
-        { id: "batch4", name: "Batch 4" },
-      ];
-    }
-    return [];
-  };
+  const [courses, setCourses] = useState<Course[]>([]); // Set the type for courses
+  const [batches, setBatches] = useState<Batch[]>([]); // Set the type for batches
 
   useEffect(() => {
-    if (selectedCourse) {
-      setBatches(fetchBatchesForCourse(selectedCourse));
-      setSelectedBatch("");
-      setSendToAllBatches(false);
-    } else {
-      setBatches([]);
-    }
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch("/api/getCoursesName"); 
+        const data = await response.json();
+        if (data.success) {
+          setCourses(data.courses);
+        } else {
+          console.error("Failed to fetch courses:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  useEffect(() => {
+    const fetchBatches = async () => {
+      if (selectedCourse) {
+        try {
+          const response = await fetch("/api/getBatchesName", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ courseName: selectedCourse }),
+          });
+          const data = await response.json();
+          if (data.batchNames) {
+            setBatches(data.batchNames.map((name: string) => ({ id: name, name })));
+          } else {
+            console.warn("No batches found for selected course:", data.message);
+            setBatches([]);
+          }
+        } catch (error) {
+          console.error("Error fetching batches:", error);
+        }
+      } else {
+        setBatches([]);
+      }
+    };
+
+    fetchBatches();
   }, [selectedCourse]);
 
   const handleSend = async () => {
@@ -67,12 +94,12 @@ export function NotificationDialog() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          type: notificationType, 
-          recipient, 
-          message, 
-          course: selectedCourse, 
-          batch: sendToAllBatches ? null : selectedBatch 
+        body: JSON.stringify({
+          type: notificationType,
+          recipient,
+          message,
+          course: selectedCourse,
+          batch: sendToAllBatches ? null : selectedBatch,
         }),
       });
 
@@ -145,8 +172,8 @@ export function NotificationDialog() {
                 </SelectTrigger>
                 <SelectContent>
                   {courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.name}
+                    <SelectItem key={course.courseName} value={course.courseName}>
+                      {course.courseName}
                     </SelectItem>
                   ))}
                 </SelectContent>
