@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
       contactNo,
       dateOfBirth: parsedDateOfBirth,
       isBatchCoordinator,
+      selectedSubjectIds,
       batchId: isBatchCoordinator ? batchId : null, 
       isProfileCompleted: true,
     };
