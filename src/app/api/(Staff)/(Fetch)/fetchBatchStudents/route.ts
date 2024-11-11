@@ -1,6 +1,5 @@
-//This API IS FETCHING BATCH COORDINATIOR'S BATCH STUDENTS LIST & DETAILS 
 import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma"; 
+import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
@@ -30,7 +29,7 @@ export async function POST(request: NextRequest) {
       where: { id },
       select: { batchId: true },
     });
-
+    
     if (!staffDetails || !staffDetails.batchId) {
       console.log("No primary batch ID found for staff member");
       return NextResponse.json({ message: "No batch assigned" }, { status: 404 });

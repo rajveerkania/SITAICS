@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { FaTrashAlt } from "react-icons/fa";
 import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation"; // import the correct router hook
 
@@ -40,6 +41,7 @@ interface Student {
 const StudentList: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedBatch, setSelectedBatch] = useState("all");
   const [batches, setBatches] = useState<string[]>([]);
 
@@ -51,23 +53,21 @@ const StudentList: React.FC = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await fetch("/api/fetchBatchSubjectsStaff", {
-          method: "GET",  // Updated to GET request as per your backend API
+        const response = await fetch("/api/fetchStudentDetails", {
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
         });
         const data = await response.json();
-
         if (response.status !== 200) {
-          toast.error(data.message || "Error while fetching student data");
+          toast.error(data.message || "Error while fetching user data");
         } else {
           setStudents(data.students);
         }
 
-        // Update batch names for the select dropdown
         const uniqueBatches: string[] = Array.from(
-          new Set(data.batchNames) // Assuming batchNames is returned from the API
+          new Set(data.students.map((student: Student) => student.batchName))
         );
 
         setBatches(["all", ...uniqueBatches]);
@@ -77,7 +77,7 @@ const StudentList: React.FC = () => {
     };
 
     fetchStudents();
-  }, []); // Empty dependency array ensures this runs only once when the component is mounted
+  }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -88,6 +88,7 @@ const StudentList: React.FC = () => {
   };
 
   const handleViewUser = async (userId: string) => {
+    // Ensure the router push only happens on the client-side
     if (typeof window !== "undefined") {
       router.push(`/staff/dashboard/user/${userId}`);
     }
@@ -160,7 +161,7 @@ const StudentList: React.FC = () => {
                     <DialogTrigger asChild>
                       <Button
                         variant="outline"
-                        onClick={() => handleViewUser(student.id)}
+                        onClick={() => setSelectedStudent(student)}
                       >
                         View Details
                       </Button>
