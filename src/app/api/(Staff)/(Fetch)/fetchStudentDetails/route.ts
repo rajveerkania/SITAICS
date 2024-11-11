@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
-  console.log("API route hit: /api/fetchStudentDetails"); 
+  console.log("API route hit: /api/fetchStudentDetails");
 
   try {
     const cookieStore = cookies();
@@ -17,10 +17,12 @@ export async function POST(request: NextRequest) {
       if (decodedToken && typeof decodedToken === "object") {
         id = decodedToken.id;
         role = decodedToken.role;
+        console.log("Decoded token - ID:", id, "Role:", role);
       }
     }
 
     if (!id || role !== "Staff") {
+      console.log("Unauthorized access attempt");
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -74,12 +76,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log("Number of students fetched:", students.length);
     return NextResponse.json({ students }, { status: 200 });
   } catch (error) {
     console.error("Error fetching students:", error);
-    return NextResponse.json(
-      { message: "An unexpected error occurred" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "An unexpected error occurred" }, { status: 500 });
   }
 }
