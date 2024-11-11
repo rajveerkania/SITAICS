@@ -29,33 +29,6 @@ export async function GET(req: Request) {
         },
       });
 
-      if (!batch) {
-        return NextResponse.json(
-          { message: "Batch not found" },
-          { status: 404 }
-        );
-      }
-
-      const formattedBatch = {
-        batchId: batch.batchId,
-        batchName: batch.batchName,
-        courseName: batch.course.courseName
-      };
-
-      return NextResponse.json(formattedBatch, { status: 200 });
-    } else {
-      const batches = await prisma.batch.findMany({
-        where: { isActive: true },
-        include: {
-          course: {
-            select: {
-              courseName: true,
-            },
-          },
-          students: true,
-        },  
-      });
-
     // Return the unassigned batch names and IDs as  JSON
     return NextResponse.json(unassignedBatches, { status: 200 });
   } catch (error) {
