@@ -51,21 +51,23 @@ const StudentList: React.FC = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await fetch("/api/fetchStudentDetails", {
-          method: "POST",
+        const response = await fetch("/api/fetchBatchSubjectsStaff", {
+          method: "GET",  // Updated to GET request as per your backend API
           headers: {
             "Content-Type": "application/json",
           },
         });
         const data = await response.json();
+
         if (response.status !== 200) {
-          toast.error(data.message || "Error while fetching user data");
+          toast.error(data.message || "Error while fetching student data");
         } else {
           setStudents(data.students);
         }
 
+        // Update batch names for the select dropdown
         const uniqueBatches: string[] = Array.from(
-          new Set(data.students.map((student: Student) => student.batchName))
+          new Set(data.batchNames) // Assuming batchNames is returned from the API
         );
 
         setBatches(["all", ...uniqueBatches]);
@@ -75,7 +77,7 @@ const StudentList: React.FC = () => {
     };
 
     fetchStudents();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once when the component is mounted
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -158,7 +160,7 @@ const StudentList: React.FC = () => {
                     <DialogTrigger asChild>
                       <Button
                         variant="outline"
-                        onClick={() => setSelectedStudent(student)}
+                        onClick={() => handleViewUser(student.id)}
                       >
                         View Details
                       </Button>
