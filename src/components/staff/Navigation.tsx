@@ -11,6 +11,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
     "Notifications",
     "Leave",
     "Timetable",
+    "MyBatch",
     "Results",
     "Achievements",
     "Students",

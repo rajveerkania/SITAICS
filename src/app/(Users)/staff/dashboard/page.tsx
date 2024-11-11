@@ -13,6 +13,7 @@ import Leave from "@/components/staff/Leave";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Toaster, toast } from "sonner";
 import AddStaffDetails from "@/components/staff/AddStaffDetails";
+import MyBatch from "@/components/staff/MyBatch";
 import ChooseSubjects from "@/components/staff/ChooseSubjects";
 
 const FacultyDashboard: React.FC = () => {
@@ -27,7 +28,7 @@ const FacultyDashboard: React.FC = () => {
     "Overview",
     "Student List",
     "Timetable",
-    "Result",
+    "My Batch",
     "Achievement",
     "Attendance",
     "Leave",
@@ -206,11 +207,11 @@ const FacultyDashboard: React.FC = () => {
           <TabsContent value="timetable">
             <Timetable />
           </TabsContent>
-          <TabsContent value="result">
-            <Result />
+          <TabsContent value="my batch">
+            <MyBatch />
           </TabsContent>
           <TabsContent value="achievement">
-            <Achievements userId={userInfo.id} userRole="Staff" />
+            <Achievements userId={""} userRole={""} />
           </TabsContent>
           <TabsContent value="attendance">
             <Attendance />

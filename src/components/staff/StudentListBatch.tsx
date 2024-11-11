@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { FaTrashAlt } from "react-icons/fa";
 import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation"; // import the correct router hook
 
@@ -37,9 +38,10 @@ interface Student {
   batchName: string;
 }
 
-const StudentList: React.FC = () => {
+const StudentListBatch: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedBatch, setSelectedBatch] = useState("all");
   const [batches, setBatches] = useState<string[]>([]);
 
@@ -51,7 +53,7 @@ const StudentList: React.FC = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await fetch("/api/fetchStudentDetails", {
+        const response = await fetch("/api/fetchBatchStudents", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -86,6 +88,7 @@ const StudentList: React.FC = () => {
   };
 
   const handleViewUser = async (userId: string) => {
+    // Ensure the router push only happens on the client-side
     if (typeof window !== "undefined") {
       router.push(`/staff/dashboard/user/${userId}`);
     }
@@ -154,36 +157,17 @@ const StudentList: React.FC = () => {
                 <TableCell>{student.email}</TableCell>
                 <TableCell>{student.batchName}</TableCell>
                 <TableCell>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        onClick={() => setSelectedStudent(student)}
-                      >
-                        View Details
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Student Details</DialogTitle>
-                      </DialogHeader>
-                      <div className="mt-4">
-                        <p className="text-gray-700 mb-2">
-                          <strong>Name:</strong> {student.name}
-                        </p>
-                        <p className="text-gray-700 mb-2">
-                          <strong>Enrollment Number:</strong>{" "}
-                          {student.enrollmentNumber}
-                        </p>
-                        <p className="text-gray-700 mb-2">
-                          <strong>Email ID:</strong> {student.email}
-                        </p>
-                        <p className="text-gray-700 mb-2">
-                          <strong>Batch:</strong> {student.batchName}
-                        </p>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      style={{
+                        backgroundColor: "black",
+                        color: "white",
+                      }}
+                      onClick={() => handleViewUser(student.id)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -206,4 +190,4 @@ const StudentList: React.FC = () => {
   );
 };
 
-export default StudentList;
+export default StudentListBatch;

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       contactNumber,
       dateOfBirth,
       isBatchCoordinator,
-      batchId,
+      batchId, // this is the batchId for the batch coordinator
       selectedSubjectIds,
     } = reqBody;
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
             city,
             state,
             pinCode,
-            contactNumber,
+            contactNo,
             dateOfBirth: parsedDateOfBirth,
             isBatchCoordinator,
             batchId: isBatchCoordinator ? batchId : null,
@@ -77,7 +77,10 @@ export async function POST(request: NextRequest) {
       })
     );
 
-    await prisma.$transaction(batchSubjectUpdates);
+        // Execute all batchSubject updates within a transaction
+        await prisma.$transaction(batchSubjectUpdates);
+      }
+    }
 
     console.log(
       (existingStaff ? "Updated" : "Created") + " staff details:",
@@ -85,9 +88,7 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({
-      message: `Staff Details ${
-        existingStaff ? "updated" : "created"
-      } successfully, and subjects assigned.`,
+      message: `Staff Details ${existingStaff ? "updated" : "created"} successfully, and subjects assigned.`,
       success: true,
       staffDetails,
     });

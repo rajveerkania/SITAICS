@@ -1,3 +1,4 @@
+//This API Is Used for fetching those batches whos BatchCoordintator is not assigned 
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { verifyToken } from "@/utils/auth";
@@ -7,65 +8,31 @@ const prisma = new PrismaClient();
 export async function GET(req: Request) {
   const decodedUser = verifyToken();
   const userRole = decodedUser?.role;
-
+ 
+  // Only allow staff members to access this endpoint
   if (userRole !== "Staff") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
 
-  const { searchParams } = new URL(req.url);
-  const batchId = searchParams.get("batchId");
-
   try {
-    if (batchId) {
-      const batch = await prisma.batch.findUnique({
-        where: { batchId },
-        include: {
-          course: {
-            select: { courseName: true },
-          },
-          students: true,
-        },
-      });
+    // Fetch all active batches where no staff is assigned as batch coordinator (staffId is null)
+    const unassignedBatches = await prisma.batch.findMany({
+      where: {
+        staffId: null, // Batches with no assigned staff coordinator
+        isActive: true, // Only fetch active batches
+      },
+      select: {
+        batchId: true,
+        batchName: true,
+      },
+    });
 
-      if (!batch) {
-        return NextResponse.json(
-          { message: "Batch not found" },
-          { status: 404 }
-        );
-      }
-
-      const formattedBatch = {
-        batchId: batch.batchId,
-        batchName: batch.batchName,
-        courseName: batch.course.courseName
-      };
-
-      return NextResponse.json(formattedBatch, { status: 200 });
-    } else {
-      const batches = await prisma.batch.findMany({
-        where: { isActive: true },
-        include: {
-          course: {
-            select: {
-              courseName: true,
-            },
-          },
-          students: true,
-        },  
-      });
-
-      const formattedBatches = batches.map((batch) => ({
-        batchId: batch.batchId,
-        batchName: batch.batchName,
-        courseName: batch.course.courseName
-      }));
-
-      return NextResponse.json(formattedBatches, { status: 200 });
-    }
+    // Return the unassigned batch names and IDs as  JSON
+    return NextResponse.json(unassignedBatches, { status: 200 });
   } catch (error) {
-    console.error("Error fetching batches:", error);
+    console.error("Error fetching unassigned batches:", error);
     return NextResponse.json(
-      { error: "Failed to fetch batches" },
+      { error: "Failed to fetch unassigned batches" },
       { status: 500 }
     );
   } finally {

@@ -1,30 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FiCheck, FiX, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
+interface Leave {
+  id: string;
+  studentName: string;
+  reason: string;
+  status: 'Pending' | 'Approved' | 'Denied';
+  leaveType: string;
+  fromDate: string;
+  toDate: string;
+}
+
 const Leave = () => {
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
-  const [leaves, setLeaves] = useState([
-    { id: 1, name: 'John Doe', role: 'Student', reason: 'Medical', status: 'Pending' },
-    { id: 2, name: 'Jane Smith', role: 'Faculty', reason: 'Personal', status: 'Pending' },
-    { id: 3, name: 'Bob Johnson', role: 'Student', reason: 'Family Emergency', status: 'Approved' },
-  ]);
+  const [leaves, setLeaves] = useState<Leave[]>([]);
 
-  const handleApprove = (id: number) => {
-    setLeaves(leaves.map(leave =>
-      leave.id === id ? { ...leave, status: 'Approved' } : leave
-    ));
-  };
-
-  const handleDeny = (id: number) => {
-    setLeaves(leaves.map(leave =>
-      leave.id === id ? { ...leave, status: 'Denied' } : leave
-    ));
-  };
-
+  // Fetch leave requests from the API
+  useEffect(() => {
+    const fetchLeaves = async () => {
+      try {
+        const response = await fetch('/api/fetchLeave');
+        const data = await response.json();
+        if (data.success) {
+          setLeaves(data.leaves);
+        } else {
+          console.error("Failed to fetch leaves:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching leaves:", error);
+      }
+    };
+    fetchLeaves();
+  }, []);
+  
   const activeLeaves = leaves.filter(leave => leave.status === 'Pending');
   const archivedLeaves = leaves.filter(leave => leave.status !== 'Pending');
+
+  const handleApprove = async (leaveId: string) => {
+    try {
+      const response = await fetch('/api/approveLeave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leaveId }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setLeaves(prevLeaves => prevLeaves.map(leave => 
+          leave.id === leaveId ? { ...leave, status: 'Approved' } : leave
+        ));
+      } else {
+        console.error("Failed to approve leave:", data.message);
+      }
+    } catch (error) {
+      console.error("Error approving leave:", error);
+    }
+  };
+
+  const handleDeny = async (leaveId: string) => {
+    try {
+      const response = await fetch('/api/denyLeave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leaveId }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setLeaves(prevLeaves => prevLeaves.map(leave => 
+          leave.id === leaveId ? { ...leave, status: 'Denied' } : leave
+        ));
+      } else {
+        console.error("Failed to deny leave:", data.message);
+      }
+    } catch (error) {
+      console.error("Error denying leave:", error);
+    }
+  };
 
   return (
     <div className="p-15 mx-auto max-w-10xl">
@@ -51,8 +103,10 @@ const Leave = () => {
             <TableHeader className="bg-gray-100">
               <TableRow>
                 <TableHead className="p-4 text-left">Name</TableHead>
-                <TableHead className="p-4 text-left">Role</TableHead>
                 <TableHead className="p-4 text-left">Reason</TableHead>
+                <TableHead className="p-4 text-left">Leave Type</TableHead>
+                <TableHead className="p-4 text-left">From Date</TableHead>
+                <TableHead className="p-4 text-left">To Date</TableHead>
                 <TableHead className="p-4 text-left">Status</TableHead>
                 <TableHead className="p-4 text-left">Action</TableHead>
               </TableRow>
@@ -60,16 +114,18 @@ const Leave = () => {
             <TableBody>
               {(activeTab === 'active' ? activeLeaves : archivedLeaves).map((leave) => (
                 <TableRow key={leave.id} className="hover:bg-gray-50 transition-colors duration-200">
-                  <TableCell className="p-4 border-b">{leave.name}</TableCell>
-                  <TableCell className="p-4 border-b">{leave.role}</TableCell>
+                  <TableCell className="p-4 border-b">{leave.studentName || 'N/A'}</TableCell>
                   <TableCell className="p-4 border-b">{leave.reason}</TableCell>
+                  <TableCell className="p-4 border-b">{leave.leaveType}</TableCell>
+                  <TableCell className="p-4 border-b">{leave.fromDate}</TableCell>
+                  <TableCell className="p-4 border-b">{leave.toDate}</TableCell>
                   <TableCell className="p-4 border-b">
                     <span
-                      className={`flex items-center space-x-2 px-3 py-1 rounded-full font-semibold ${
+                      className={`flex items-center space-x-2 px-3 py-1 rounded-full font-semibold $(
                         leave.status === 'Pending' ? 'text-gray-500' :
                         leave.status === 'Approved' ? 'bg-green-500 text-white' :
                         'bg-red-500 text-white'
-                      } transition-colors duration-300`}
+                      ) transition-colors duration-300`}
                     >
                       {leave.status === 'Pending' && <FiClock />}
                       {leave.status === 'Approved' && <FiCheckCircle />}

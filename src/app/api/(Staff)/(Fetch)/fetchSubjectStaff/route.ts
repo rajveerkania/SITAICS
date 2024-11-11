@@ -13,9 +13,11 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Fetch all active subjects across all courses
+    // Fetch all active subjects
     const subjects = await prisma.subject.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+      },
       include: {
         course: {
           select: {
@@ -30,12 +32,13 @@ export async function GET(req: Request) {
                 batchName: true,
               },
             },
+            staffId: true, // Include staffId to know if a staff is assigned
           },
         },
       },
     });
 
-    // Format subjects with batch and course info
+    // Format the response with batch and course info
     const formattedSubjects = subjects.map((subject) => ({
       subjectId: subject.subjectId,
       subjectName: subject.subjectName,
@@ -46,6 +49,7 @@ export async function GET(req: Request) {
       batches: subject.batches.map((batch) => ({
         batchId: batch.batch.batchId,
         batchName: batch.batch.batchName,
+        staffAssigned: batch.staffId !== null, // Check if staff is assigned
       })),
     }));
 
