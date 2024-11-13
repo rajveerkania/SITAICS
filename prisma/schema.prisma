@@ -237,7 +237,7 @@ model ElectiveSubjectChoice {
 enum AttendanceType {
   Lecture
   Lab
-}
+}  
 
 enum Role {
   Admin

@@ -51,7 +51,7 @@ const StudentList: React.FC = () => {
   const router = useRouter(); // Use the router hook here
 
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchStudents = async () => {  
       try {
         const response = await fetch("/api/fetchStudentDetails", {
           method: "POST",

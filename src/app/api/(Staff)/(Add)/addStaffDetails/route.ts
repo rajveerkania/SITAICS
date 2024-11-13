@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (isBatchCoordinator && batchId) {
-      await prisma.batch.update({
+      await prisma.batch.update({ //
         where: { batchId },
         data: { staffId: userId },
       });
