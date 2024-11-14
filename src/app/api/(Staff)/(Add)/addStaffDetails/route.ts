@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       city,
       state,
       pinCode,
-      contactNo,
+      contactNumber,
       dateOfBirth,
       isBatchCoordinator,
       batchId,
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       city,
       state,
       pinCode,
-      contactNo,
+      contactNumber,
       dateOfBirth: parsedDateOfBirth,
       isBatchCoordinator,
       batchId: isBatchCoordinator ? batchId : null,
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (isBatchCoordinator && batchId) {
-      await prisma.batch.update({ //
+      await prisma.batch.update({  
         where: { batchId },
         data: { staffId: userId },
       });

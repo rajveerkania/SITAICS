@@ -84,7 +84,7 @@ const Dashboard: React.FC = () => {
             title="Total Subjects"
             value="6"
             icon={<Book className="h-10 w-10" />}
-            description="Current semester"
+            description="Total Subjects"
           />
           <StatCard
             title="Overall Attendance"
