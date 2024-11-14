@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import Timetable from "@/components/staff/Timetable"; // Import the Timetable component
 import Results from "@/components/staff/Result"; // Import the Results component
 import StudentListBatch from "@/components/staff/StudentListBatch"; // Import the StudentList component
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const MyBatch = () => {
   const [activeTab, setActiveTab] = useState<'timetable' | 'results' | 'students'>('timetable');
@@ -65,46 +66,39 @@ const MyBatch = () => {
   }, []);
 
   return (
-    <div className="p-15 mx-auto max-w-10xl">
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-2xl font-bold mb-4">My Batch</h2>
+    <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'timetable' | 'results' | 'students')}>
+      <div className="p-15 mx-auto max-w-10xl">
+        <div className="bg-white shadow-lg rounded-lg p-6">
+          <h2 className="text-2xl font-bold mb-4">My Batch</h2>
 
-        <div className="mb-4">
-          <Button
-            onClick={() => setActiveTab('timetable')}
-            className={`mr-2 ${activeTab === 'timetable' ? 'bg-black text-white' : 'bg-gray-200 text-black'} py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
-          >
-            Timetable
-          </Button>
-          <Button
-            onClick={() => setActiveTab('results')}
-            className={`${activeTab === 'results' ? 'bg-black text-white' : 'bg-gray-200 text-black'} py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
-          >
-            Results
-          </Button>
-          <Button
-            onClick={() => setActiveTab('students')}
-            className={`${activeTab === 'students' ? 'bg-black text-white' : 'bg-gray-200 text-black'} py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
-          >
-            Student List
-          </Button>
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+            <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="timetable">Timetable</TabsTrigger>
+              <TabsTrigger value="results">Results</TabsTrigger>
+              <TabsTrigger value="students">Student List</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="timetable">
+            <div className="overflow-x-auto">
+              <Timetable />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="results">
+            <div className="overflow-x-auto">
+              <Results />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="students">
+            <div className="overflow-x-auto">
+              <StudentListBatch />
+            </div>
+          </TabsContent>
         </div>
-
-        {activeTab === 'timetable' ? (
-          <div className="overflow-x-auto">
-            <Timetable />
-          </div>
-        ) : activeTab === 'results' ? (
-          <div className="overflow-x-auto">
-            <Results />
-          </div>
-        ) : (
-          <div className ="overflow-x-auto">
-            <StudentListBatch />
-          </div>
-        )}
       </div>
-    </div>
+    </Tabs>
   );
 };
 
