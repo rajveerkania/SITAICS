@@ -15,6 +15,7 @@ import { Toaster, toast } from "sonner";
 import AddStaffDetails from "@/components/staff/AddStaffDetails";
 import MyBatch from "@/components/staff/MyBatch";
 import ChooseSubjects from "@/components/staff/ChooseSubjects";
+import MyTimetable from "@/components/staff/MyTimetable";
 
 const FacultyDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -27,7 +28,7 @@ const FacultyDashboard: React.FC = () => {
   const tabs = [
     "Overview",
     "Student List",
-    "Timetable",
+    "My Timetable",
     "My Batch",
     "Achievement",
     "Attendance",
@@ -204,8 +205,8 @@ const FacultyDashboard: React.FC = () => {
           <TabsContent value="student list">
             <StudentList />
           </TabsContent>
-          <TabsContent value="timetable">
-            <Timetable />
+          <TabsContent value="my timetable">
+            <MyTimetable />
           </TabsContent>
           <TabsContent value="my batch">
             <MyBatch />

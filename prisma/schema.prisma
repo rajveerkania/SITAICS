@@ -129,6 +129,8 @@ model StaffDetails {
   user               User         @relation(fields: [id], references: [id])
   batch              Batch?       @relation(fields: [batchId], references: [batchId])
   attendances        Attendance[]
+  timetable          Bytes?
+  
 }
 
 model Subject {
