@@ -1,3 +1,4 @@
+import { verifyToken } from "@/utils/auth";
 import { PrismaClient, Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -8,7 +9,16 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const { id } = params;
+  const decodedUser = verifyToken();
+  if (!decodedUser) {
+    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+  }
+  const userRole = decodedUser.role;
+  const userId = decodedUser.id;
 
+  if (userRole !== "Staff") {
+    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+  }
   try {
     const user = await prisma.user.findUnique({
       where: { id },

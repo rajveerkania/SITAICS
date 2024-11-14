@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Achievement {
   title: string;
@@ -123,32 +124,17 @@ const Achievements: React.FC<AchievementProps> = ({ userId, userRole }) => {
     }
   };
   return (
+    <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'view' | 'add')}>
     <div className="bg-white shadow-md rounded-lg p-6 md:p-8 max-w-10xl mx-auto">
-      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">
+      <h2 className="text-2xl md:text-3xl font-bold mb-6">
         Achievements
       </h2>
-      <div className="flex flex-col md:flex-row mb-4 border-b border-gray-300">
-        <button
-          className={`p-2 flex-1 ${
-            activeTab === "view"
-              ? "bg-black text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-          onClick={() => setActiveTab("view")}
-        >
-          View Achievements
-        </button>
-        <button
-          className={`p-2 flex-1 ${
-            activeTab === "add"
-              ? "bg-black text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-          onClick={() => setActiveTab("add")}
-        >
-          Add Achievement
-        </button>
-      </div>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+            <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="view">View Achievements</TabsTrigger>
+              <TabsTrigger value="add">Add Achievements</TabsTrigger>
+            </TabsList>
+          </div>
       {activeTab === "view" && (
         <div>
           <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 md:space-x-4">
@@ -267,6 +253,7 @@ const Achievements: React.FC<AchievementProps> = ({ userId, userRole }) => {
         </form>
       )}
     </div>
+    </Tabs>
   );
 };
 export default Achievements;

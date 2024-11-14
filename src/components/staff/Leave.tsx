@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FiCheck, FiX, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Leave {
   id: string;
@@ -79,24 +80,17 @@ const Leave = () => {
   };
 
   return (
+    <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as 'active' | 'archived')}>
     <div className="p-15 mx-auto max-w-10xl">
       <div className="bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-2xl font-bold mb-4">Leave Requests</h2>
 
-        <div className="mb-4">
-          <Button
-            onClick={() => setActiveTab('active')}
-            className={`mr-2 ${activeTab === 'active' ? 'bg-black text-white' : 'bg-gray-200 text-black'} py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
-          >
-            Active
-          </Button>
-          <Button
-            onClick={() => setActiveTab('archived')}
-            className={`${activeTab === 'archived' ? 'bg-black text-white' : 'bg-gray-200 text-black'} py-2 px-4 rounded-lg transition-transform transform hover:scale-105`}
-          >
-            Archived
-          </Button>
-        </div>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+            <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="active">Active</TabsTrigger>
+              <TabsTrigger value="archived">Archived</TabsTrigger>
+            </TabsList>
+          </div>
 
         <div className="overflow-x-auto">
           <Table className="w-full border-collapse">
@@ -183,6 +177,7 @@ const Leave = () => {
         </div>
       </div>
     </div>
+    </Tabs>
   );
 };
 
