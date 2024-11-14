@@ -33,7 +33,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     city: "",
     state: "",
     pinCode: "",
-    contactNumber: "",
+    contactNo: "",
     dateOfBirth: "",
     isBatchCoordinator: false,
     batchId: "",
@@ -50,7 +50,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     city: "",
     state: "",
     pinCode: "",
-    contactNumber: "",
+    contactNo: "",
     dateOfBirth: "",
     batchId: "",
     subjects: "",
@@ -76,7 +76,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const response = await fetch("/api/fetchBatchstaff");
+        const response = await fetch("/api/fetchBatchStaff");
         if (!response.ok) throw new Error("Failed to fetch batches");
         const data = await response.json();
         setBatches(data);
@@ -220,8 +220,8 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     }
 
     if (currentStep === 3) {
-      if (!staffFormData.contactNumber) {
-        stepErrors.contactNumber = "Contact Number is required.";
+      if (!staffFormData.contactNo) {
+        stepErrors.contactNo = "Contact Number is required.";
         stepIsValid = false;
       }
       if (!staffFormData.dateOfBirth) {
@@ -391,14 +391,14 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
             <>
               <Input
                 type="text"
-                name="contactNumber"
+                name="contactNo"
                 placeholder="Contact Number"
-                value={staffFormData.contactNumber}
+                value={staffFormData.contactNo}
                 onChange={handleStaffInputChange}
                 required
               />
-              {errors.contactNumber && (
-                <p className="text-red-500">{errors.contactNumber}</p>
+              {errors.contactNo && (
+                <p className="text-red-500">{errors.contactNo}</p>
               )}
               <Input
                 type="date"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { NotificationDialog } from "@/components/admin/AdminNotification";
+import { AdminNotification } from "@/components/admin/AdminNotification";
 import BlurIn from "./magicui/blur-in";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import { StudentProfile } from "@/components/student/StudentProfile";
@@ -142,7 +142,7 @@ export function Navbar({ name, id, role }: NavBarProps) {
   const renderNotification = () => {
     switch (role) {
       case "Admin":
-        return <NotificationDialog />;
+        return <AdminNotification />;
       case "Staff":
         return <StaffNotification />;
       case "Student":
@@ -195,9 +195,7 @@ export function Navbar({ name, id, role }: NavBarProps) {
                 src={
                   role === "Admin"
                     ? "/Admin-logo.png"
-                    : role === "Staff"
-                    ? "/Staff-logo.png"
-                    : "/User-logo.png"
+                    :"/User-logo.png"
                 }
                 alt="Profile Logo"
                 width={60}

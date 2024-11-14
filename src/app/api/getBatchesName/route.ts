@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       (batch: { batchName: any }) => batch.batchName
     );
 
-    return NextResponse.json({ courseName: course.courseName, batchNames });
+    return NextResponse.json({ courseName: course.courseName, batchNames , success: true}, {status: 200});
   } catch (error: any) {
     return NextResponse.json(
       { message: "Internal server error", details: error.message },

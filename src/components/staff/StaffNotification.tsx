@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface StaffNotification {
   id: string;
@@ -33,7 +32,6 @@ export const StaffNotification: React.FC = () => {
   const [message, setMessage] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
-  const [sendToAllStudents, setSendToAllStudents] = useState(false);
   const [showNotificationList, setShowNotificationList] = useState(false);
   const [notifications, setNotifications] = useState<StaffNotification[]>([
     {
@@ -99,7 +97,7 @@ export const StaffNotification: React.FC = () => {
 
   const handleSend = async () => {
     try {
-      const response = await fetch("/api/staff/notifications", {
+      const response = await fetch("/api/notifications/staffNotification", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -110,7 +108,6 @@ export const StaffNotification: React.FC = () => {
           message,
           class: selectedClass,
           subject: selectedSubject,
-          sendToAll: sendToAllStudents,
         }),
       });
 
@@ -133,7 +130,6 @@ export const StaffNotification: React.FC = () => {
     setMessage("");
     setSelectedClass("");
     setSelectedSubject("");
-    setSendToAllStudents(false);
   };
 
   const markAsRead = (id: string) => {
@@ -195,9 +191,7 @@ export const StaffNotification: React.FC = () => {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 rounded-lg ${
-                    notification.isRead ? "bg-gray-50" : "bg-blue-50"
-                  } hover:bg-gray-100 cursor-pointer`}
+                  className={`p-3 rounded-lg ${notification.isRead ? "bg-gray-50" : "bg-blue-50"} hover:bg-gray-100 cursor-pointer`}
                   onClick={() => markAsRead(notification.id)}
                 >
                   <p className="text-sm">{notification.message}</p>
@@ -232,36 +226,29 @@ export const StaffNotification: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="class">Batch Notification</SelectItem>
-                <SelectItem value="student">Individual Student</SelectItem>
                 <SelectItem value="subject">Subject Related</SelectItem>
               </SelectContent>
             </Select>
 
-            {notificationType === "student" && (
-              <Input
-                placeholder="Student Name or ID"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-              />
-            )}
-
             {(notificationType === "class" || notificationType === "subject") && (
               <>
-                <Select
-                  onValueChange={setSelectedClass}
-                  defaultValue={selectedClass}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Batch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {batches.map((batch) => (
-                      <SelectItem key={batch.id} value={batch.id}>
-                        {batch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {notificationType === "class" && (
+                  <Select
+                    onValueChange={setSelectedClass}
+                    defaultValue={selectedClass}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Batch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {batches.map((batch) => (
+                        <SelectItem key={batch.id} value={batch.id}>
+                          {batch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
                 {notificationType === "subject" && (
                   <Select
@@ -280,14 +267,6 @@ export const StaffNotification: React.FC = () => {
                     </SelectContent>
                   </Select>
                 )}
-
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={sendToAllStudents}
-                    onChange={(e) => setSendToAllStudents(e.target.checked)}
-                  />
-                  <label>Send to all students</label>
-                </div>
               </>
             )}
 

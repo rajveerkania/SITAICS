@@ -13,6 +13,53 @@ enum LeaveStatus {
   Rejected
 }
 
+enum NotificationType {
+  SPECIFIC
+  CIRCULAR
+  COURSE
+  CLASS
+  STUDENT
+  SUBJECT
+  BATCH
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+}
+
+model Notification {
+  id          String            @id @default(uuid())
+  type        NotificationType
+  message     String
+  senderId    String           // ID of the user who sent the notification
+  sender      User             @relation("SentNotifications", fields: [senderId], references: [id])
+  recipients  NotificationRecipient[]
+  courseName  String?
+  batchName   String?
+  subjectId   String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  isActive    Boolean          @default(true)
+  subject     Subject?         @relation(fields: [subjectId], references: [subjectId])
+  course      Course?          @relation(fields: [courseName], references: [courseName])
+  batch       Batch?           @relation(fields: [batchName], references: [batchName])
+}
+
+model NotificationRecipient {
+  id             String            @id @default(uuid())
+  notificationId String
+  recipientId    String
+  status         NotificationStatus @default(UNREAD)
+  readAt         DateTime?
+  notification   Notification      @relation(fields: [notificationId], references: [id])
+  recipient      User              @relation(fields: [recipientId], references: [id])
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([notificationId, recipientId])
+}
+
 model Leave {
   id        String         @id @default(uuid())
   studentId String
@@ -40,6 +87,8 @@ model User {
   staffDetails             StaffDetails?
   resetPasswordToken       String?
   resetPasswordTokenExpiry DateTime?
+  sentNotifications     Notification[]         @relation("SentNotifications")
+  receivedNotifications NotificationRecipient[]
 }
 
 model Result {
@@ -149,6 +198,7 @@ model Subject {
   ElectiveSubjectChoice ElectiveSubjectChoice[]
   attendances           Attendance[]
   attendanceSettings    AttendanceSettings[]    @relation("SubjectAttendanceSettings")
+  notifications         Notification[] 
 }
 
 model Course {
@@ -162,6 +212,7 @@ model Course {
   batches        Batch[]
   StudentDetails StudentDetails[]
   ElectiveGroup  ElectiveGroup[]
+  notifications         Notification[] 
 }
 
 model Batch {
@@ -179,6 +230,7 @@ model Batch {
   timetable          Bytes?
   attendances        Attendance[]
   attendanceSettings AttendanceSettings[] @relation("BatchAttendanceSettings")
+  notifications         Notification[] 
 }
 
 model BatchSubject {
