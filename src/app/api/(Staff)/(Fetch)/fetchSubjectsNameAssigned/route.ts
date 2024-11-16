@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/utils/auth';
-
 export async function GET() {
   const decodedUser = verifyToken();
   const staffId = decodedUser?.id;
@@ -15,47 +14,34 @@ export async function GET() {
 
   try {
     const subjects = await prisma.batchSubject.findMany({
-      where: { staffId },
+      where: {
+        staffId: staffId, // filter by staffId in the BatchSubject table
+      },
       select: {
-        subject: {
+        subject: { // select the subject data from the Subject table
           select: {
-            subjectId: true,
             subjectName: true,
-          },
-        },
-        batch: {
-          select: {
-            batchId: true,
-            batchName: true,
           },
         },
       },
     });
-
-    if (subjects.length === 0) {
+ if (subjects.length === 0) {
       return NextResponse.json(
         { message: 'No subjects found for this staff member' },
         { status: 404 }
       );
     }
-
+    const subjectNames = subjects.map((subject) => subject.subject.subjectName);
     return NextResponse.json({
-      success: true,
-      subjects: subjects.map((entry) => ({
-        subjectId: entry.subject.subjectId,
-        subjectName: entry.subject.subjectName,
-        batchId: entry.batch.batchId,
-        batchName: entry.batch.batchName,
-      })),
+      subjectNames,
     });
   } catch (error) {
-    console.error('Error fetching subjects and batches:', error);
+    console.error('Error fetching subjects:', error);
     return NextResponse.json(
-      { message: 'Error fetching subjects and batches' },
+      { message: 'Error fetching subjects' },
       { status: 500 }
     );
   } finally {
     await prisma.$disconnect();
   }
 }
-

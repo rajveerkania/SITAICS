@@ -41,27 +41,39 @@ const Attendance = () => {
 
   const [batches, setBatches] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
+  const [filteredBatches, setFilteredBatches] = useState<any[]>([]);
 
   useEffect(() => {
     loadAttendanceSchedule();
   }, [settings]);
 
   useEffect(() => {
-    loadBatches();
     loadSubjects();
   }, []);
 
+  useEffect(() => {
+    if (attendanceData.subjectId && attendanceData.batchId) {
+      loadStudents(attendanceData.subjectId, attendanceData.batchId);
+    }
+  }, [attendanceData.subjectId, attendanceData.batchId]);
+  
+  useEffect(() => {
+    if (settings.subjectId) {
+      filterBatchesForSubject(settings.subjectId);
+    }
+  }, [settings.subjectId]);
+
   const loadSubjects = async () => {
     try {
-      const response = await fetch('/api/fetchSubjectStaffAttendence', {
-        method: 'GET',
+      const response = await fetch("/api/fetchSubjectStaffAttendence", {
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load subjects');
+        throw new Error("Failed to load subjects");
       }
 
       const data = await response.json();
@@ -69,36 +81,36 @@ const Attendance = () => {
       if (data.success && Array.isArray(data.subjects)) {
         setSubjects(data.subjects);
       } else {
-        toast.error('Failed to load subjects. Invalid data format.');
+        toast.error("Failed to load subjects. Invalid data format.");
       }
     } catch (error) {
-      console.error('Error loading subjects:', error);
-      toast.error('Failed to load subjects.');
+      console.error("Error loading subjects:", error);
+      toast.error("Failed to load subjects.");
     }
   };
-  const loadBatches = async () => {
+  const filterBatchesForSubject = async (subjectId: string) => {
     try {
-      const response = await fetch('/api/fetchAssignedBatches', {
-        method: 'GET',
+      const response = await fetch(`/api/fetchBatchesForSubject?subjectId=${subjectId}`, {
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load batches');
+        throw new Error("Failed to load batches");
       }
 
       const data = await response.json();
-      
-      if (data.success && Array.isArray(data.batchNames)) {
-        setBatches(data.batchNames);
+
+      if (data.success && Array.isArray(data.batches)) {
+        setFilteredBatches(data.batches); // Update filtered batches
       } else {
-        toast.error('Failed to load batches. Invalid data format.');
+        toast.error("Failed to load batches. Invalid data format.");
       }
     } catch (error) {
-      console.error('Error loading batches:', error);
-      toast.error('Failed to load batches. Invalid data format.');
+      console.error("Error filtering batches:", error);
+      toast.error("Failed to filter batches.");
     }
   };
 
@@ -216,11 +228,12 @@ const Attendance = () => {
             <CardContent>
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
+                  {/* Subject Selection */}
                   <div className="space-y-2">
                     <Label>Select Subject</Label>
                     <Select
-                      onValueChange={(value: any) =>
-                        setSettings(prev => ({ ...prev, subjectId: value }))
+                      onValueChange={(value: string) =>
+                        setSettings((prev) => ({ ...prev, subjectId: value }))
                       }
                     >
                       <SelectTrigger>
@@ -228,7 +241,7 @@ const Attendance = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {subjects.length > 0 ? (
-                          subjects.map(subject => (
+                          subjects.map((subject) => (
                             <SelectItem key={subject.subjectId} value={subject.subjectId}>
                               {subject.subjectName}
                             </SelectItem>
@@ -240,21 +253,22 @@ const Attendance = () => {
                     </Select>
                   </div>
 
+                  {/* Batch Selection */}
                   <div className="space-y-2">
                     <Label>Select Batch</Label>
                     <Select
-                      onValueChange={(value: any) =>
-                        setSettings(prev => ({ ...prev, batchId: value }))
+                      onValueChange={(value: string) =>
+                        setSettings((prev) => ({ ...prev, batchId: value }))
                       }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Choose batch" />
                       </SelectTrigger>
                       <SelectContent>
-                        {batches.length > 0 ? (
-                          batches.map((batchName) => (
-                            <SelectItem key={batchName} value={batchName}>
-                              {batchName}
+                        {filteredBatches.length > 0 ? (
+                          filteredBatches.map((batch) => (
+                            <SelectItem key={batch.batchId} value={batch.batchId}>
+                              {batch.batchName}
                             </SelectItem>
                           ))
                         ) : (
@@ -387,42 +401,57 @@ const Attendance = () => {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Select Subject</Label>
-                    <Select
-                      onValueChange={(value: string) => {
-                        setAttendanceData(prev => ({ ...prev, subjectId: value }));
-                        if (attendanceData.batchId) {
-                          loadStudents(value, attendanceData.batchId);
-                        }
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose subject" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="math1">Mathematics-1</SelectItem>
-                        <SelectItem value="math2">Mathematics-2</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <Select
+                          onValueChange={(value: string) => {
+                            setAttendanceData(prev => ({
+                              ...prev,
+                              subjectId: value,
+                              students: []
+                            }));
+                            filterBatchesForSubject(value);
+                          }}
+                          >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose subject" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {subjects.length > 0 ? (
+                              subjects.map((subject) => (
+                                <SelectItem key={subject.subjectId} value={subject.subjectId}>
+                                  {subject.subjectName}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="no-subjects">No subjects available</SelectItem>
+                            )}
+                          </SelectContent>
+                      </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label>Select Batch</Label>
                     <Select
                       onValueChange={(value: string) => {
-                        setAttendanceData(prev => ({ ...prev, batchId: value }));
+                        setAttendanceData(prev => ({
+                          ...prev,
+                          batchId: value,
+                          students: [] // Reset students to avoid stale data
+                        }));
+
+                        // Load students if both subjectId and batchId are set
                         if (attendanceData.subjectId) {
                           loadStudents(attendanceData.subjectId, value);
                         }
                       }}
-                    >
+                      >
                       <SelectTrigger>
                         <SelectValue placeholder="Choose batch" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Array.isArray(batches) && batches.length > 0 ? (
-                          batches.map((batch) => (
+                        {filteredBatches.length > 0 ? (
+                          filteredBatches.map((batch) => (
                             <SelectItem key={batch.batchId} value={batch.batchId}>
-                              {batch.batchName} - {batch.courseName}
+                              {batch.batchName}
                             </SelectItem>
                           ))
                         ) : (

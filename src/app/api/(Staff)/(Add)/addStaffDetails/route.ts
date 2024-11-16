@@ -31,11 +31,13 @@ export async function POST(request: NextRequest) {
     const parsedDateOfBirth = new Date(`${dateOfBirth}`);
 
     const existingStaff = await prisma.staffDetails.findUnique({
-      where: { id: userId },
+      where: { id: userId! },
     });
 
     let staffDetails;
     const updateStaffData = {
+      id:userId,
+
       name,
       email,
       gender,
@@ -57,12 +59,12 @@ export async function POST(request: NextRequest) {
       });
     } else {
       staffDetails = await prisma.staffDetails.create({
-        data: { id: userId, ...updateStaffData },
+        data: updateStaffData
       });
     }
 
     if (isBatchCoordinator && batchId) {
-      await prisma.batch.update({
+      await prisma.batch.update({  
         where: { batchId },
         data: { staffId: userId },
       });

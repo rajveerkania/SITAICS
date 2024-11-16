@@ -18,3 +18,17 @@ export interface AttendanceSchedule {
   date: string;
   type: 'Lecture' | 'Lab';
 }
+export interface Student {
+  id: string;
+  name: string;
+  isPresent: boolean;
+  overallPercentage: number;
+}
+
+export interface AttendanceRecord {
+  subjectId: string;
+  batchId: string;
+  isLab: boolean;
+  date: string;
+  students: Student[];
+}
