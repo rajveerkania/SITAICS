@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
             title="Total Subjects"
             value={totalSubjects?.toString() || "N/A"} 
             icon={<Book className="h-10 w-10" />}
-            description="Total Subjects"
+            description="Current semester"
           />
           <StatCard
             title="Overall Attendance"

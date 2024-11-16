@@ -18,11 +18,11 @@ export async function GET() {
     // Fetch the total number of subjects taught by the staff member
     const totalSubjects = await prisma.batchSubject.count({
       where: {
-        staffId: staffId, // We use staffId as string, as defined in the schema
+        staffId: staffId,  
       },
     });
 
-    // Debugging: Log the total number of subjects
+    // // Debugging: Log the total number of subjects
     console.log('Total Subjects:', totalSubjects);
 
     // Return the total number of subjects in the response

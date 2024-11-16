@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       city,
       state,
       pinCode,
-      contactNumber,
+      contactNo,
       dateOfBirth,
       isBatchCoordinator,
       batchId,
@@ -31,11 +31,13 @@ export async function POST(request: NextRequest) {
     const parsedDateOfBirth = new Date(`${dateOfBirth}`);
 
     const existingStaff = await prisma.staffDetails.findUnique({
-      where: { id: userId },
+      where: { id: userId! },
     });
 
     let staffDetails;
     const updateStaffData = {
+      id:userId,
+
       name,
       email,
       gender,
@@ -43,7 +45,7 @@ export async function POST(request: NextRequest) {
       city,
       state,
       pinCode,
-      contactNumber,
+      contactNo,
       dateOfBirth: parsedDateOfBirth,
       isBatchCoordinator,
       batchId: isBatchCoordinator ? batchId : null,
@@ -57,7 +59,7 @@ export async function POST(request: NextRequest) {
       });
     } else {
       staffDetails = await prisma.staffDetails.create({
-        data: { id: userId, ...updateStaffData },
+        data: updateStaffData
       });
     }
 
