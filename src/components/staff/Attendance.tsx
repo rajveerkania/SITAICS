@@ -40,6 +40,7 @@ const Attendance = () => {
   });
 
   const [batches, setBatches] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
 
   useEffect(() => {
     loadAttendanceSchedule();
@@ -47,8 +48,34 @@ const Attendance = () => {
 
   useEffect(() => {
     loadBatches();
+    loadSubjects();
   }, []);
 
+  const loadSubjects = async () => {
+    try {
+      const response = await fetch('/api/fetchSubjectStaffAttendence', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load subjects');
+      }
+
+      const data = await response.json();
+
+      if (data.success && Array.isArray(data.subjects)) {
+        setSubjects(data.subjects);
+      } else {
+        toast.error('Failed to load subjects. Invalid data format.');
+      }
+    } catch (error) {
+      console.error('Error loading subjects:', error);
+      toast.error('Failed to load subjects.');
+    }
+  };
   const loadBatches = async () => {
     try {
       const response = await fetch('/api/fetchAssignedBatches', {
@@ -200,8 +227,15 @@ const Attendance = () => {
                         <SelectValue placeholder="Choose subject" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="math1">Mathematics-1</SelectItem>
-                        <SelectItem value="math2">Mathematics-2</SelectItem>
+                        {subjects.length > 0 ? (
+                          subjects.map(subject => (
+                            <SelectItem key={subject.subjectId} value={subject.subjectId}>
+                              {subject.subjectName}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-subjects">No subjects available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
