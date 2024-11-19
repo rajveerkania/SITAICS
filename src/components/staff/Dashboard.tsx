@@ -23,7 +23,7 @@ interface StaffInfoProps {
   city: string;
   state: string;
   pinCode: number;
-  contactNo: string | null;
+  contactNo: string ;
   dateOfBirth: string;
 }
 

@@ -14,7 +14,7 @@ export interface AttendanceSettings {
   sessionEndDate: string;
 }
 
-export interface AttendanceSchedule {
+export interface AttendanceType {
   date: string;
   type: 'Lecture' | 'Lab';
 }
