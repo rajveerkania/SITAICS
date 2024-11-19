@@ -16,33 +16,17 @@ export async function GET(request: Request) {
   try {
     const staffId = decodedUser.id;
 
-    const staffSubjects = await prisma.staffDetails.findUnique({
+    const staffBatches = await prisma.staffDetails.findUnique({
       where: { id: staffId },
-      select: {
-        subjects: {
+      select: { 
+        batch: {
           select: {
-            subjectId: true,
-            subjectName: true,
-            subjectCode: true,
-            semester: true,
-            isElective: true,
+            batchId: true, 
+            batchName: true,
             course: {
               select: {
                 courseId: true,
                 courseName: true,
-              },
-            },
-            batches: {
-              select: {
-                batchId: true,
-                batchName: true,
-              },
-            },
-            electiveGroup: {
-              select: {
-                electiveGroupId: true,
-                groupName: true,
-                semester: true,
               },
             },
           },
@@ -50,11 +34,21 @@ export async function GET(request: Request) {
       },
     });
 
-    return NextResponse.json(staffSubjects?.subjects || []);
+    const batches = staffBatches?.batch
+      ? [
+          {
+            batchId: staffBatches.batch.batchId,
+            batchName: staffBatches.batch.batchName,
+            courseName: staffBatches.batch.course.courseName,
+          },
+        ]
+      : [];
+
+    return NextResponse.json(batches);
   } catch (error) {
-    console.error("Error fetching subjects:", error);
+    console.error("Error fetching batches:", error);
     return NextResponse.json(
-      { error: "An error occurred while fetching subjects" },
+      { error: "An error occurred while fetching batches" },
       { status: 500 }
     );
   }

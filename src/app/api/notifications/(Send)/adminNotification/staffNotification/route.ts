@@ -4,58 +4,45 @@ import { verifyToken } from "@/utils/auth";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: Request) {
-  const decodedUser = verifyToken();
-  const userRole = decodedUser?.role;
-
-  if (userRole !== "Staff") {
-    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+export async function POST(request: Request) {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader) {
+    return NextResponse.json({ error: 'Missing Authorization header' }, { status: 401 });
   }
 
-  try {
+  const token = authHeader.split(' ')[1]; 
+  const decodedUser = await verifyToken(token);
 
-    const subjects = await prisma.subject.findMany({
-      where: { isActive: true },
-      include: {
-        course: {
-          select: {
-            courseName: true,
-          },
-        },
-        batches: {
-          select: {
-            batch: {
-              select: {
-                batchId: true,
-                batchName: true,
-              },
-            },
-          },
-        }, 
+  if (decodedUser?.role !== "Staff") {
+    return NextResponse.json({ error: "Access Denied!" }, { status: 403 });
+  }
+
+  const { type, recipient, message, class: selectedClass, subject: selectedSubject } = await request.json();
+
+  try {
+    const notification = await prisma.notification.create({
+      data: {
+        type,
+        message,
+        senderId: decodedUser.id,
+        courseName: type === "COURSE" ? selectedClass : undefined,
+        batchName: type === "CLASS" ? selectedClass : undefined,
+        subjectId: type === "SUBJECT" ? selectedSubject : undefined,
       },
     });
 
-    const formattedSubjects = subjects.map((subject) => ({
-      subjectId: subject.subjectId,  // Ensure subjectId exists in Prisma model
-      subjectName: subject.subjectName,
-      subjectCode: subject.subjectCode,
-      semester: subject.semester,
-      courseName: subject.course.courseName,
-      isElective: subject.isElective,
-      batches: subject.batches.map((batch) => ({
-        batchId: batch.batch.batchId,
-        batchName: batch.batch.batchName,
+    const recipients = await prisma.notificationRecipient.createMany({
+      data: recipient.split(",").map((id: string) => ({
+        notificationId: notification.id,
+        recipientId: id.trim(),
       })),
-    }));
-
-    return NextResponse.json(formattedSubjects, { status: 200 });
+    });
+    
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching subjects:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch subjects" },
-      { status: 500 }
-    );
+    console.error("Error sending notification:", error);
+    return NextResponse.json({ error: "Failed to send notification" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
-  }
+  }
 }

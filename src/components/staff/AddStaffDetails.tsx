@@ -33,7 +33,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     city: "",
     state: "",
     pinCode: "",
-    contactNo: "",
+    contactNumber: "",
     dateOfBirth: "",
     isBatchCoordinator: false,
     batchId: "",
@@ -50,7 +50,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     city: "",
     state: "",
     pinCode: "",
-    contactNo: "",
+    contactNumber: "",
     dateOfBirth: "",
     batchId: "",
     subjects: "",
@@ -76,7 +76,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const response = await fetch("/api/fetchBatchStaff");
+        const response = await fetch("/api/fetchBatchstaff");
         if (!response.ok) throw new Error("Failed to fetch batches");
         const data = await response.json();
         setBatches(data);
@@ -85,7 +85,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
         toast.error("Failed to fetch batches. Please try again.");
       }
     };
-
+ 
     const fetchSubjects = async () => {
       try {
         const response = await fetch("/api/fetchSubjectStaff");
@@ -220,8 +220,8 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
     }
 
     if (currentStep === 3) {
-      if (!staffFormData.contactNo) {
-        stepErrors.contactNo = "Contact Number is required.";
+      if (!staffFormData.contactNumber) {
+        stepErrors.contactNumber = "Contact Number is required.";
         stepIsValid = false;
       }
       if (!staffFormData.dateOfBirth) {
@@ -232,9 +232,20 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
         stepErrors.subjectCount = "Please select number of subjects";
         stepIsValid = false;
       }
+
+      // Only validate batchId if the staff is a batch coordinator
       if (staffFormData.isBatchCoordinator && !staffFormData.batchId) {
         stepErrors.batchId = "Batch is required for coordinators.";
         stepIsValid = false;
+      }
+
+      // Validation for subjects
+      if (staffFormData.subjectCount > 0 && staffFormData.selectedSubjectIds.length === 0) {
+        stepErrors.subjectCount = "Please select subjects.";
+        stepIsValid = false;
+      }
+      if (staffFormData.subjectCount === 0 && staffFormData.selectedSubjectIds.length > 0) {
+        stepErrors.subjectCount = ""; // Clear error if subjects are selected but count is 0
       }
     }
 
@@ -276,6 +287,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   const previousStep = () => {
     setCurrentStep((prevStep) => prevStep - 1);
   };
+
   const filteredSubjects = (index: number) => {
     const selectedIds = staffFormData.selectedSubjectIds.slice(0, index);
     return availableSubjects.filter(
@@ -286,7 +298,8 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   return (
     <div className="relative min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="absolute top-4 right-4">
-        <Button onClick={handleLogout}>Logout</Button>
+        <Button
+           onClick={handleLogout}>Logout</Button>
       </div>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-3xl font-bold mb-3 text-center">{username}</h1>
@@ -391,14 +404,14 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
             <>
               <Input
                 type="text"
-                name="contactNo"
+                name="contactNumber"
                 placeholder="Contact Number"
-                value={staffFormData.contactNo}
+                value={staffFormData.contactNumber}
                 onChange={handleStaffInputChange}
                 required
               />
-              {errors.contactNo && (
-                <p className="text-red-500">{errors.contactNo}</p>
+              {errors.contactNumber && (
+                <p className="text-red-500">{errors.contactNumber}</p>
               )}
               <Input
                 type="date"
@@ -472,7 +485,6 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
                           target: { name: "batchId", value },
                         } as React.ChangeEvent<HTMLSelectElement>)
                       }
-                      required
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select Batch" />

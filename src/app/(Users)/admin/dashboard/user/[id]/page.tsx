@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import {
   User,
   Mail,
@@ -44,12 +44,12 @@ const UserEditPage: React.FC = () => {
   const [additionalInfoExpanded, setAdditionalInfoExpanded] = useState(true);
 
   interface UserRoleDetails {
-    contactNo: string;
     enrollmentNumber?: string;
     courseName?: string;
     batchName?: string;
     fatherName?: string;
     motherName?: string;
+    contactNumber?: string;
     address?: string;
     city?: string;
     state?: string;
@@ -158,7 +158,6 @@ const UserEditPage: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Toaster />
       <Button variant="outline" onClick={handleBack} className="mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" /> Back
       </Button>
@@ -351,10 +350,10 @@ const UserEditPage: React.FC = () => {
                       </label>
                       {isEditing ? (
                         <Input
-                          value={editedUser.roleDetails.contactNo || ""}
+                          value={editedUser.roleDetails.contactNumber || ""}
                           onChange={(e) =>
                             handleRoleDetailsChange(
-                              "contactNo",
+                              "contactNumber",
                               e.target.value
                             )
                           }
@@ -363,7 +362,7 @@ const UserEditPage: React.FC = () => {
                         />
                       ) : (
                         <p className="text-lg">
-                          {user.roleDetails.contactNo || "Not provided"}
+                          {user.roleDetails.contactNumber || "Not provided"}
                         </p>
                       )}
                     </div>

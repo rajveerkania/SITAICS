@@ -31,63 +31,92 @@ export async function POST(request: NextRequest) {
     const parsedDateOfBirth = new Date(`${dateOfBirth}`);
 
     const existingStaff = await prisma.staffDetails.findUnique({
-      where: { id: userId },
+      where: { id: userId! },
     });
 
     let staffDetails;
+    const updateStaffData = {
+      id:userId,
+
+      name,
+      email,
+      gender,
+      address,
+      city,
+      state,
+      pinCode,
+      contactNo,
+      dateOfBirth: parsedDateOfBirth,
+      isBatchCoordinator,
+      batchId: isBatchCoordinator ? batchId : null,
+      isProfileCompleted: true,
+    };
 
     if (existingStaff) {
-      staffDetails = await prisma.$transaction([
-        prisma.staffDetails.update({
-          where: { id: userId },
-          data: {
-            name,
-            email,
-            gender,
-            address,
-            city,
-            state,
-            pinCode,
-            contactNo,
-            dateOfBirth: parsedDateOfBirth,
-            isBatchCoordinator,
-            batchId: isBatchCoordinator ? batchId : null,
-            isProfileCompleted: true,
-            isSemesterUpdated: true,
-          },
-        }),
-      ]);
+      staffDetails = await prisma.staffDetails.update({
+        where: { id: userId },
+        data: updateStaffData,
+      });
+    } else {
+      staffDetails = await prisma.staffDetails.create({
+        data: updateStaffData
+      });
     }
 
-    // Update BatchSubject table with the selected subjects and staff ID
-    const batchSubjectUpdates = selectedSubjectIds.map((subjectId: string) =>
-      prisma.batchSubject.upsert({
-        where: {
-          batchId_subjectId: { batchId, subjectId },
-        },
-        update: {
-          staffId: userId,
-        },
-        create: {
-          batchId,
-          subjectId,
-          semester: 1, // Adjust semester value as needed
-          staffId: userId,
-        },
-      })
-    );
+    if (isBatchCoordinator && batchId) {
+      await prisma.batch.update({  
+        where: { batchId },
+        data: { staffId: userId },
+      });
+    }
 
-    await prisma.$transaction(batchSubjectUpdates);
-
-    console.log(
-      (existingStaff ? "Updated" : "Created") + " staff details:",
-      staffDetails
-    );
+    if (selectedSubjectIds && selectedSubjectIds.length > 0) {
+      const subjectDetails = await prisma.subject.findMany({
+        where: { subjectId: { in: selectedSubjectIds } },
+        select: { subjectId: true, semester: true, courseId: true },
+      });
+    
+      for (const subject of subjectDetails) {
+        const { courseId, subjectId, semester } = subject;
+    
+        // Fetch batches that are associated with the courseId and match the semester
+        const relevantBatches = await prisma.batch.findMany({
+          where: {
+            courseId,
+            currentSemester: semester, 
+          },
+          select: { batchId: true },
+        });
+    
+        for (const batch of relevantBatches) {
+          // Check if the batchSubject entry already exists
+          const existingBatchSubject = await prisma.batchSubject.findUnique({
+            where: {
+              batchId_subjectId: {
+                batchId: batch.batchId,
+                subjectId,
+              },
+            },
+          });
+    
+          if (!existingBatchSubject) {
+            // If not, create a new entry in the batchSubject table
+            await prisma.batchSubject.create({
+              data: {
+                batchId: batch.batchId,
+                subjectId,
+                semester,
+                staffId: userId, // Assign the staff member
+              },
+            });
+          }
+        }
+      }
+    }
+    
 
     return NextResponse.json({
-      message: `Staff Details ${
-        existingStaff ? "updated" : "created"
-      } successfully, and subjects assigned.`,
+      message: `Staff Details ${existingStaff ? "updated" : "created"} successfully, and subjects assigned.`,
       success: true,
       staffDetails,
     });

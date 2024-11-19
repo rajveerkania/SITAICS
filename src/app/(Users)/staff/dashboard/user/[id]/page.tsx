@@ -61,7 +61,7 @@ const UserEditPage: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`/api/users/${id}`);
+        const response = await fetch(`/api/usersStaff/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch user data');
         }

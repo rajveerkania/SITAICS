@@ -23,7 +23,7 @@ interface StaffInfoProps {
   city: string;
   state: string;
   pinCode: number;
-  contactNo: string | null;
+  contactNumber: string | null;
   dateOfBirth: string;
 }
 
@@ -125,7 +125,7 @@ const Dashboard: React.FC = () => {
                   <InfoItem label="Email" value={staffInfo?.email || "N/A"} />
                   <InfoItem
                     label="Contact No."
-                    value={staffInfo?.contactNo || "N/A"}
+                    value={staffInfo?.contactNumber || "N/A"}
                   />
                   <InfoItem
                     label="Address"

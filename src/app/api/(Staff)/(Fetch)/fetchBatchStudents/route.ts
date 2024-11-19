@@ -4,14 +4,12 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
-  console.log("API route hit: /api/fetchStudentDetails");
-
   try {
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
     console.log("Token:", token ? "Present" : "Not present");
-
     let id = null, role = null;
+
     if (token) {
       const decodedToken = verifyToken();
       if (decodedToken && typeof decodedToken === "object") {
@@ -31,36 +29,31 @@ export async function POST(request: NextRequest) {
       where: { id },
       select: { batchId: true },
     });
-
-    // Step 2: Fetch additional batch IDs from the BatchSubject table if any
-    const associatedBatchSubjects = await prisma.batchSubject.findMany({
-      where: { staffId: id },
-      select: { batchId: true },
-    });
-    const additionalBatchIds = associatedBatchSubjects.map((subject) => subject.batchId);
-
-    // Combine primary batch and associated batches if primary batch exists
-    let batchIds = staffDetails?.batchId
-      ? Array.from(new Set([staffDetails.batchId, ...additionalBatchIds])) // Deduplicate batch IDs
-      : additionalBatchIds;
-
-    if (batchIds.length === 0) {
-      console.log("No batches found for staff member");
-      return NextResponse.json({ message: "No batches assigned" }, { status: 404 });
+    
+    if (!staffDetails || !staffDetails.batchId) {
+      console.log("No primary batch ID found for staff member");
+      return NextResponse.json({ message: "No batch assigned" }, { status: 404 });
     }
 
-    // Step 3: Fetch batch names for all gathered batch IDs
-    const batchDetails = await prisma.batch.findMany({
-      where: { batchId: { in: batchIds } },
-      select: { batchId: true, batchName: true },
+    const primaryBatchId = staffDetails.batchId;
+
+    // Step 2: Fetch the batch name using the batchId
+    const batchDetails = await prisma.batch.findUnique({
+      where: { batchId: primaryBatchId },
+      select: { batchName: true },
     });
 
-    const batchNames = batchDetails.map((batch) => batch.batchName);
+    if (!batchDetails || !batchDetails.batchName) {
+      console.log("Batch name not found for the provided batch ID");
+      return NextResponse.json({ message: "Batch not found" }, { status: 404 });
+    }
 
-    // Step 4: Fetch students associated with the batch names
+    const batchName = batchDetails.batchName;
+
+    // Step 3: Fetch students associated with the batch name
     const students = await prisma.studentDetails.findMany({
       where: {
-        batchName: { in: batchNames },
+        batchName: batchName,  // Only fetch students in this batch
         isActive: true,
       },
       distinct: ["id"], // Ensure each student is listed only once
