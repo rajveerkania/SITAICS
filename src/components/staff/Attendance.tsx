@@ -15,7 +15,7 @@ interface Student {
   email: string;
   enrollmentNumber: string;
   isPresent: boolean;
-  studentId?: string; // Optional, as it seems to be used in the view section
+  studentId?: string;  
   totalLecturesTaken?: number;
   lecturesAttended?: number;
   lecturePercentage?: number;
@@ -40,9 +40,10 @@ const Attendance = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectAll, setSelectAll] = useState(true)
   const [viewAttendanceData, setViewAttendanceData] = useState({
     batchId: '',
-    subjectId: '',
+    subjectId: ''
   });
   const [attendanceData, setAttendanceData] = useState({
     subjectId: '',
@@ -57,6 +58,21 @@ const Attendance = () => {
   useEffect(() => {
     loadSubjects();
   }, []);
+
+
+  useEffect(() => {
+    if (students.length > 0) {
+      setStudents(prev =>
+        prev.map(student => ({
+          ...student,
+          isPresent: selectAll
+        }))
+      );
+    }
+  }, [selectAll]);
+
+
+
   const fetchAttendance = async () => {
     if (!viewAttendanceData.batchId || !viewAttendanceData.subjectId) {
       toast.error('Please select batch and subject');
@@ -238,6 +254,7 @@ const Attendance = () => {
     );
   };
 
+
   return (
     <div className="container mx-auto p-6">
       <Tabs defaultValue="mark" className="w-full">
@@ -321,6 +338,15 @@ const Attendance = () => {
 
               {!isLoading && students.length > 0 && (
                 <div className="space-y-4">
+                  <div className="flex items-center justify-end space-x-2 mb-4">
+                    <span className="text-sm text-gray-600">Select All</span>
+                    <Switch
+                      checked={selectAll}
+                      onCheckedChange={setSelectAll}
+                      disabled={isSaving}
+                    />
+                  </div>
+                  
                   <div className="border rounded-lg">
                     <div className="max-h-[500px] overflow-y-auto">
                       <table className="w-full">
@@ -365,6 +391,7 @@ const Attendance = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
 
         <TabsContent value="view">
           <Card>

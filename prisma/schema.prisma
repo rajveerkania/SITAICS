@@ -218,7 +218,7 @@ model ElectiveSubjectChoice {
 
 enum AttendanceType {
   LECTURE 
-  Lab
+  LAB
 }  
 
 enum Role {

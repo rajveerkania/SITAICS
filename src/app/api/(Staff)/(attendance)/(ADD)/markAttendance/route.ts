@@ -39,15 +39,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate session type
-    if (!Object.values(AttendanceType).includes(sessionType.toUpperCase() as AttendanceType)) {
+    // Validate session type with type-safe mapping
+    const validSessionTypes: Record<string, AttendanceType> = {
+      'lecture': AttendanceType.LECTURE,
+      'lab': AttendanceType.LAB
+    };
+
+    const normalizedSessionType = sessionType.toLowerCase();
+    const attendanceType = validSessionTypes[normalizedSessionType];
+
+    if (!attendanceType) {
       return NextResponse.json(
-        { success: false, message: 'Invalid session type. Must be either "lecture" or "lab"' },
+        { 
+          success: false, 
+          message: 'Invalid session type. Must be either "lecture" or "lab"',
+          validTypes: Object.keys(validSessionTypes)
+        },
         { status: 400 }
       );
     }
-
-    const attendanceType = sessionType.toUpperCase() as AttendanceType;
 
     // Validate date format and create Date object
     const attendanceDate = new Date(date);
