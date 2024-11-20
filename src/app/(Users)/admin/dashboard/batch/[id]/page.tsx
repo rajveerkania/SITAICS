@@ -62,10 +62,12 @@ const BatchEditPage = () => {
   const { handleBack } = usePreviousRoute();
   const [batchDetails, setBatchDetails] = useState<BatchDetails | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
-  const [courses, setCourses] = useState<{
-    courseId: string;
-    courseName: string;
-  }[]>([]);
+  const [courses, setCourses] = useState<
+    {
+      courseId: string;
+      courseName: string;
+    }[]
+  >([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [batchDetailsExpanded, setBatchDetailsExpanded] = useState(true);
@@ -80,7 +82,9 @@ const BatchEditPage = () => {
         const batchData = await batchResponse.json();
         setBatchDetails(batchData);
 
-        const studentsResponse = await fetch(`/api/fetchStudents?batchId=${id}`);
+        const studentsResponse = await fetch(
+          `/api/fetchStudents?batchId=${id}`
+        );
         const studentsData = await studentsResponse.json();
         setStudents(studentsData.students);
 
@@ -133,7 +137,7 @@ const BatchEditPage = () => {
   };
 
   if (isLoading) {
-    return <LoadingSkeleton loadingText="batch details" />;
+    return <LoadingSkeleton loadingText="Batch Details" />;
   }
 
   return (

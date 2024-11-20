@@ -15,24 +15,31 @@ import { Toaster, toast } from "sonner";
 import AddStaffDetails from "@/components/staff/AddStaffDetails";
 import MyBatch from "@/components/staff/MyBatch";
 import ChooseSubjects from "@/components/staff/ChooseSubjects";
+import MyTimetable from "@/components/staff/MyTimetable";
 
 const FacultyDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [isBatchCoordinator, setIsBatchCoordinator] = useState(false); // New state for batch coordinator check
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [ShowAddStaffDetails, setShowAddStaffDetails] = useState(false);
   const [chooseSubjects, setChooseSubjects] = useState(false);
 
+  // Default tabs
   const tabs = [
     "Overview",
     "Student List",
-    "Timetable",
-    "My Batch",
+    "My Timetable",
     "Achievement",
     "Attendance",
     "Leave",
   ];
+
+  // Conditionally add "My Batch" tab if user is a batch coordinator
+  if (isBatchCoordinator) {
+    tabs.splice(tabs.indexOf("My Timetable") + 1, 0, "My Batch");
+  }
 
   const fetchUserDetails = async () => {
     try {
@@ -56,6 +63,9 @@ const FacultyDashboard: React.FC = () => {
       if (data.user.isSemesterUpdated) {
         setChooseSubjects(true);
       }
+
+      // Check if the user is a batch coordinator
+      setIsBatchCoordinator(data.user.isBatchCoordinator);
     } catch (error) {
       toast.error("Error fetching user details!");
     } finally {
@@ -204,12 +214,17 @@ const FacultyDashboard: React.FC = () => {
           <TabsContent value="student list">
             <StudentList />
           </TabsContent>
-          <TabsContent value="timetable">
-            <Timetable />
+          <TabsContent value="my timetable">
+            <MyTimetable />
           </TabsContent>
-          <TabsContent value="my batch">
-            <MyBatch />
-          </TabsContent>
+
+          {/* Conditionally render "My Batch" tab if user is a batch coordinator */}
+          {isBatchCoordinator && (
+            <TabsContent value="my batch">
+              <MyBatch />
+            </TabsContent>
+          )}
+
           <TabsContent value="achievement">
             <Achievements userId={""} userRole={""} />
           </TabsContent>

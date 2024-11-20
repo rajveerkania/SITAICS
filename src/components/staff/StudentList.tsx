@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { FaTrashAlt } from "react-icons/fa";
 import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation"; // import the correct router hook
 
@@ -40,6 +41,7 @@ interface Student {
 const StudentList: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedBatch, setSelectedBatch] = useState("all");
   const [batches, setBatches] = useState<string[]>([]);
 
@@ -86,6 +88,7 @@ const StudentList: React.FC = () => {
   };
 
   const handleViewUser = async (userId: string) => {
+    // Ensure the router push only happens on the client-side
     if (typeof window !== "undefined") {
       router.push(`/staff/dashboard/user/${userId}`);
     }

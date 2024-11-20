@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const StudentTimetable: React.FC = () => {
+const StudentTimetable = () => {
   const [timetableURL, setTimetableURL] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [title, setTitle] = useState<string>("Student Timetable");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchTimetable = async () => {
@@ -28,35 +30,60 @@ const StudentTimetable: React.FC = () => {
       } catch (error) {
         console.error("Error fetching timetable:", error);
         setErrorMessage("Failed to fetch timetable.");
+      } finally {
+        setIsLoading(false);
       }
     };
-
     fetchTimetable();
   }, []);
 
-  return (
-    <div className="max-w-full mx-auto my-16 p-12 bg-white shadow-2xl rounded-2xl border border-gray-300">
-      <h2 className="text-4xl font-bold mb-8 text-center">{title}</h2>
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="py-16 text-center">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto" />
+            <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto" />
+          </div>
+          <p className="mt-4 text-gray-600">Fetching timetable...</p>
+        </div>
+      );
+    }
 
-      {/* Error Message */}
-      {errorMessage && (
-        <p className="text-red-500 text-lg mb-6">{errorMessage}</p>
-      )}
+    if (errorMessage) {
+      return (
+        <div className="p-8 bg-gray-100 border border-gray-300 rounded-md">
+          <p className="text-gray-900 text-center text-lg">{errorMessage}</p>
+        </div>
+      );
+    }
 
-      {/* Display Timetable */}
-      {timetableURL ? (
-        <div className="flex flex-col items-center justify-center mb-8">
+    if (timetableURL) {
+      return (
+        <div className="space-y-4">
           <iframe
             src={timetableURL}
             width="100%"
             height="800px"
-            className="border border-gray-500 shadow-lg"
-          ></iframe>
+            className="border border-gray-200 rounded-md shadow-sm"
+            title="Student Timetable PDF"
+          />
         </div>
-      ) : (
-        <p className="text-gray-500 text-center">Fetching timetable...</p>
-      )}
-    </div>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <Card className="max-w-6xl mx-auto my-8 bg-white">
+      <CardHeader>
+        <CardTitle className="text-2xl font-semibold text-center text-black">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>{renderContent()}</CardContent>
+    </Card>
   );
 };
 

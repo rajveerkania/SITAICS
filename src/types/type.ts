@@ -33,6 +33,7 @@ export interface Course {
 }
 
 export interface Batch {
+  batchNames: string;
   batchName: string;
 }
 

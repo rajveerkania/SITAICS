@@ -9,10 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ExamResults = () => {
   const [activeTab, setActiveTab] = useState("add");
-  const [semester, setSemester] = useState<number | string>("");
+  const [semester, setSemester] = useState<number | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [isRepeater, setIsRepeater] = useState(false);
   const [name, setName] = useState("");
@@ -63,13 +70,13 @@ const ExamResults = () => {
       setMessage("Semester and file are required.");
       return;
     }
-  
+
     const formData = new FormData();
-    formData.append("semester", String(semester));
+    formData.append("semester", semester.toString());
     formData.append("result", file);
     formData.append("isRepeater", String(isRepeater));
     if (name) formData.append("name", name);
-  
+
     try {
       const res = await fetch("/api/student/addResult", {
         method: "POST",
@@ -78,16 +85,13 @@ const ExamResults = () => {
       const data = await res.json();
       setMessage(data.message);
       if (data.success) {
-        // Reset the form state and update view
-        setSemester("");
+        setSemester(null);
         setFile(null);
         setIsRepeater(false);
         setName("");
         setActiveTab("view");
-  
-        // Fetch updated results and semesters
         fetchResults();
-        fetchAvailableSemesters(); // <-- Re-fetch semesters here
+        fetchAvailableSemesters();
       }
     } catch (err) {
       console.error("Error uploading:", err);
@@ -97,7 +101,9 @@ const ExamResults = () => {
 
   const handleIsRepeaterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsRepeater(e.target.checked);
-    e.target.checked ? setAvailableSemesters([1, 2, 3, 4, 5, 6, 7, 8]) : fetchAvailableSemesters();
+    e.target.checked
+      ? setAvailableSemesters([1, 2, 3, 4, 5, 6, 7, 8])
+      : fetchAvailableSemesters();
   };
 
   const handleViewPdf = async (pdfData: string) => {
@@ -113,7 +119,9 @@ const ExamResults = () => {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-6 py-2 mx-1 rounded-lg font-medium transition duration-300 ${
-              activeTab === tab ? "bg-black text-white" : "bg-gray-200 text-black"
+              activeTab === tab
+                ? "bg-black text-white"
+                : "bg-gray-200 text-black"
             }`}
           >
             {tab === "add" ? "Add Result" : "View Results"}
@@ -138,26 +146,30 @@ const ExamResults = () => {
             </label>
           </div>
 
-          <label className="block text-sm font-medium text-gray-700">
-            Select Semester
-            <select
-              id="semester"
-              value={semester}
-              onChange={(e) => setSemester(Number(e.target.value))}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black"
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Select Semester
+            </label>
+            <Select
+              value={semester?.toString()}
+              onValueChange={(value) => setSemester(Number(value))}
             >
-              <option value="">Select Semester</option> {/* Add placeholder */}
-              {availableSemesters.length > 0 ? (
-                availableSemesters.map((sem) => (
-                  <option key={sem} value={sem}>
-                    Semester {sem}
-                  </option>
-                ))
-              ) : (
-                <option value="">Loading...</option>
-              )}
-            </select>
-          </label>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Semester" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableSemesters.length > 0 ? (
+                  availableSemesters.map((sem) => (
+                    <SelectItem key={sem} value={sem.toString()}>
+                      Semester {sem}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="loading">Loading...</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
 
           <label className="block text-sm font-medium text-gray-700">
             Upload Result (PDF)
@@ -195,7 +207,9 @@ const ExamResults = () => {
               <TableBody>
                 {results.map((result, index) => (
                   <TableRow key={index} className="hover:bg-gray-50">
-                    <TableCell className="font-medium">{result.semester}</TableCell>
+                    <TableCell className="font-medium">
+                      {result.semester}
+                    </TableCell>
                     <TableCell>{result.isRepeater ? "Yes" : "No"}</TableCell>
                     <TableCell>
                       <button

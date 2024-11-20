@@ -76,7 +76,7 @@ const AddStaffDetails: React.FC<AddStaffDetailsProps> = ({
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const response = await fetch("/api/fetchBatchstaff");
+        const response = await fetch("/api/fetchBatchStaff");
         if (!response.ok) throw new Error("Failed to fetch batches");
         const data = await response.json();
         setBatches(data);

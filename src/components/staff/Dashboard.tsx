@@ -23,7 +23,7 @@ interface StaffInfoProps {
   city: string;
   state: string;
   pinCode: number;
-  contactNumber: string | null;
+  contactNo: string ;
   dateOfBirth: string;
 }
 
@@ -36,6 +36,7 @@ interface StatCardProps {
 
 const Dashboard: React.FC = () => {
   const [staffInfo, setStaffInfo] = useState<StaffInfoProps | null>(null);
+  const [totalSubjects, setTotalSubjects] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,19 +44,33 @@ const Dashboard: React.FC = () => {
       try {
         const response = await fetch(`/api/fetchUserDetails`);
         const data = await response.json();
-        if (response.status !== 200)
+        if (response.status !== 200) {
           toast.error(data.message || "Error while fetching user data");
-        else {
+        } else {
           setStaffInfo(data.user);
         }
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching staff details:", error);
-        setLoading(false);
+      }
+    };
+
+    const fetchTotalSubjects = async () => {
+      try {
+        const response = await fetch(`/api/fetchTotalSubjects`);
+        const data = await response.json();
+        if (response.status !== 200) {
+          toast.error(data.message || "Error while fetching total subjects");
+        } else {
+          setTotalSubjects(data.totalSubjects);
+        }
+      } catch (error) {
+        console.error("Error fetching total subjects:", error);
       }
     };
 
     fetchStaffInfo();
+    fetchTotalSubjects();
+    setLoading(false);
   }, []);
 
   const attendanceData = [
@@ -82,7 +97,7 @@ const Dashboard: React.FC = () => {
           />
           <StatCard
             title="Total Subjects"
-            value="6"
+            value={totalSubjects?.toString() || "N/A"} 
             icon={<Book className="h-10 w-10" />}
             description="Current semester"
           />
@@ -125,7 +140,7 @@ const Dashboard: React.FC = () => {
                   <InfoItem label="Email" value={staffInfo?.email || "N/A"} />
                   <InfoItem
                     label="Contact No."
-                    value={staffInfo?.contactNumber || "N/A"}
+                    value={staffInfo?.contactNo || "N/A"}
                   />
                   <InfoItem
                     label="Address"

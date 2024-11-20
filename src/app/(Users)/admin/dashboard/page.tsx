@@ -45,6 +45,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingText, setLoadingText] = useState("Dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [overviewStats, setOverviewStats] = useState<Stats | null>(null);
 
@@ -96,7 +97,7 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="">
-        <LoadingSkeleton loadingText="Dashboard" />;
+        <LoadingSkeleton loadingText={loadingText} />;
       </div>
     );
   }
@@ -258,7 +259,10 @@ const AdminDashboard = () => {
                 <CardTitle>User Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <UsersTab />
+                <UsersTab
+                  setLoading={setLoading}
+                  setLoadingText={setLoadingText}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -268,7 +272,10 @@ const AdminDashboard = () => {
                 <CardTitle>Course Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <CoursesTab />
+                <CoursesTab
+                  setLoading={setLoading}
+                  setLoadingText={setLoadingText}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -278,7 +285,10 @@ const AdminDashboard = () => {
                 <CardTitle>Batch Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <BatchTab />
+                <BatchTab
+                  setLoading={setLoading}
+                  setLoadingText={setLoadingText}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -288,7 +298,10 @@ const AdminDashboard = () => {
                 <CardTitle>Subject Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <SubjectsTab />
+                <SubjectsTab
+                  setLoading={setLoading}
+                  setLoadingText={setLoadingText}
+                />
               </CardContent>
             </Card>
           </TabsContent>

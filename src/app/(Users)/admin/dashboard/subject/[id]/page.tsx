@@ -136,7 +136,7 @@ const SubjectEditPage = () => {
   };
 
   if (isLoading) {
-    return <LoadingSkeleton loadingText="subject details" />;
+    return <LoadingSkeleton loadingText="Subject Details" />;
   }
 
   if (!subject) {

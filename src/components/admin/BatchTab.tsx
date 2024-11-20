@@ -17,6 +17,10 @@ import LoadingSkeleton from "../LoadingSkeleton";
 import { useRouter } from "next/navigation";
 import { Eye } from "lucide-react";
 
+interface BatchTabProps {
+  setLoading: (value: boolean) => void;
+  setLoadingText: (value: string) => void;
+}
 interface Batch {
   batchId: string;
   batchName: string;
@@ -26,7 +30,7 @@ interface Batch {
   studentCount: number;
 }
 
-const BatchTab = () => {
+const BatchTab: React.FC<BatchTabProps> = ({ setLoading, setLoadingText }) => {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [activeTab, setActiveTab] = useState("manage");
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +78,8 @@ const BatchTab = () => {
   };
 
   const handleViewBatch = (batchId: string) => {
+    setLoading(true);
+    setLoadingText("Batch Details");
     router.push(`/admin/dashboard/batch/${batchId}`);
   };
 

@@ -19,6 +19,11 @@ import ManageElectiveGroup from "./ManageElectiveGroup";
 import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+interface SubjectsTabProps {
+  setLoading: (value: boolean) => void;
+  setLoadingText: (value: string) => void;
+}
+
 interface Subject {
   subjectId: string;
   subjectName: string;
@@ -28,14 +33,10 @@ interface Subject {
   isElective: boolean;
 }
 
-interface ElectiveGroup {
-  electiveGroupId: string;
-  groupName: string;
-  courseId: string;
-  semester: number;
-}
-
-const SubjectTab = () => {
+const SubjectTab: React.FC<SubjectsTabProps> = ({
+  setLoading,
+  setLoadingText,
+}) => {
   const router = useRouter();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,6 +99,8 @@ const SubjectTab = () => {
   };
 
   const handleViewSubject = (subjectId: string) => {
+    setLoading(true);
+    setLoadingText("Subject Details");
     router.push(`/admin/dashboard/subject/${subjectId}`);
   };
 
@@ -150,11 +153,9 @@ const SubjectTab = () => {
           )}
         </div>
 
-
         <TabsContent value="createSubject">
           <AddSubjectForm onAddSubjectSuccess={onAddSubjectSuccess} />
         </TabsContent>
-
 
         <TabsContent value="manageSubjects">
           <Table>
@@ -229,7 +230,9 @@ const SubjectTab = () => {
         </TabsContent>
 
         <TabsContent value="addElectiveGroup">
-          <AddElectiveGroupForm onAddElectiveGroupSuccess={fetchElectiveGroups} />
+          <AddElectiveGroupForm
+            onAddElectiveGroupSuccess={fetchElectiveGroups}
+          />
         </TabsContent>
       </Tabs>
     </div>

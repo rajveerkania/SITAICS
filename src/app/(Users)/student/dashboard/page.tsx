@@ -82,15 +82,14 @@ const StudentDashboard: React.FC = () => {
       }
     } catch (error) {
       toast.error("Error fetching user details");
-    }
-    finally{
+    } finally {
       setLoading(false);
     }
   };
 
   const fetchElectiveStatus = async (batchName: string, courseName: string) => {
     try {
-      console.log("Elective Status fetch hit")
+      console.log("Elective Status fetch hit");
       const response = await fetch(`/api/student/fetchElectiveStatus/`, {
         method: "POST",
         headers: {
@@ -236,7 +235,7 @@ const StudentDashboard: React.FC = () => {
         transition-all duration-200 ease-in-out
         ${
           activeTab === tab.toLowerCase()
-            ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative" // Active tab styles with top shadow
+            ? "bg-gray-900 text-white shadow-md shadow-gray-800 border-b-4 border-gray-600 z-10 relative"
             : "bg-gray-200 text-black hover:bg-gray-300"
         }
       `}

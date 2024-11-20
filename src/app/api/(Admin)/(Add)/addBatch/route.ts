@@ -56,6 +56,7 @@ export async function POST(req: Request) {
         batchName,
         courseId: course.courseId,
         currentSemester: semester,
+        batchDuration:course.duration
       },
       include: {
         course: {
