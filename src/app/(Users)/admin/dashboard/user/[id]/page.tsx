@@ -89,21 +89,21 @@ const UserEditPage: React.FC = () => {
   }, [id]);
 
   const handleSave = async () => {
-    if (!editedUser) return;
-
+    if (!id || !editedUser) return; // Check if id is valid
+  
     try {
-      const response = await fetch(`/api/admin/updateUserDetails/${id}`, {
+      const response = await fetch(`/api/users/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(editedUser),
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to update user");
       }
-
+  
       const updatedUser = await response.json();
       setUser(updatedUser);
       setEditedUser(updatedUser);
@@ -453,35 +453,77 @@ const UserEditPage: React.FC = () => {
                 {(user.role === "Student" || editedUser.role === "Student") && (
                   <>
                     <TabsContent value="result">
-                      <ResultComponent
-                        results={user.roleDetails.results}
-                        isEditing={isEditing}
-                        onResultsChange={(updatedResults: any) =>
-                          handleRoleDetailsChange("results", updatedResults)
-                        }
-                      />
-                    </TabsContent>
+                        <ResultComponent
+                          results={editedUser.roleDetails.results || []} // Pass the edited user results
+                          isEditing={isEditing} // Pass editing state
+                          onResultsChange={(updatedResults) => handleRoleDetailsChange('results', updatedResults)} // Handle changes
+                        />
+                      </TabsContent>
                     <TabsContent value="achievement">
-                      <AchievementComponent
-                        achievements={user.roleDetails.achievements}
-                        isEditing={isEditing}
-                        handleRoleDetailsChange={(field, value) =>
-                          handleRoleDetailsChange("achievements", value)
-                        }
-                      />
+                    <CardContent>
+              <p className="text-lg">
+                {/* If achievements is an array, we render each item */}
+                {Array.isArray(user.roleDetails.achievements) ? (
+                  user.roleDetails.achievements.map((achievement, index) => (
+                    <div
+                      key={index}
+                      className="border p-4 rounded shadow-md flex justify-between items-center"
+                    >
+                      <div>
+                        <h3 className="text-xl font-semibold">
+                          {achievement.title}
+                        </h3>
+                        <p className="text-gray-600">
+                          {achievement.description}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Date: {achievement.date} | Category:{" "}
+                          {achievement.category}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  // Otherwise, we display it directly as a string
+                  user.roleDetails.achievements
+                )}
+              </p>
+            </CardContent>
                     </TabsContent>
                   </>
                 )}
 
                 {(user.role === "Staff" || editedUser.role === "Staff") && (
                   <TabsContent value="achievement">
-                    <AchievementComponent
-                      achievements={user.roleDetails.achievements}
-                      isEditing={isEditing}
-                      handleRoleDetailsChange={(field, value) =>
-                        handleRoleDetailsChange("achievements", value)
-                      }
-                    />
+                                <CardContent>
+              <p className="text-lg">
+                {/* If achievements is an array, we render each item */}
+                {Array.isArray(user.roleDetails.achievements) ? (
+                  user.roleDetails.achievements.map((achievement, index) => (
+                    <div
+                      key={index}
+                      className="border p-4 rounded shadow-md flex justify-between items-center"
+                    >
+                      <div>
+                        <h3 className="text-xl font-semibold">
+                          {achievement.title}
+                        </h3>
+                        <p className="text-gray-600">
+                          {achievement.description}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Date: {achievement.date} | Category:{" "}
+                          {achievement.category}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  // Otherwise, we display it directly as a string
+                  user.roleDetails.achievements
+                )}
+              </p>
+            </CardContent>
                   </TabsContent>
                 )}
               </Tabs>

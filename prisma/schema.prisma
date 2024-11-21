@@ -85,32 +85,12 @@ model StudentDetails {
   leaves             Leave[]
 }
 
-model AttendanceSettings {
-  id                 String   @id @default(uuid())
-  subjectId          String
-  batchId            String
-  lecturesPerWeek    Int
-  labsPerWeek        Int
-  hasLabs            Boolean  @default(false)
-  lectureDays        String
-  labDays            String
-  sessionStartDate   DateTime
-  sessionEndDate     DateTime
-  attendanceSchedule String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  subject            Subject  @relation("SubjectAttendanceSettings", fields: [subjectId], references: [subjectId])
-  batch              Batch    @relation("BatchAttendanceSettings", fields: [batchId], references: [batchId])
-
-  @@unique([subjectId, batchId])
-}
-
 model StaffDetails {
-  id                 String       @id
+  id                 String       @id 
   email              String
   username           String
   name               String
-  isBatchCoordinator Boolean?   @default(false)
+  isBatchCoordinator Boolean?     @default(false)
   batchId            String?
   dateOfBirth        DateTime?
   gender             String?
@@ -130,7 +110,6 @@ model StaffDetails {
   batch              Batch?       @relation(fields: [batchId], references: [batchId])
   attendances        Attendance[]
   timetable          Bytes?
-  
 }
 
 model Subject {
@@ -144,13 +123,12 @@ model Subject {
   electiveGroup         ElectiveGroup?          @relation(fields: [electiveGroupId], references: [electiveGroupId])
   electiveGroupId       String?
   staff                 StaffDetails[]
-  batches               BatchSubject[]
-  isActive              Boolean                 @default(true)
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
+  batches              BatchSubject[]
+  isActive             Boolean                 @default(true)
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
   ElectiveSubjectChoice ElectiveSubjectChoice[]
-  attendances           Attendance[]
-  attendanceSettings    AttendanceSettings[]    @relation("SubjectAttendanceSettings")
+  attendances          Attendance[]
 }
 
 model Course {
@@ -181,9 +159,7 @@ model Batch {
   course          Course           @relation(fields: [courseId], references: [courseId])
   timetable       Bytes?
   staffId         String?
-
-  attendances         Attendance[]
-  attendanceSettings  AttendanceSettings[] @relation("BatchAttendanceSettings")
+  attendances     Attendance[]
 }
 
 model BatchSubject {
@@ -194,8 +170,6 @@ model BatchSubject {
   staffId   String?
   batch     Batch    @relation(fields: [batchId], references: [batchId])
   subject   Subject  @relation(fields: [subjectId], references: [subjectId])
-
-  @@unique([batchId, subjectId])
 }
 
 model Attendance {
@@ -213,7 +187,11 @@ model Attendance {
   batch     Batch          @relation(fields: [batchId], references: [batchId])
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+  @@index([studentId, subjectId, batchId])
+  @@index([date, type])
+
 }
+
 
 model ElectiveGroup {
   electiveGroupId       String                  @id @default(uuid())
@@ -237,8 +215,8 @@ model ElectiveSubjectChoice {
 }
 
 enum AttendanceType {
-  Lecture
-  Lab
+  LECTURE 
+  LAB
 }  
 
 enum Role {

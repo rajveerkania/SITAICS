@@ -269,7 +269,7 @@ const StudentDashboard: React.FC = () => {
             <Card>
               <CardHeader></CardHeader>
               <CardContent>
-                <AttendanceTab />
+                <AttendanceTab studentId={userInfo?.id || ""} />
               </CardContent>
             </Card>
           </TabsContent>
