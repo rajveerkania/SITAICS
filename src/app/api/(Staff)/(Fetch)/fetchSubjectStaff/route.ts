@@ -35,6 +35,7 @@ export async function GET(req: Request) {
     });
 
     // Format the response with batch and course info
+    // Format the response with batch and course info
     const formattedSubjects = subjects.map((subject) => ({
       subjectId: subject.subjectId,
       subjectName: subject.subjectName,

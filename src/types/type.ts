@@ -1,5 +1,3 @@
-// types/type.ts
-
 export type DayOfWeek = 'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY';
 
 export interface AttendanceSettings {
@@ -18,17 +16,32 @@ export interface AttendanceType {
   date: string;
   type: 'Lecture' | 'Lab';
 }
-export interface Student {
-  id: string;
-  name: string;
-  isPresent: boolean;
-  overallPercentage: number;
+
+
+export interface NotificationPayload {
+  type: 'CIRCULAR' | 'COURSE' | 'BATCH' | 'SUBJECT';
+  recipient?: string;
+  message: string;
+  courseName?: string;
+  batchName?: string;
+  subjectId?: string;
+  sendToAllBatches?: boolean;
 }
 
-export interface AttendanceRecord {
-  subjectId: string;
-  batchId: string;
-  isLab: boolean;
-  date: string;
-  students: Student[];
+export interface Course {
+  courseName: string;
+}
+
+export interface Batch {
+  batchNames: string;
+  batchName: string;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  createdAt: string;
+  read: boolean;
+  type: string;
 }

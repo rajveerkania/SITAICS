@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
       state,
       pinCode,
       contactNo,
+      contactNo,
       dateOfBirth,
       isBatchCoordinator,
       batchId,
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Check if staff exists
     const existingStaff = await prisma.staffDetails.findUnique({
+      where: { id: userId! },
       where: { id: userId! },
     });
 
@@ -119,6 +121,7 @@ export async function POST(request: NextRequest) {
 
     // Return a success message with the updated or created staff details
     return NextResponse.json({
+      message: `Staff Details ${existingStaff ? "updated" : "created"} successfully, and subjects assigned.`,
       message: `Staff Details ${existingStaff ? "updated" : "created"} successfully, and subjects assigned.`,
       success: true,
       staffDetails,
