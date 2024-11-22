@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -212,34 +210,8 @@ const Attendance = () => {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ...attendanceData,
-          date: selectedDate,
-          students: students.map(student => ({
-            id: student.id,
-            isPresent: student.isPresent
-          }))
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to save attendance');
-      }
-
-      toast.success('Attendance saved successfully');
-      // Reset form after successful save
-      setStudents([]);
-      setAttendanceData({
-        subjectId: '',
-        batchId: '',
-        sessionType: '',
-        date: format(new Date(), 'yyyy-MM-dd'),
-      });
           ...attendanceData,
           date: selectedDate,
           students: students.map(student => ({
@@ -286,19 +258,14 @@ const Attendance = () => {
   return (
     <div className="container mx-auto p-6">
       <Tabs defaultValue="mark" className="w-full">
-      <Tabs defaultValue="mark" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="mark">Mark Attendance</TabsTrigger>
-          <TabsTrigger value="view">View Attendance</TabsTrigger>
           <TabsTrigger value="mark">Mark Attendance</TabsTrigger>
           <TabsTrigger value="view">View Attendance</TabsTrigger>
         </TabsList>
 
         <TabsContent value="mark">
-        <TabsContent value="mark">
           <Card>
             <CardHeader>
-              <CardTitle>Mark Attendance</CardTitle>
               <CardTitle>Mark Attendance</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -354,59 +321,6 @@ const Attendance = () => {
                     <SelectItem value="lab">Lab</SelectItem>
                   </SelectContent>
                 </Select>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Select
-                  value={attendanceData.batchId}
-                  onValueChange={handleBatchChange}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Batch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem key={subject.batchId} value={subject.batchId}>
-                        {subject.batchName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={attendanceData.subjectId}
-                  onValueChange={(value) =>
-                    setAttendanceData(prev => ({ ...prev, subjectId: value }))
-                  }
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem key={subject.subjectId} value={subject.subjectId}>
-                        {subject.subjectName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={attendanceData.sessionType}
-                  onValueChange={(value) =>
-                    setAttendanceData(prev => ({ ...prev, sessionType: value }))
-                  }
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Session Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="lecture">Lecture</SelectItem>
-                    <SelectItem value="lab">Lab</SelectItem>
-                  </SelectContent>
-                </Select>
 
                 <Input
                   type="date"
@@ -415,17 +329,7 @@ const Attendance = () => {
                   disabled={isLoading}
                 />
               </div>
-                <Input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
 
-              {isLoading && (
-                <div className="flex justify-center items-center p-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
               {isLoading && (
                 <div className="flex justify-center items-center p-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -518,23 +422,6 @@ const Attendance = () => {
                   value={viewAttendanceData.subjectId}
                   onValueChange={(value) => 
                     setViewAttendanceData(prev => ({ ...prev, subjectId: value }))
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Batch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {batches.map((batch) => (
-                      <SelectItem key={batch.batchId} value={batch.batchId}>
-                        {batch.batchName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={viewAttendanceData.subjectId}
-                  onValueChange={(value) => 
-                    setViewAttendanceData(prev => ({ ...prev, subjectId: value }))
                   }
                 >
                   <SelectTrigger>
@@ -557,82 +444,13 @@ const Attendance = () => {
                   )}
                 </Button>
               </div>
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem key={subject.subjectId} value={subject.subjectId}>
-                        {subject.subjectName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Button onClick={fetchAttendance} disabled={isLoading}>
-                  {isLoading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Fetching...</>
-                  ) : (
-                    'Fetch Attendance'
-                  )}
-                </Button>
-              </div>
 
               {isLoading && (
                 <div className="flex justify-center items-center p-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               )}
-              {isLoading && (
-                <div className="flex justify-center items-center p-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              )}
 
-              {!isLoading && students.length > 0 && (
-                <div className="border rounded-lg">
-                  <div className="max-h-[500px] overflow-y-auto">
-                    <table className="w-full">
-                      <thead className="sticky top-0 bg-white">
-                        <tr className="border-b">
-                          <th className="p-2 text-left">Enrollment No</th>
-                          <th className="p-2 text-left">Name</th>
-                          <th className="p-2 text-left">Email</th>
-                          <th className="p-2 text-center">Lectures</th>
-                          <th className="p-2 text-center">Labs</th>
-                          <th className="p-2 text-center">Overall</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {students.map((student) => (
-                          <tr key={student.studentId} className="border-b">
-                            <td className="p-2">{student.enrollmentNumber}</td>
-                            <td className="p-2">{student.name}</td>
-                            <td className="p-2">{student.email}</td>
-                            <td className="p-2 text-center">
-                              {student.lecturesAttended} / {student.totalLecturesTaken} 
-                              <br />({student.lecturePercentage}%)
-                            </td>
-                            <td className="p-2 text-center">
-                              {student.labsAttended} / {student.totalLabsTaken}
-                              <br />({student.labPercentage}%)
-                            </td>
-                            <td className="p-2 text-center font-bold">
-                              {student.overallAttendancePercentage}%
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
               {!isLoading && students.length > 0 && (
                 <div className="border rounded-lg">
                   <div className="max-h-[500px] overflow-y-auto">
@@ -679,5 +497,4 @@ const Attendance = () => {
   );
 };
 
-export default Attendance;
 export default Attendance;

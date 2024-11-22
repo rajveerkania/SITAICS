@@ -13,8 +13,9 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Fetch all subjects without any conditions
+    // Fetch all active subjects across all courses
     const subjects = await prisma.subject.findMany({
+      where: { isActive: true },
       include: {
         course: {
           select: {
@@ -34,7 +35,7 @@ export async function GET(req: Request) {
       },
     });
 
-    // Format the response with batch and course info
+    // Format subjects with batch and course info
     const formattedSubjects = subjects.map((subject) => ({
       subjectId: subject.subjectId,
       subjectName: subject.subjectName,

@@ -1,19 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FiCheck, FiX, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-interface Leave {
-  id: string;
-  studentName: string;
-  reason: string;
-  status: 'Pending' | 'Approved' | 'Denied';
-  leaveType: string;
-  fromDate: string;
-  toDate: string;
-}
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Leave {
@@ -63,46 +51,6 @@ const Leave = () => {
 
   const activeLeaves = leaves.filter(leave => leave.status === 'Pending');
   const archivedLeaves = leaves.filter(leave => leave.status !== 'Pending');
-
-  const handleApprove = async (leaveId: string) => {
-    try {
-      const response = await fetch('/api/approveLeave', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leaveId }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setLeaves(prevLeaves => prevLeaves.map(leave => 
-          leave.id === leaveId ? { ...leave, status: 'Approved' } : leave
-        ));
-      } else {
-        console.error("Failed to approve leave:", data.message);
-      }
-    } catch (error) {
-      console.error("Error approving leave:", error);
-    }
-  };
-
-  const handleDeny = async (leaveId: string) => {
-    try {
-      const response = await fetch('/api/denyLeave', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leaveId }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setLeaves(prevLeaves => prevLeaves.map(leave => 
-          leave.id === leaveId ? { ...leave, status: 'Denied' } : leave
-        ));
-      } else {
-        console.error("Failed to deny leave:", data.message);
-      }
-    } catch (error) {
-      console.error("Error denying leave:", error);
-    }
-  };
 
   const handleApprove = async (leaveId: string) => {
     try {
