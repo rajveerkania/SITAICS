@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       where: {
         subjectId: subjectId,
         batchId: batchId,
-        type: AttendanceType.LAB
+        type: AttendanceType.Lab
       },
       select: {
         date: true
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
             studentId: student.id,
             subjectId: subjectId,
             batchId: batchId,
-            type: AttendanceType.LAB,
+            type: AttendanceType.Lab,
             isPresent: true
           },
           _count: true
