@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/utils/auth';
 import { NotificationType } from '@prisma/client';
+import cron from 'node-cron';
 
 interface StaffNotificationPayload {
   type: 'batch' | 'subject';
@@ -20,14 +21,12 @@ function mapToNotificationType(type: string): NotificationType {
 
 export async function POST(req: Request) {
   try {
-    // Verify staff authentication
     const user = verifyToken();
     if (!user) {
       console.log('Authentication failed: No user token');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify if the user is a staff member with detailed logging
     const staffMember = await prisma.staffDetails.findUnique({
       where: { id: user.id },
       include: {
@@ -56,7 +55,6 @@ export async function POST(req: Request) {
       staffId: user.id
     });
 
-    // Validate batch exists and staff has access
     const batch = await prisma.batch.findUnique({
       where: { batchId },
       include: {
@@ -73,10 +71,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Batch not found' }, { status: 404 });
     }
 
-    // Check batch coordinator access
     const isBatchCoordinator = staffMember.batch?.batchId === batchId;
     
-    // For subject notifications, verify staff teaches that subject
     if (type === 'subject' && subjectId) {
       const staffSubjects = staffMember.subjects.map(sub => sub.subjectId);
       console.log('Staff subjects:', staffSubjects);
@@ -97,7 +93,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Create the notification
     const notification = await prisma.notification.create({
       data: {
         type: mapToNotificationType(type),
@@ -116,7 +111,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // Get recipients (students)
     const recipients = await prisma.studentDetails.findMany({
       where: {
         batchName: batch.batchName,
@@ -149,7 +143,6 @@ export async function POST(req: Request) {
 
     console.log(`Found ${recipients.length} recipients for notification`);
 
-    // Create notification recipients
     if (recipients.length > 0) {
       await prisma.notificationRecipient.createMany({
         data: recipients.map(({ id }) => ({
@@ -159,9 +152,23 @@ export async function POST(req: Request) {
       });
     }
 
+    // Schedule a cron job to send the notification after 24 hours
+    cron.schedule('0 0 0 * * *', async () => {
+      console.log('Running scheduled task to send notifications after 24 hours');
+
+      await prisma.notificationRecipient.createMany({
+        data: recipients.map(({ id }) => ({
+          recipientId: id,
+          notificationId: notification.id,
+        })),
+      });
+
+      console.log('Scheduled notification sent successfully');
+    });
+
     return NextResponse.json({ 
       success: true,
-      message: 'Notification sent successfully',
+      message: 'Notification scheduled to be sent in 24 hours',
       notification: {
         id: notification.id,
         type: mapToNotificationType(type),

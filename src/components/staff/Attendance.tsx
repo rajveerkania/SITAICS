@@ -128,7 +128,7 @@ const Attendance = () => {
         });
         setBatches(uniqueBatches);
       }
-    } catch (error) { 
+    } catch (error) {
       console.error('Error loading subjects:', error);
       toast.error('Failed to load subjects');
     } finally {

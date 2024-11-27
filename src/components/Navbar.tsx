@@ -4,10 +4,10 @@ import { AdminNotification } from "@/components/admin/AdminNotification";
 import BlurIn from "./magicui/blur-in";
 import { AdminProfile } from "@/components/admin/AdminProfile";
 import { StudentProfile } from "@/components/student/StudentProfile";
-import Profile from "@/components/staff/Profile";
 import { StaffNotification } from "@/components/staff/StaffNotification";
 import { StudentNotification } from "@/components/student/StudentNotification";
 import { useRouter } from "next/navigation";
+import { StaffProfile } from "./staff/Staffprofile";
 
 interface NavBarProps {
   name?: string;
@@ -245,38 +245,19 @@ export function Navbar({ name, id, role }: NavBarProps) {
               </h3>
               <div className="mt-2 px-7 py-3">
                 {role === "Admin" ? (
-                  <AdminProfile
-                    name={name || "Admin"}
-                    email="admin@example.com"
-                    username="admin123"
-                  />
+                  <AdminProfile/>
                 ) : role === "Staff" ? (
-                  <Profile
-                    staffDetails={{
-                      department: "IT",
-                      position: "Lecturer",
-                      email: "staff@example.com",
-                      contactNo: "9876543210",
-                    }}
-                  />
+                  <StaffProfile/>
                 ) : (
-                  <StudentProfile
-                    studentDetails={{
-                      fatherName: "John Doe",
-                      motherName: "Jane Doe",
-                      enrollmentNumber: "EN123456",
-                      courseName: "Computer Science",
-                      batchName: "Batch 2023",
-                      dateOfBirth: "1999-01-01",
-                      gender: "Male",
-                      contactNo: "1234567890",
-                      address: "123 Main St",
-                      city: "CityName",
-                      state: "StateName",
-                      pinCode: "123456",
-                      bloodGroup: "O+",
-                    }}
-                  />
+                  <StudentProfile studentDetails={{
+                        email: "",
+                        username: "",
+                        name: "",
+                        enrollmentNumber: "",
+                        courseName: "",
+                        batchName: "",
+                        contactNo: ""
+                      }} />
                 )}
               </div>
               <div className="items-center px-4 py-3">
