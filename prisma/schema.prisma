@@ -218,8 +218,8 @@ model BatchSubject {
   semester  Int?
   subjectId String
   staffId   String?
-  batch     Batch   @relation(fields: [batchId], references: [batchId])
-  subject   Subject @relation(fields: [subjectId], references: [subjectId])
+  batch     Batch    @relation(fields: [batchId], references: [batchId])
+  subject   Subject  @relation(fields: [subjectId], references: [subjectId])
 }
 
 model Attendance {
