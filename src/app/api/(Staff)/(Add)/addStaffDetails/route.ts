@@ -7,11 +7,13 @@ export async function POST(request: NextRequest) {
   const userRole = decodedUser?.role;
   const userId = decodedUser?.id;
 
+  // Check if the user role is 'Staff'
   if (userRole !== "Staff") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
 
   try {
+    // Parse request body
     const reqBody = await request.json();
     const {
       email,
@@ -30,14 +32,13 @@ export async function POST(request: NextRequest) {
 
     const parsedDateOfBirth = new Date(`${dateOfBirth}`);
 
+    // Check if staff exists
     const existingStaff = await prisma.staffDetails.findUnique({
       where: { id: userId! },
     });
 
-    let staffDetails;
-    const updateStaffData = {
-      id:userId,
-
+    // Create the staff data to be updated or created
+    const updateStaffData: any = {
       name,
       email,
       gender,
@@ -52,55 +53,57 @@ export async function POST(request: NextRequest) {
       isProfileCompleted: true,
     };
 
+    // If the staff exists, include the 'id' in the data for the update
     if (existingStaff) {
+      updateStaffData.id = userId;
+    }
+
+    let staffDetails;
+    if (existingStaff) {
+      // Update existing staff details
       staffDetails = await prisma.staffDetails.update({
         where: { id: userId },
         data: updateStaffData,
       });
     } else {
+      // Create a new staff record
       staffDetails = await prisma.staffDetails.create({
-        data: updateStaffData
+        data: updateStaffData, // No need to include 'id' here, Prisma will auto-generate it
       });
     }
 
+    // If the user is a batch coordinator and has a batchId, update the batch
     if (isBatchCoordinator && batchId) {
-      await prisma.batch.update({  
+      await prisma.batch.update({
         where: { batchId },
         data: { staffId: userId },
       });
     }
 
+    // If selected subjects are provided, assign them
     if (selectedSubjectIds && selectedSubjectIds.length > 0) {
       const subjectDetails = await prisma.subject.findMany({
         where: { subjectId: { in: selectedSubjectIds } },
         select: { subjectId: true, semester: true, courseId: true },
       });
-    
+
+      // Loop through the subjects and assign them to relevant batches
       for (const subject of subjectDetails) {
         const { courseId, subjectId, semester } = subject;
-    
-        // Fetch batches that are associated with the courseId and match the semester
+
+        // Fetch batches that match the courseId and semester
         const relevantBatches = await prisma.batch.findMany({
           where: {
             courseId,
-            currentSemester: semester, 
+            currentSemester: semester,
           },
           select: { batchId: true },
         });
-    
+
         for (const batch of relevantBatches) {
-          // Check if the batchSubject entry already exists
-          const existingBatchSubject = await prisma.batchSubject.findUnique({
-            where: {
-              batchId_subjectId: {
-                batchId: batch.batchId,
-                subjectId,
-              },
-            },
-          });
-    
-          if (!existingBatchSubject) {
-            // If not, create a new entry in the batchSubject table
+          // Check if the batch-subject relationship already exists
+             {
+            // If not, create the relationship
             await prisma.batchSubject.create({
               data: {
                 batchId: batch.batchId,
@@ -113,8 +116,8 @@ export async function POST(request: NextRequest) {
         }
       }
     }
-    
 
+    // Return a success message with the updated or created staff details
     return NextResponse.json({
       message: `Staff Details ${existingStaff ? "updated" : "created"} successfully, and subjects assigned.`,
       success: true,

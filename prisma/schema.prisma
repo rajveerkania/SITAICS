@@ -170,8 +170,6 @@ model BatchSubject {
   staffId   String?
   batch     Batch    @relation(fields: [batchId], references: [batchId])
   subject   Subject  @relation(fields: [subjectId], references: [subjectId])
-
-  @@unique([batchId, subjectId])
 }
 
 model Attendance {

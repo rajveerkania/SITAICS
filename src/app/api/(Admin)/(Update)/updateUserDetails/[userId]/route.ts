@@ -13,6 +13,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   const { id } = params;
+  console.log('Received ID:', params.id);
 
   try {
     const data = await request.json();
@@ -45,8 +46,9 @@ export async function PUT(
 
       // Update role-specific details
       if (existingUser.role === Role.Student) {
+        // Update student details
         await tx.studentDetails.update({
-          where: { id },
+          where: { userId: id }, // Correctly use 'userId' to link to the student
           data: {
             name: data.name,
             email: data.email,
@@ -68,9 +70,11 @@ export async function PUT(
             isProfileCompleted: data.isProfileCompleted,
           },
         });
+        console.log('Updated Student Details');
       } else if (existingUser.role === Role.Staff) {
+        // Update staff details
         await tx.staffDetails.update({
-          where: { id },
+          where: { userId: id }, // Correctly use 'userId' for staff details
           data: {
             name: data.name,
             email: data.email,
@@ -79,7 +83,7 @@ export async function PUT(
             batchId: data.batchId,
             dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
             gender: data.gender,
-            contactNumber: data.contactNumber,
+            contactNo: data.contactNumber,
             achievements: data.achievements,
             address: data.address,
             city: data.city,
@@ -88,6 +92,7 @@ export async function PUT(
             isProfileCompleted: data.isProfileCompleted,
           },
         });
+        console.log('Updated Staff Details');
       }
 
       // Fetch and return the updated user with all details
@@ -123,6 +128,7 @@ export async function PUT(
 
     return NextResponse.json(response);
   } catch (error: any) {
+    console.error("Error during update:", error);
     return NextResponse.json(
       { error: error.message },
       { status: 500 }

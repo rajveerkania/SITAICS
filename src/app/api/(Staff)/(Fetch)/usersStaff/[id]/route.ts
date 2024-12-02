@@ -9,17 +9,59 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const { id } = params;
+  console.log(id);
   const decodedUser = verifyToken();
   if (!decodedUser) {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
   const userRole = decodedUser.role;
   const userId = decodedUser.id;
+  const staffMember = await prisma.staffDetails.findUnique({
+    where: {
+      id: userId, 
+    },
+    select: {
+      isBatchCoordinator: true, 
+      batchId: true
+    },
+  });
 
+  if (!staffMember?.isBatchCoordinator)
+  {
+    return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+  }
   if (userRole !== "Staff") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
   try {
+    const batch = await prisma.batch.findUnique({
+      where: {
+        batchId: staffMember.batchId ?? undefined, // Convert null to undefined
+      },
+      select: {
+        batchName: true,
+      },
+    });
+
+    if (!batch) {
+      return NextResponse.json({ message: "Batch not found!" }, { status: 404 });
+    }
+
+    const students = await prisma.studentDetails.findMany({
+      where: {
+        batchName: batch.batchName,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    // Check if params.id exists in the fetched student IDs
+    const isStudentInBatch = students.some((student) => student.id === id);
+
+    if (!isStudentInBatch) {
+      return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
+    }
     const user = await prisma.user.findUnique({
       where: { id },
       include: {

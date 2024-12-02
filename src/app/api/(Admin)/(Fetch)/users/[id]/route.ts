@@ -8,6 +8,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const { id } = params;
+  console.log('Received ID:', params.id);
 
   try {
     const user = await prisma.user.findUnique({
@@ -23,6 +24,7 @@ export async function GET(
                 electiveGroup: true,
               },
             },
+            results: true, // Include results here
           },
         },
         staffDetails: {
@@ -41,7 +43,6 @@ export async function GET(
     let roleDetails: any = {};
 
     if (user.role === Role.Student && user.studentDetails) {
-       
       const {
         id: _id,
         course: _course,
@@ -59,6 +60,13 @@ export async function GET(
           subjectName: choice.subject.subjectName,
           subjectCode: choice.subject.subjectCode,
         })),
+        achievements: user.studentDetails.achievements, // Include achievements
+        results: user.studentDetails.results.map(result => ({
+          semester: result.semester,
+          resultFile: result.resultFile.toString(), // You can adjust this depending on how you want to return the result file
+          uploadedAt: result.uploadedAt,
+          isRepeater: result.isRepeater,
+        })),
       };
     } else if (user.role === Role.Staff && user.staffDetails) {
       const {
@@ -75,6 +83,7 @@ export async function GET(
           semester: subject.semester,
         })),
         batchName: user.staffDetails.batch?.batchName,
+        achievements: user.staffDetails.achievements, // Include achievements
       };
     }
 
@@ -89,12 +98,14 @@ export async function GET(
       updatedAt: user.updatedAt,
       roleDetails,
     };
+    console.log(detailedUser);
     return NextResponse.json(detailedUser);
   } catch (error: any) {
     console.error("Error fetching user details:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
 
 export async function PUT(
   request: Request,
@@ -126,6 +137,7 @@ export async function PUT(
       },
     });
 
+    // Update achievements for both student and staff based on role
     if (user.role === Role.Student) {
       await prisma.studentDetails.update({
         where: { id },
@@ -139,10 +151,32 @@ export async function PUT(
           motherName: roleDetails.motherName,
           dateOfBirth: roleDetails.dateOfBirth,
           gender: roleDetails.gender,
-          bloodGroup: roleDetails.bloodGroup,
-          achievements: roleDetails.achievements,
+          achievements: roleDetails.achievements, // Update achievements
         },
       });
+
+      // Update or create the result (assuming results array is provided in roleDetails)
+      for (const result of roleDetails.results || []) {
+        if (result.id) {
+          await prisma.result.update({
+            where: { id: result.id },
+            data: {
+              semester: result.semester,
+              resultFile: result.resultFile, // Handle the file properly (e.g., upload to a storage service)
+              isRepeater: result.isRepeater,
+            },
+          });
+        } else {
+          await prisma.result.create({
+            data: {
+              studentId: id,
+              semester: result.semester,
+              resultFile: result.resultFile, // Handle the file properly
+              isRepeater: result.isRepeater,
+            },
+          });
+        }
+      }
     } else if (user.role === Role.Staff) {
       await prisma.staffDetails.update({
         where: { id },
@@ -154,12 +188,12 @@ export async function PUT(
           pinCode: roleDetails.pinCode ? parseInt(roleDetails.pinCode) : null,
           dateOfBirth: roleDetails.dateOfBirth,
           gender: roleDetails.gender,
-          achievements: roleDetails.achievements,
+          achievements: roleDetails.achievements, // Update achievements
         },
       });
     }
 
-    // Fetch updated user details
+    // Fetch updated user details and return
     return await GET(request, { params: { id } });
   } catch (error: any) {
     console.error("Error updating user details:", error);
