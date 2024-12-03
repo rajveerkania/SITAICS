@@ -40,6 +40,7 @@ model Notification {
   subjectId   String?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  expiresAt   DateTime?        
   isActive    Boolean          @default(true)
   subject     Subject?         @relation(fields: [subjectId], references: [subjectId])
   course      Course?          @relation(fields: [courseName], references: [courseName])
@@ -89,6 +90,7 @@ model User {
   resetPasswordTokenExpiry DateTime?
   sentNotifications     Notification[]         @relation("SentNotifications")
   receivedNotifications NotificationRecipient[]
+
 }
 
 model Result {
@@ -103,7 +105,7 @@ model Result {
 
 model StudentDetails {
   id                 String                  @id
-  email              String
+  email              String                  
   username           String                  @unique
   name               String
   fatherName         String?
@@ -177,8 +179,8 @@ model Subject {
   createdAt            DateTime                @default(now())
   updatedAt            DateTime                @updatedAt
   ElectiveSubjectChoice ElectiveSubjectChoice[]
-  attendances           Attendance[]
-  notifications         Notification[] 
+  attendances          Attendance[]
+  notifications         Notification[]
 }
 
 model Course {
@@ -192,28 +194,30 @@ model Course {
   batches        Batch[]
   StudentDetails StudentDetails[]
   ElectiveGroup  ElectiveGroup[]
-  notifications         Notification[] 
+  notifications         Notification[]
 }
 
 model Batch {
-  batchId            String               @id @default(uuid())
-  batchName          String               @unique
-  courseId           String
-  currentSemester    Int
-  students           StudentDetails[]
-  staffMembers       StaffDetails[]
-  subjects           BatchSubject[]
-  isActive           Boolean              @default(true)
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  course             Course               @relation(fields: [courseId], references: [courseId])
-  timetable          Bytes?
-  attendances        Attendance[]
-  notifications         Notification[] 
+  batchId         String           @id @default(uuid())
+  batchName       String           @unique
+  courseId        String
+  batchDuration   Int
+  currentSemester Int
+  students        StudentDetails[]
+  staffMembers    StaffDetails[]
+  subjects        BatchSubject[]
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  course          Course           @relation(fields: [courseId], references: [courseId])
+  timetable       Bytes?
+  staffId         String?
+  attendances     Attendance[]
+  notifications         Notification[]
 }
 
 model BatchSubject {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   batchId   String
   semester  Int?
   subjectId String
@@ -266,8 +270,8 @@ model ElectiveSubjectChoice {
 
 enum AttendanceType {
   LECTURE 
-  LAB
-}
+  Lab
+}  
 
 enum Role {
   Admin

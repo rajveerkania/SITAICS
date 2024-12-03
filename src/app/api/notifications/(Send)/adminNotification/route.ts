@@ -44,6 +44,7 @@ export async function POST(req: Request) {
               connect: { subjectId },
             }
           : undefined,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Set expiration for 24 hours
       },
     });
 
@@ -77,14 +78,13 @@ export async function POST(req: Request) {
 
     await prisma.notificationRecipient.createMany({
       data: recipientUsers.map(({ id }) => ({
-        recipientId: id, // Changed from userId to recipientId
+        recipientId: id,
         notificationId: notification.id,
       })),
     });
-    
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to send notification' }, { status: 500 });
-  }
+    return NextResponse.json({ error: 'Failed to send notification' }, { status: 500 });
+  }
 }

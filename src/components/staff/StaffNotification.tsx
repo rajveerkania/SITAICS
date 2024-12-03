@@ -308,3 +308,5 @@ export const StaffNotification: React.FC = () => {
     </div>
   );
 };
+
+export default StaffNotification;

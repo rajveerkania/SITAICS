@@ -26,8 +26,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { FaTrashAlt } from "react-icons/fa";
-import { Eye } from "lucide-react";
-import { useRouter } from "next/navigation"; // import the correct router hook
+import { Eye } from "lucide-react";  // Import Eye icon
+import { useRouter } from "next/navigation"; 
 
 interface Student {
   id: string;
@@ -159,12 +159,15 @@ const StudentList: React.FC = () => {
                 <TableCell>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        onClick={() => setSelectedStudent(student)}
-                      >
-                        View Details
-                      </Button>
+                    <Button
+                      style={{
+                        backgroundColor: "black",
+                        color: "white",
+                      }}
+                      onClick={() => handleViewUser(student.id)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>

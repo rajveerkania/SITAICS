@@ -5,7 +5,7 @@ import { verifyToken } from '@/utils/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify staff authentication 
+    // Verify staff authentication
     const decodedUser = verifyToken();
     const staffId = decodedUser?.id;
 

@@ -3,21 +3,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, BookOpen, FlaskConical } from "lucide-react";
 import LoadingSkeleton from "../LoadingSkeleton";
+import { Subject } from '@prisma/client';
 
-interface Staff {
-  id: string;
-  name: string;
-  email: string;
+interface AttendanceStats {
+  totalLectures: number;
+  totalLabs: number;
+  lecturesAttended: number;
+  labsAttended: number;
+  lecturePercentage: number;
+  labPercentage: number;
+  overallPercentage: number;
+  lectureAttendance: Array<{
+    date: Date;
+    isPresent: boolean;
+  }>;
+  labAttendance: Array<{
+    date: Date;
+    isPresent: boolean;
+  }>;
 }
 
-interface Subject {
-  subjectId: string;
-  subjectName: string;
-  subjectCode: string;
-  semester: number;
-  staff: Staff[] | "NA";
+interface AttendanceProps {
+  studentId: string;
 }
-
 interface SubjectsData {
   studentId: string;
   courseName: string;
@@ -25,37 +33,24 @@ interface SubjectsData {
   subjects: Subject[];
 }
 
-interface AttendanceRecord {
-  date: string;
-  status: 'present' | 'absent';
-  type: 'lecture' | 'lab';
-}
 
-interface AttendanceProps {
-  studentId: string;
-}
 
 const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
   const [subjectsData, setSubjectsData] = useState<SubjectsData | null>(null);
+  const [attendanceData, setAttendanceData] = useState<AttendanceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [selectedType, setSelectedType] = useState<'lecture' | 'lab'>('lecture');
   const [currentDate, setCurrentDate] = useState(new Date());
 
+  // Fetch subjects
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const response = await fetch(
-          `/api/student/fetchSubjects?studentId=${studentId}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch subjects");
-        }
-        const data: SubjectsData = await response.json();
-        if (data.subjects.length === 0) {
-          setError("No subjects found");
-        }
+        const response = await fetch(`/api/student/fetchSubjects?studentId=${studentId}`);
+        if (!response.ok) throw new Error("Failed to fetch subjects");
+        const data = await response.json();
         setSubjectsData(data);
       } catch (err) {
         setError("Error fetching subjects. Please try again later.");
@@ -66,45 +61,30 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
     fetchSubjects();
   }, [studentId]);
 
-  if (loading) return <LoadingSkeleton loadingText="subjects" />;
-  if (error) return <div>{error}</div>;
-  if (!subjectsData) return null;
+  // Fetch attendance data when subject is selected
+  useEffect(() => {
+    if (!selectedSubject) return;
 
-
-  // Example attendance records - in a real app, you'd fetch this from an API
-  const attendanceRecords: Record<string, AttendanceRecord[]> = {
-    "subject-1": [
-      { date: '2024-09-01', status: 'present', type: 'lecture' },
-      { date: '2024-09-03', status: 'present', type: 'lab' },
-      { date: '2024-09-05', status: 'absent', type: 'lecture' },
-    ],
-    // Add more subjects as needed
-  };
-
-  const getAttendanceStats = (records: AttendanceRecord[]) => {
-    const total = records.length;
-    const present = records.filter(r => r.status === 'present').length;
-    const percentage = (present / total) * 100;
-    
-    const lectures = records.filter(r => r.type === 'lecture');
-    const labs = records.filter(r => r.type === 'lab');
-    
-    const lectureStats = {
-      total: lectures.length,
-      present: lectures.filter(r => r.status === 'present').length,
-      percentage: (lectures.filter(r => r.status === 'present').length / lectures.length) * 100 || 0
+    const fetchAttendance = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/student/fetchAttendance?studentId=${studentId}&subjectId=${selectedSubject}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch attendance");
+        const { data } = await response.json();
+        setAttendanceData(data);
+      } catch (err) {
+        setError("Error fetching attendance data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
     };
-    
-    const labStats = {
-      total: labs.length,
-      present: labs.filter(r => r.status === 'present').length,
-      percentage: (labs.filter(r => r.status === 'present').length / labs.length) * 100 || 0
-    };
-    
-    return { total, present, percentage, lectureStats, labStats };
-  };
 
-  const renderCalendar = (records: AttendanceRecord[], type: 'lecture' | 'lab') => {
+    fetchAttendance();
+  }, [studentId, selectedSubject]);
+
+  const renderCalendar = (attendance: Array<{ date: Date; isPresent: boolean }>) => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     
@@ -113,8 +93,6 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
     
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    
-    const filteredRecords = records.filter(r => r.type === type);
     
     const calendar = [];
     
@@ -138,21 +116,25 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-      const record = filteredRecords.find(r => r.date === date);
+      const currentDate = new Date(currentYear, currentMonth, day);
+      const attendanceRecord = attendance.find(
+        record => new Date(record.date).toDateString() === currentDate.toDateString()
+      );
       
       let dotClass = "w-2 h-2 rounded-full mx-auto mt-1";
-      if (record) {
-        dotClass += record.status === 'present' ? " bg-green-500" : " bg-red-500";
+      if (attendanceRecord) {
+        dotClass += attendanceRecord.isPresent ? " bg-green-500" : " bg-red-500";
       }
 
-      const isToday = day === currentDate.getDate() && currentMonth === currentDate.getMonth() && currentYear === currentDate.getFullYear();
+      const isToday = day === new Date().getDate() && 
+                      currentMonth === new Date().getMonth() && 
+                      currentYear === new Date().getFullYear();
       const cellClass = `h-10 flex flex-col items-center justify-center text-sm ${isToday ? 'bg-blue-100 rounded' : ''}`;
 
       cells.push(
         <div key={day} className={cellClass}>
           <span>{day}</span>
-          <div className={dotClass}></div>
+          {attendanceRecord && <div className={dotClass}></div>}
         </div>
       );
     }
@@ -166,11 +148,9 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
     return calendar;
   };
 
-  if (loading) return <LoadingSkeleton loadingText="attendance data" />;
+  if (loading && !subjectsData) return <LoadingSkeleton loadingText="subjects" />;
   if (error) return <div>{error}</div>;
   if (!subjectsData) return null;
-
-  const selectedSubjectRecords = selectedSubject ? (attendanceRecords[selectedSubject] || []) : [];
 
   return (
     <div className="space-y-6 text-black">
@@ -192,7 +172,7 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
         </SelectContent>
       </Select>
 
-      {selectedSubject && selectedSubjectRecords.length > 0 && (
+      {selectedSubject && attendanceData && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="border p-4 rounded-lg">
@@ -202,10 +182,10 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
               </div>
               <div className="mt-2">
                 <div className="text-2xl font-bold">
-                  {getAttendanceStats(selectedSubjectRecords).percentage.toFixed(2)}%
+                  {attendanceData.overallPercentage}%
                 </div>
                 <p className="text-xs text-gray-500">
-                  {getAttendanceStats(selectedSubjectRecords).present} / {getAttendanceStats(selectedSubjectRecords).total} classes
+                  Combined lectures and labs
                 </p>
               </div>
             </div>
@@ -216,10 +196,10 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
               </div>
               <div className="mt-2">
                 <div className="text-2xl font-bold">
-                  {getAttendanceStats(selectedSubjectRecords).lectureStats.percentage.toFixed(2)}%
+                  {attendanceData.lecturePercentage}%
                 </div>
                 <p className="text-xs text-gray-500">
-                  {getAttendanceStats(selectedSubjectRecords).lectureStats.present} / {getAttendanceStats(selectedSubjectRecords).lectureStats.total} lectures
+                  {attendanceData.lecturesAttended} / {attendanceData.totalLectures} lectures
                 </p>
               </div>
             </div>
@@ -230,10 +210,10 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
               </div>
               <div className="mt-2">
                 <div className="text-2xl font-bold">
-                  {getAttendanceStats(selectedSubjectRecords).labStats.percentage.toFixed(2)}%
+                  {attendanceData.labPercentage}%
                 </div>
                 <p className="text-xs text-gray-500">
-                  {getAttendanceStats(selectedSubjectRecords).labStats.present} / {getAttendanceStats(selectedSubjectRecords).labStats.total} labs
+                  {attendanceData.labsAttended} / {attendanceData.totalLabs} labs
                 </p>
               </div>
             </div>
@@ -247,10 +227,10 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
                 <TabsTrigger value="lab">Labs</TabsTrigger>
               </TabsList>
               <TabsContent value="lecture">
-                {renderCalendar(selectedSubjectRecords, 'lecture')}
+                {renderCalendar(attendanceData.lectureAttendance)}
               </TabsContent>
               <TabsContent value="lab">
-                {renderCalendar(selectedSubjectRecords, 'lab')}
+                {renderCalendar(attendanceData.labAttendance)}
               </TabsContent>
             </Tabs>
           </div>
