@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { 
-  User, 
+  User,  
   Mail, 
   MapPin, 
   ChevronDown, 
@@ -242,7 +242,7 @@ const UserEditPage: React.FC = () => {
 
       {/* Achievements Card */}
       {user.role === 'Student' && user.roleDetails.achievements && (
-        <Card className="mb-6">
+        <Card className="mb-6"> 
           <CardHeader 
             className="cursor-pointer" 
             onClick={() => setAdditionalInfoExpanded(!additionalInfoExpanded)}

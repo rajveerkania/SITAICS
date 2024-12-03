@@ -13,11 +13,8 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Fetch all active subjects, whether or not they have an assigned staff in the batchSubject table
+    // Fetch all subjects without any conditions
     const subjects = await prisma.subject.findMany({
-      where: {
-        isActive: true,
-      },
       include: {
         course: {
           select: {

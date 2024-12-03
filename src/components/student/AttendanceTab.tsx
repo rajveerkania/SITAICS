@@ -167,6 +167,9 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
           {subjectsData.subjects.map(subject => (
             <SelectItem key={subject.subjectId} value={subject.subjectId}>
               {subject.subjectName}
+          {subjectsData.subjects.map(subject => (
+            <SelectItem key={subject.subjectId} value={subject.subjectId}>
+              {subject.subjectName}
             </SelectItem>
           ))}
         </SelectContent>

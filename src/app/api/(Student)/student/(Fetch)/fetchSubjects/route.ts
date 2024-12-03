@@ -5,6 +5,7 @@ import { verifyToken } from "@/utils/auth";
 export async function GET(request: NextRequest) {
   const decodedUser = verifyToken();
   const userRole = decodedUser?.role;
+
   if (userRole !== "Student") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
@@ -12,6 +13,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get("studentId");
+
     if (!studentId) {
       return NextResponse.json(
         { error: "studentId is required" },
@@ -19,179 +21,88 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const coreSubjects = await prisma.studentDetails.findUnique({
+    // Step 1: Fetch the batch name using studentId
+    const student = await prisma.studentDetails.findUnique({
       where: { id: studentId },
-      select: {
-        courseName: true,
-        batchName: true,
-        course: {
-          select: {
-            subjects: {
-              where: {
-                isElective: false,
-              },
-              select: {
-                subjectId: true,
-                subjectName: true,
-                subjectCode: true,
-                semester: true,
-                staff: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        batch: {
-          select: {
-            currentSemester: true,
-            subjects: {
-              select: {
-                subject: {
-                  select: {
-                    subjectId: true,
-                    subjectName: true,
-                    subjectCode: true,
-                    semester: true,
-                    staff: {
-                      select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                      },
-                    },
-                  },
-                },
-                semester: true,
-              },
-            },
-            staffMembers: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                subjects: {
-                  select: {
-                    subjectId: true,
-                    subjectName: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+      select: { batchName: true },
     });
 
-    if (!coreSubjects) {
-      throw new Error("Student not found");
+    if (!student || !student.batchName) {
+      return NextResponse.json(
+        { error: "Student or batch information not found" },
+        { status: 404 }
+      );
     }
 
-    // Fetch elective choices for the student's current semester
-    const electiveChoices = await prisma.electiveSubjectChoice.findMany({
-      where: {
-        studentId,
-        electiveGroup: {
-          semester: coreSubjects.batch?.currentSemester,
-        },
-      },
+    // Step 2: Fetch batchId and currentSemester using batchName
+    const batch = await prisma.batch.findUnique({
+      where: { batchName: student.batchName },
+      select: { batchId: true, currentSemester: true },
+    });
+
+    if (!batch) {
+      return NextResponse.json(
+        { error: "Batch information not found" },
+        { status: 404 }
+      );
+    }
+
+    // Step 3: Fetch all subjectId and staffId using batchId and currentSemester
+    const batchSubjects = await prisma.batchSubject.findMany({
+      where: { batchId: batch.batchId, semester: batch.currentSemester },
+      select: { subjectId: true, staffId: true },
+    });
+
+    if (batchSubjects.length === 0) {
+      return NextResponse.json(
+        { error: "No subjects found for the current semester" },
+        { status: 404 }
+      );
+    }
+
+    // Step 4: Fetch subject details and staff details
+    const subjectIds = batchSubjects.map((bs) => bs.subjectId);
+    const staffIds = batchSubjects.map((bs) => bs.staffId).filter(Boolean);
+
+    const subjects = await prisma.subject.findMany({
+      where: { subjectId: { in: subjectIds } },
       select: {
-        subject: {
-          select: {
-            subjectId: true,
-            subjectName: true,
-            subjectCode: true,
-            semester: true,
-            staff: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
+        subjectId: true,
+        subjectName: true,
+        subjectCode: true,
+        semester: true,
       },
     });
 
+    const staff = await prisma.staffDetails.findMany({
+      where: { id: { in: staffIds as string[] } },
+      select: { id: true, name: true },
+    });
+
+    // Map staff to subjects
     const staffMap = new Map();
-    coreSubjects.batch?.staffMembers.forEach((staff) => {
-      staff.subjects.forEach((subject) => {
-        if (!staffMap.has(subject.subjectId)) {
-          staffMap.set(subject.subjectId, [
-            {
-              id: staff.id,
-              name: staff.name,
-              email: staff.email,
-            },
-          ]);
-        } else {
-          staffMap.get(subject.subjectId).push({
-            id: staff.id,
-            name: staff.name,
-            email: staff.email,
-          });
-        }
-      });
+    staff.forEach((s) => staffMap.set(s.id, s.name));
+
+    const responseSubjects = subjects.map((subject) => {
+      const assignedStaff = batchSubjects
+        .filter((bs) => bs.subjectId === subject.subjectId)
+        .map((bs) => staffMap.get(bs.staffId) || "Not Assigned");
+
+      return {
+        subjectId: subject.subjectId,
+        subjectName: subject.subjectName,
+        subjectCode: subject.subjectCode,
+        semester: subject.semester,
+        staff: assignedStaff.length > 0 ? assignedStaff : ["Not Assigned"],
+      };
     });
 
-    const allSubjects = [
-      ...(coreSubjects.course?.subjects || []),
-      ...(coreSubjects.batch?.subjects.map((bs) => ({
-        ...bs.subject,
-        semester: bs.semester,
-      })) || []),
-    ];
-
-    const filteredSubjects = allSubjects.filter(
-      (subject) =>
-        subject.semester === coreSubjects.batch?.currentSemester
-    );
-
-    // Combine core subjects with elective choices
-    const allCoreAndElectiveSubjects = [
-      ...filteredSubjects,
-      ...electiveChoices.map((choice) => choice.subject),
-    ];
-
-    const uniqueSubjects = allCoreAndElectiveSubjects.reduce(
-      (acc, subject) => {
-        if (!acc.some((s) => s.subjectId === subject.subjectId)) {
-          const staffFromMap = staffMap.get(subject.subjectId) || [];
-          const subjectStaff = subject.staff || [];
-          const combinedStaff = [...staffFromMap, ...subjectStaff].filter(
-            (staff, index, self) =>
-              index === self.findIndex((t) => t.id === staff.id)
-          );
-
-          acc.push({
-            subjectId: subject.subjectId,
-            subjectName: subject.subjectName,
-            subjectCode: subject.subjectCode,
-            semester: subject.semester || 0,
-            staff: combinedStaff.length > 0 ? combinedStaff : "NA",
-          });
-        }
-        return acc;
-      },
-      [] as Array<{
-        subjectId: string;
-        subjectName: string;
-        subjectCode: string;
-        semester: number;
-        staff: Array<{ id: string; name: string; email: string }> | "NA";
-      }>
-    );
-
+    // Step 5: Send the result
     return NextResponse.json({
       studentId,
-      courseName: coreSubjects.courseName,
-      batchName: coreSubjects.batchName,
-      subjects: uniqueSubjects,
+      batchName: student.batchName,
+      currentSemester: batch.currentSemester,
+      subjects: responseSubjects,
     });
   } catch (error) {
     console.error("Error fetching subjects:", error);

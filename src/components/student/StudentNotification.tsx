@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Bell } from 'lucide-react';
 
 interface Notification {
@@ -82,11 +82,10 @@ export const StudentNotification: React.FC = () => {
         className="p-2 hover:bg-gray-100 rounded-full relative"
       >
         <Bell className="h-6 w-6 text-gray-600" />
-        {notifications.some((notif) => notif.status === 'UNREAD') && (
-          <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-            {notifications.filter((notif) => notif.status === 'UNREAD').length}
-          </span>
-        )}
+        {/* Add notification badge if needed */}
+        <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+          2
+        </span>
       </button>
 
       {isOpen && (
