@@ -1,172 +1,105 @@
-"use client";
+import React, { useState, useEffect, useCallback } from "react";
+import { toast } from "react-toastify";
 
-import React, { useState } from "react";
-import { Eye } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+type ResultComponentProps = {
+  id: string; // ID to fetch the results
+  isEditing: boolean; // Whether the component is in editing mode
+  onResultsChange: (updatedResults: any[]) => void; // Callback to handle changes in results
+};
 
-interface UploadedResult {
-  id: number;
-  studentName: string;
-  semester: string;
-  fileName: string;
-  url: string;
-}
+const ResultComponent: React.FC<ResultComponentProps> = ({ id, isEditing, onResultsChange }) => {
+  const [results, setResults] = useState<any[]>([]); // State to store fetched results
+  const [fetchedId, setFetchedId] = useState<string | null>(null); // Track the last fetched ID
+  const [selectedResultUrl, setSelectedResultUrl] = useState<string | null>(null); // Selected result to display
 
-const initialResults: UploadedResult[] = [
-  { id: 1, studentName: "John Doe", semester: "Semester 1", fileName: "result1.pdf", url: "path/to/result1.pdf" },
-  { id: 2, studentName: "Jane Smith", semester: "Semester 2", fileName: "result2.pdf", url: "path/to/result2.pdf" },
-  { id: 3, studentName: "Alice Johnson", semester: "Semester 3", fileName: "result3.pdf", url: "path/to/result3.pdf" },
-  { id: 4, studentName: "Bob Brown", semester: "Semester 1", fileName: "result4.pdf", url: "path/to/result4.pdf" },
-  { id: 5, studentName: "Charlie White", semester: "Semester 4", fileName: "result5.pdf", url: "path/to/result5.pdf" },
-  { id: 6, studentName: "David Green", semester: "Semester 2", fileName: "result6.pdf", url: "path/to/result6.pdf" },
-  { id: 7, studentName: "Eve Black", semester: "Semester 1", fileName: "result7.pdf", url: "path/to/result7.pdf" },
-  { id: 8, studentName: "Frank Blue", semester: "Semester 2", fileName: "result8.pdf", url: "path/to/result8.pdf" },
-];
+  // Memoized callback for onResultsChange
+  const handleResultsChange = useCallback(onResultsChange, [onResultsChange]);
 
-const semesters = ["All", "Semester 1", "Semester 2", "Semester 3", "Semester 4"];
-const itemsPerPage = 5;
+  // Fetch results when `id` changes
+  useEffect(() => {
+    const fetchResults = async () => {
+      if (!id || id === fetchedId) return; // Avoid fetching if the same ID is already fetched
 
-const Result: React.FC = () => {
-  const [uploadedResults, setUploadedResults] = useState<UploadedResult[]>(initialResults);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedSemester, setSelectedSemester] = useState<string>("All");
-  const [currentPage, setCurrentPage] = useState<number>(1);
+      try {
+        const response = await fetch(`/api/fetchResultAdmin?studentId=${id}`);
+        if (!response.ok) {
+          const error = await response.json();
+          toast.error(error.message || "Failed to fetch results");
+          return;
+        }
 
-  const filteredResults = uploadedResults.filter((result) => {
-    const matchesSearch = result.studentName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSemester = selectedSemester === "All" || result.semester === selectedSemester;
-    return matchesSearch && matchesSemester;
-  });
+        const data = await response.json();
+        setResults(data); // Update local results state
+        handleResultsChange(data); // Pass data to parent component if needed
+        setFetchedId(id); // Update fetched ID
+      } catch (error) {
+        console.error("Error fetching results:", error);
+        toast.error("An error occurred while fetching results.");
+      }
+    };
 
-  const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
-  const currentResults = filteredResults.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
-  const handleNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-
-  const handleClearFilters = () => {
-    setSearchQuery("");
-    setSelectedSemester("All");
-    setCurrentPage(1);
-  };
+    fetchResults();
+  }, [id, fetchedId, handleResultsChange]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 bg-white rounded-lg shadow-md">
-      <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">Student Uploaded Results</h2>
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div className="flex flex-col sm:flex-row gap-2 flex-grow items-center">
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search"
-              className="w-full sm:w-48"
-            />
-            <Select onValueChange={setSelectedSemester} value={selectedSemester}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                {selectedSemester || "Select Semester"}
-              </SelectTrigger>
-              <SelectContent>
-                {semesters.map((semester) => (
-                  <SelectItem key={semester} value={semester}>
-                    {semester}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={handleClearFilters}>
-              Clear
-            </Button>
-          </div>
-        </div>
+      <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+        Student Results
+      </h2>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student Name</TableHead>
-                <TableHead>Semester</TableHead>
-                <TableHead>File Name</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentResults.length > 0 ? (
-                currentResults.map((result) => (
-                  <TableRow key={result.id} className="hover:bg-gray-100 transition-all">
-                    <TableCell className="font-medium">{result.studentName}</TableCell>
-                    <TableCell>{result.semester}</TableCell>
-                    <TableCell>{result.fileName}</TableCell>
-                    <TableCell>
-                      <div className="flex justify-start ml-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                          onClick={() => window.open(result.url, "_blank")}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    No results found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+      {results.length > 0 ? (
+        <div className="overflow-x-auto mt-4">
+          <table className="min-w-full border border-gray-300">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="px-4 py-2 border">Student Name</th>
+                <th className="px-4 py-2 border">Semester</th>
+                <th className="px-4 py-2 border">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((result) => (
+                <tr key={result.id} className="hover:bg-gray-100">
+                  <td className="px-4 py-2 border">{result.studentName}</td>
+                  <td className="px-4 py-2 border">{result.semester}</td>
+                  <td className="px-4 py-2 border text-center">
+                    <button
+                      onClick={() => setSelectedResultUrl(result.url)}
+                      className="bg-black text-white px-3 py-1 rounded hover:bg-black"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      ) : (
+        <p className="text-center text-gray-600">No results found</p>
+      )}
 
-        {filteredResults.length > itemsPerPage && (
-          <div className="pagination mt-4 flex justify-center items-center space-x-4 mb-">
-            <Button
-              disabled={currentPage === 1}
-              onClick={handlePrevPage}
-              className="pagination-button"
-            >
-              Previous
-            </Button>
-            <span className="pagination-info">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              disabled={currentPage === totalPages}
-              onClick={handleNextPage}
-              className="pagination-button"
-            >
-              Next
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Display the selected result */}
+      {selectedResultUrl && (
+        <div className="mt-6">
+          <h3 className="text-xl font-bold text-center text-gray-800 mb-4">
+            Result Details
+          </h3>
+          <iframe
+            src={selectedResultUrl}
+            className="w-full h-96 border rounded"
+            title="Result Details"
+          ></iframe>
+          <button
+            onClick={() => setSelectedResultUrl(null)}
+            className="mt-4 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+          >
+            Close
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Result;
+export default ResultComponent;

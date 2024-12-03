@@ -57,8 +57,8 @@ export async function GET(req: Request) {
       id: result.id,
       studentName: result.student.name,
       semester: result.semester, // Ensure 'semester' is a field in your result table
-      url: result.url, // Include URL to view the result
-    }));
+      url: result.resultFile, // Include URL to view the result
+    })); 
 
     return NextResponse.json(formattedResults, { status: 200 });
   } catch (error) {

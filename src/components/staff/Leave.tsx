@@ -17,9 +17,8 @@ interface Leave {
 const Leave = () => {
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
   const [leaves, setLeaves] = useState<Leave[]>([]);
-  const [isBatchCoordinator, setIsBatchCoordinator] = useState(false); // Manage user's role
+  const [isBatchCoordinator, setIsBatchCoordinator] = useState(false); 
 
-  // Fetch leave requests from the API
   useEffect(() => {
     const fetchLeaves = async () => {
       try {

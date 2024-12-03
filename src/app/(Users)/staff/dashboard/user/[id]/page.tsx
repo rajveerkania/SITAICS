@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { 
-  User, 
+  User,  
   Mail, 
   MapPin, 
   ChevronDown, 
