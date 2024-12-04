@@ -31,6 +31,7 @@ import { Switch } from "@/components/ui/switch";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface AttendanceData {
   courseId: string;
@@ -93,6 +94,7 @@ const AttendanceTab = () => {
   // Derived state for dropdowns
   const [availableBatches, setAvailableBatches] = useState<{ id: string; name: string }[]>([]);
   const [availableSubjects, setAvailableSubjects] = useState<{ id: string; name: string }[]>([]);
+  const router = useRouter();
 
   // Fetch attendance data
   useEffect(() => {
@@ -230,6 +232,8 @@ const AttendanceTab = () => {
   };
 
   const handleViewDetails = (student: StudentDetail) => {
+    router.push(`/admin/dashboard/attendance/${student.studentId}`);
+
     setSelectedStudent(student);
     setIsModalOpen(true);
   };

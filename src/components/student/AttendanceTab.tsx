@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, BookOpen, FlaskConical } from "lucide-react";
+import { Calendar, BookOpen, FlaskConical, ChevronLeft, ChevronRight } from "lucide-react";
 import LoadingSkeleton from "../LoadingSkeleton";
 import { Subject } from '@prisma/client';
 
@@ -32,8 +32,6 @@ interface SubjectsData {
   batchName: string;
   subjects: Subject[];
 }
-
-
 
 const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
   const [subjectsData, setSubjectsData] = useState<SubjectsData | null>(null);
@@ -84,6 +82,14 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
     fetchAttendance();
   }, [studentId, selectedSubject]);
 
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
   const renderCalendar = (attendance: Array<{ date: Date; isPresent: boolean }>) => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -97,13 +103,21 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
     const calendar = [];
     
     calendar.push(
-      <div key="month-year" className="text-center font-bold text-lg mb-4">
-        {months[currentMonth]} {currentYear}
+      <div key="header-controls" className="flex items-center justify-between mb-4">
+        <button onClick={handlePrevMonth} className="p-2 rounded-full hover:bg-gray-200">
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <div className="text-center font-bold text-lg">
+          {months[currentMonth]} {currentYear}
+        </div>
+        <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-gray-200">
+          <ChevronRight className="h-6 w-6" />
+        </button>
       </div>
     );
 
     calendar.push(
-      <div key="header" className="grid grid-cols-7 gap-1 mb-2">
+      <div key="days-header" className="grid grid-cols-7 gap-1 mb-2">
         {days.map(day => (
           <div key={day} className="text-center font-bold text-sm">{day}</div>
         ))}
@@ -140,7 +154,7 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
     }
 
     calendar.push(
-      <div key="days" className="grid grid-cols-7 gap-1">
+      <div key="calendar-days" className="grid grid-cols-7 gap-1">
         {cells}
       </div>
     );
@@ -164,9 +178,6 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
           <SelectValue placeholder="Select a subject" />
         </SelectTrigger>
         <SelectContent>
-          {subjectsData.subjects.map(subject => (
-            <SelectItem key={subject.subjectId} value={subject.subjectId}>
-              {subject.subjectName}
           {subjectsData.subjects.map(subject => (
             <SelectItem key={subject.subjectId} value={subject.subjectId}>
               {subject.subjectName}
@@ -221,22 +232,18 @@ const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
               </div>
             </div>
           </div>
-
-          <div className="border rounded-lg p-4">
-            <h3 className="text-xl font-semibold mb-4">Attendance Calendar</h3>
-            <Tabs defaultValue="lecture" onValueChange={(value) => setSelectedType(value as 'lecture' | 'lab')}>
-              <TabsList className="mb-4">
-                <TabsTrigger value="lecture">Lectures</TabsTrigger>
-                <TabsTrigger value="lab">Labs</TabsTrigger>
-              </TabsList>
-              <TabsContent value="lecture">
-                {renderCalendar(attendanceData.lectureAttendance)}
-              </TabsContent>
-              <TabsContent value="lab">
-                {renderCalendar(attendanceData.labAttendance)}
-              </TabsContent>
-            </Tabs>
-          </div>
+          <Tabs defaultValue="lecture" onValueChange={(val) => setSelectedType(val as 'lecture' | 'lab')}>
+            <TabsList className="w-full">
+              <TabsTrigger value="lecture">Lecture Attendance</TabsTrigger>
+              <TabsTrigger value="lab">Lab Attendance</TabsTrigger>
+            </TabsList>
+            <TabsContent value="lecture">
+              <div>{renderCalendar(attendanceData.lectureAttendance)}</div>
+            </TabsContent>
+            <TabsContent value="lab">
+              <div>{renderCalendar(attendanceData.labAttendance)}</div>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
     </div>
