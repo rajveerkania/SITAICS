@@ -41,9 +41,9 @@ export default function Login() {
     if (!authState.password) {
       errors.password = "Password is required.";
     }
-    if (!captchaToken) {
-      errors.captcha = "Captcha not verified!";
-    }
+    // if (!captchaToken) {
+    //   errors.captcha = "Captcha not verified!";
+    // }
     return errors;
   };
 

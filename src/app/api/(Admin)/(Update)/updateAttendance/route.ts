@@ -29,6 +29,14 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { attendanceId, isPresent } = body;
 
+    // Validate request body
+    if (!attendanceId || isPresent === undefined) {
+      return NextResponse.json(
+        { success: false, message: 'Missing required fields: attendanceId, isPresent' },
+        { status: 400 }
+      );
+    }
+
     // Update the attendance record
     const updatedAttendance = await prisma.attendance.update({
       where: {
@@ -43,14 +51,11 @@ export async function PUT(request: NextRequest) {
       success: true,
       data: updatedAttendance
     });
-
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating attendance:', error);
     return NextResponse.json(
-      { success: false, message: 'Error updating attendance' },
+      { success: false, message: 'Error updating attendance', error: error.message },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

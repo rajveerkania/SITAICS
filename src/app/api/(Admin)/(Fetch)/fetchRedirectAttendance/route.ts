@@ -4,34 +4,32 @@ import { verifyToken } from '@/utils/auth';
 import { AttendanceType, Role } from '@prisma/client';
 
 interface AttendanceStats {
-  totalLectures: number;
-  totalLabs: number;
-  lecturesAttended: number;
-  labsAttended: number;
-  lecturePercentage: number;
-  labPercentage: number;
-  overallPercentage: number;
-  studentName?: string;
-  subjectName?: string;
-  batchName?: string;
+  subjects: Array<{
+    subjectId: string;
+    subjectName: string;
+    totalLectures: number;
+    totalLabs: number;
+    lecturesAttended: number;
+    labsAttended: number;
+    lecturePercentage: number;
+    labPercentage: number;
+    overallPercentage: number;
+    attendanceRecords: Array<{
+      date: Date;
+      type: AttendanceType;
+      isPresent: boolean;
+    }>;
+  }>;
   studentDetails?: {
     studentId: string;
     name: string;
     enrollmentNumber: string;
+    courseName?: string;
+    batchName?: string;
   };
-  attendanceRecords: Array<{
-    date: Date;
-    type: AttendanceType;
-    isPresent: boolean;
-    studentName?: string;
-    studentId?: string;
-    enrollmentNumber?: string;
-  }>;
 }
-
 export async function GET(request: NextRequest) {
   try {
-    // Verify authentication and role
     const decodedUser = verifyToken();
     if (!decodedUser?.id) {
       return NextResponse.json(
@@ -40,7 +38,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check if the user is an admin or staff
     const user = await prisma.user.findUnique({
       where: { id: decodedUser.id },
       select: { role: true }
@@ -53,44 +50,57 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get query parameters
     const searchParams = request.nextUrl.searchParams;
     const studentId = searchParams.get('studentId');
-    const subjectId = searchParams.get('subjectId');
-    const batchId = searchParams.get('batchId');
 
-    // Validate input parameters
-    if (!studentId && !subjectId && !batchId) {
+    if (!studentId) {
       return NextResponse.json(
-        { success: false, message: 'At least one parameter (studentId, subjectId, or batchId) is required' },
+        { success: false, message: 'StudentId is required' },
         { status: 400 }
       );
     }
 
-    // Prepare the base query
-    const whereClause: any = {};
-    if (studentId) whereClause.studentId = studentId;
-    if (subjectId) whereClause.subjectId = subjectId;
-    if (batchId) whereClause.batchId = batchId;
-
-    // Fetch attendance records with additional details
-    const attendanceRecords = await prisma.attendance.findMany({
-      where: whereClause,
-      include: {
-        student: {
-          select: {
-            name: true,
-            enrollmentNumber: true
-          }
-        },
-        subject: {
-          select: {
-            subjectName: true
-          }
-        },
+    const studentDetails = await prisma.studentDetails.findUnique({
+      where: { id: studentId },
+      select: {
+        id: true,
+        name: true,
+        enrollmentNumber: true,
+        courseName: true,
+        batchName: true,
         batch: {
           select: {
-            batchName: true
+            subjects: {
+              select: {
+                subject: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!studentDetails) {
+      return NextResponse.json(
+        { success: false, message: 'Student not found' },
+        { status: 404 }
+      );
+    }
+
+    const subjectIds = studentDetails.batch?.subjects.map(s => s.subject.subjectId) || [];
+    
+    const attendanceRecords = await prisma.attendance.findMany({
+      where: {
+        studentId: studentId,
+        subjectId: {
+          in: subjectIds
+        }
+      },
+      include: {
+        subject: {
+          select: {
+            subjectId: true,
+            subjectName: true
           }
         }
       },
@@ -99,98 +109,92 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Group attendance by various criteria
-    const groupedAttendance = attendanceRecords.reduce((acc, record) => {
-      const key = record.type === AttendanceType.LECTURE ? 'lectures' : 'labs';
-      if (!acc[key]) {
-        acc[key] = {
-          total: 0,
-          attended: 0,
-          records: []
+    const subjectAttendance = attendanceRecords.reduce((acc, record) => {
+      const subjectId = record.subject.subjectId;
+      if (!acc[subjectId]) {
+        acc[subjectId] = {
+          subjectId: record.subject.subjectId,
+          subjectName: record.subject.subjectName,
+          totalLectures: 0,
+          totalLabs: 0,
+          lecturesAttended: 0,
+          labsAttended: 0,
+          lecturePercentage: 0,
+          labPercentage: 0,
+          overallPercentage: 0,
+          detailedAttendance: {
+            lectures: [],
+            labs: []
+          }
         };
       }
-      
-      acc[key].total++;
-      if (record.isPresent) acc[key].attended++;
-      
-      acc[key].records.push({
+
+      const attendanceEntry = {
         date: record.date,
-        type: record.type,
-        isPresent: record.isPresent,
-        studentName: record.student.name,
-        studentId: record.studentId,
-        enrollmentNumber: record.student.enrollmentNumber
-      });
+        isPresent: record.isPresent
+      };
+
+      if (record.type === AttendanceType.LECTURE) {
+        acc[subjectId].totalLectures++;
+        acc[subjectId].detailedAttendance.lectures.push(attendanceEntry);
+        if (record.isPresent) acc[subjectId].lecturesAttended++;
+      } else {
+        acc[subjectId].totalLabs++;
+        acc[subjectId].detailedAttendance.labs.push(attendanceEntry);
+        if (record.isPresent) acc[subjectId].labsAttended++;
+      }
 
       return acc;
-    }, {} as Record<string, { total: number; attended: number; records: any[] }>);
-
-    // Prepare statistics
-    const stats: AttendanceStats = {
-      totalLectures: groupedAttendance.lectures?.total || 0,
-      totalLabs: groupedAttendance.labs?.total || 0,
-      lecturesAttended: groupedAttendance.lectures?.attended || 0,
-      labsAttended: groupedAttendance.labs?.attended || 0,
-      lecturePercentage: groupedAttendance.lectures 
-        ? Number(((groupedAttendance.lectures.attended / groupedAttendance.lectures.total) * 100).toFixed(2))
-        : 0,
-      labPercentage: groupedAttendance.labs
-        ? Number(((groupedAttendance.labs.attended / groupedAttendance.labs.total) * 100).toFixed(2))
-        : 0,
-      overallPercentage: 0, // Will be calculated dynamically
-      attendanceRecords: [
-        ...(groupedAttendance.lectures?.records || []),
-        ...(groupedAttendance.labs?.records || [])
-      ]
-    };
-
-    // Calculate overall percentage (lab attendance counts double)
-    const totalWeightedClasses = stats.totalLectures + (stats.totalLabs * 2);
-    const weightedAttendedClasses = stats.lecturesAttended + (stats.labsAttended * 2);
-    stats.overallPercentage = totalWeightedClasses > 0
-      ? Number(((weightedAttendedClasses / totalWeightedClasses) * 100).toFixed(2))
-      : 0;
-
-    // If a specific student was queried, add student details
-    if (studentId) {
-      const studentDetails = await prisma.studentDetails.findUnique({
-        where: { id: studentId },
-        select: {
-          id: true,
-          name: true,
-          enrollmentNumber: true,
-          course: { select: { courseName: true } },
-          batch: { select: { batchName: true } }
-        }
-      });
-
-      if (studentDetails) {
-        stats.studentDetails = {
-          studentId: studentDetails.id,
-          name: studentDetails.name,
-          enrollmentNumber: studentDetails.enrollmentNumber || ''
-        };
-        stats.batchName = studentDetails.batch?.batchName;
+    }, {} as Record<string, {
+      subjectId: string;
+      subjectName: string;
+      totalLectures: number;
+      totalLabs: number;
+      lecturesAttended: number;
+      labsAttended: number;
+      lecturePercentage: number;
+      labPercentage: number;
+      overallPercentage: number;
+      detailedAttendance: {
+        lectures: Array<{ date: Date; isPresent: boolean }>;
+        labs: Array<{ date: Date; isPresent: boolean }>;
       }
-    }
+    }>);
 
-    // If a specific subject was queried, add subject name
-    if (subjectId) {
-      const subject = await prisma.subject.findUnique({
-        where: { subjectId },
-        select: { subjectName: true }
-      });
-      if (subject) stats.subjectName = subject.subjectName;
-    }
-
-    // If a specific batch was queried, add batch name
-    if (batchId) {
-      const batch = await prisma.batch.findUnique({
-        where: { batchId },
-        select: { batchName: true }
-      });
-      if (batch) stats.batchName = batch.batchName;
-    }
+    const subjects = Object.values(subjectAttendance).map(subject => {
+      subject.lecturePercentage = subject.totalLectures > 0
+        ? Number(((subject.lecturesAttended / subject.totalLectures) * 100).toFixed(2))
+        : 0;
+    
+      subject.labPercentage = subject.totalLabs > 0
+        ? Number(((subject.labsAttended / subject.totalLabs) * 100).toFixed(2))
+        : 0;
+    
+      const totalWeightedClasses = subject.totalLectures + (subject.totalLabs * 2);
+      const weightedAttendedClasses = subject.lecturesAttended + (subject.labsAttended * 2);
+      subject.overallPercentage = totalWeightedClasses > 0
+        ? Number(((weightedAttendedClasses / totalWeightedClasses) * 100).toFixed(2))
+        : 0;
+    
+      return {
+        ...subject,
+        attendanceRecords: [
+          ...subject.detailedAttendance.lectures,
+          ...subject.detailedAttendance.labs,
+        ]
+      };
+    });
+    
+    const stats = {
+      subjects,
+      studentDetails: {
+        studentId: studentDetails.id,
+        name: studentDetails.name,
+        enrollmentNumber: studentDetails.enrollmentNumber || '',
+        courseName: studentDetails.courseName || undefined,
+        batchName: studentDetails.batchName || undefined,
+      }
+    };
 
     return NextResponse.json({
       success: true,
@@ -198,7 +202,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error fetching admin attendance:', error);
+    console.error('Error fetching attendance:', error);
     return NextResponse.json(
       { success: false, message: 'Error fetching attendance data' },
       { status: 500 }

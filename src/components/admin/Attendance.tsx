@@ -234,8 +234,7 @@ const AttendanceTab = () => {
   const handleViewDetails = (student: StudentDetail) => {
     router.push(`/admin/dashboard/attendance/${student.studentId}`);
 
-    setSelectedStudent(student);
-    setIsModalOpen(true);
+  
   };
 
   // Enhanced view details dialog content
@@ -268,7 +267,7 @@ const AttendanceTab = () => {
         <div>
           <h3 className="font-semibold mb-4">Attendance Records</h3>
           {selectedDate && (
-            <div className="space-y-4">
+            <div className="space-y-4"> 
               {attendanceRecords.map((record) => (
                 <div key={record.id} className="flex items-center justify-between p-2 border rounded">
                   <div>

@@ -5,11 +5,11 @@ import { verifyToken } from "@/utils/auth";
 export async function GET(request: NextRequest) {
   const decodedUser = verifyToken();
   const userRole = decodedUser?.role;
-
-  if (userRole !== "Student") {
+  
+  if (userRole !== "Student" && userRole !== "Admin") {
     return NextResponse.json({ message: "Access Denied!" }, { status: 403 });
   }
-
+  
   try {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get("studentId");
