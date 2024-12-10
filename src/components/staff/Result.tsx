@@ -88,9 +88,8 @@ const Result: React.FC = () => {
   const [nameFilter, setNameFilter] = useState<string>("");
   const [semesterFilter, setSemesterFilter] = useState<string>("");
   const [isPdfModalOpen, setIsPdfModalOpen] = useState<boolean>(false);
-  const [selectedResult, setSelectedResult] = useState<UploadedResult | null>(
-    null
-  );
+  const [selectedResultUrl, setSelectedResultUrl] = useState<string | null>(null); // Selected result to display
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -137,8 +136,8 @@ const Result: React.FC = () => {
   const handleNextPage = () =>
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
-  const handleViewPdf = (result: UploadedResult) => {
-    setSelectedResult(result);
+  const handleViewPdf = (result: string) => {
+    setSelectedResultUrl(result);
     setIsPdfModalOpen(true);
   };
 
@@ -195,7 +194,7 @@ const Result: React.FC = () => {
                         variant="outline"
                         size="sm"
                         className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                        onClick={() => handleViewPdf(result)}
+                        onClick={() => handleViewPdf(result.url)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         View
@@ -239,16 +238,13 @@ const Result: React.FC = () => {
       )}
 
       {/* PDF Viewer Modal */}
-      <StaffPDFViewerModal
-        isOpen={isPdfModalOpen}
-        onClose={() => {
-          setIsPdfModalOpen(false);
-          setSelectedResult(null);
-        }}
-        pdfUrl={selectedResult?.url || null}
-        studentName={selectedResult?.studentName || ""}
-        semester={selectedResult?.semester || 0}
-      />
+      {selectedResultUrl && (
+        <StaffPDFViewerModal
+          isOpen={isPdfModalOpen}
+          onClose={() => setIsPdfModalOpen(false)}
+          pdfData={selectedResultUrl}
+        />
+      )}
     </div>
   );
 };

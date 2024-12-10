@@ -1,52 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { X, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
-interface StaffPDFViewerModalProps {
-  /** Whether the modal is currently open */
+interface PDFViewerModalProps {
   isOpen: boolean;
-  /** Function to call when the modal should be closed */
   onClose: () => void;
-  /** URL of the PDF to display */
-  pdfUrl: string | null;
-  /** Student name for the PDF being viewed */
-  studentName: string;
-  /** Semester number for the PDF being viewed */
-  semester: number;
+  pdfData: string | null;
 }
 
-const StaffPDFViewerModal: React.FC<StaffPDFViewerModalProps> = ({
+const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   isOpen,
   onClose,
-  pdfUrl,
-  studentName,
-  semester,
+  pdfData,
 }) => {
-  const [loading, setLoading] = useState<boolean>(true);
+  const [pdfUrl, setPdfUrl] = useState<string>("");
 
   useEffect(() => {
-    if (pdfUrl) {
-      setLoading(true);
-    }
-  }, [pdfUrl]);
+    if (pdfData && isOpen) {
+      try {
+        // Convert base64 to blob
+        const blob = new Blob(
+          [Uint8Array.from(atob(pdfData), (c) => c.charCodeAt(0))],
+          { type: "application/pdf" }
+        );
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
 
-  const handleDownload = async () => {
-    if (!pdfUrl) return;
-    try {
-      const response = await fetch(pdfUrl);
-      const blob = await response.blob();
-      const downloadUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = `${studentName}_Semester${semester}_Result.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      console.error("Error downloading PDF:", error);
+        // Cleanup URL on component unmount
+        return () => {
+          URL.revokeObjectURL(url);
+        };
+      } catch (error) {
+        console.error("Error creating PDF URL:", error);
+      }
     }
-  };
+  }, [pdfData, isOpen]);
 
   if (!isOpen) return null;
 
@@ -54,47 +41,25 @@ const StaffPDFViewerModal: React.FC<StaffPDFViewerModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="relative w-full h-full max-w-4xl max-h-[90vh] m-4 bg-white rounded-lg shadow-xl">
         <div className="flex items-center justify-between p-4 border-b">
-          <div>
-            <h2 className="text-xl font-semibold">
-              {studentName}'s Result - Semester {semester}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="hover:bg-gray-100 rounded-full p-2"
-            >
-              <X className="h-6 w-6" />
-            </Button>
-          </div>
+          <h2 className="text-xl font-semibold">View Result</h2>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         <div className="w-full h-[calc(100%-5rem)]">
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80">
-              <p>Loading PDF...</p>
-            </div>
-          )}
           {pdfUrl ? (
             <iframe
-              src={pdfUrl}
+              src={`${pdfUrl}#toolbar=0`}
               className="w-full h-full rounded-b-lg"
               title="PDF Viewer"
             />
           ) : (
             <div className="flex items-center justify-center h-full">
-              <p>No PDF available</p>
+              <p>Loading PDF...</p>
             </div>
           )}
         </div>
@@ -103,4 +68,4 @@ const StaffPDFViewerModal: React.FC<StaffPDFViewerModalProps> = ({
   );
 };
 
-export default StaffPDFViewerModal;
+export default PDFViewerModal;

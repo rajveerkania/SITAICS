@@ -101,7 +101,6 @@ export async function GET(request: NextRequest) {
                   }
                 });
 
-                // Get distinct lecture and lab dates
                 const distinctLectureDates = await prisma.attendance.findMany({
                   where: {
                     subjectId: batchSubject.subjectId,

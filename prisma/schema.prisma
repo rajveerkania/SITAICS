@@ -220,10 +220,11 @@ model BatchSubject {
   id        String   @id @default(uuid())
   batchId   String
   semester  Int?
-  subjectId String
+  subjectId String 
   staffId   String?
   batch     Batch    @relation(fields: [batchId], references: [batchId])
   subject   Subject  @relation(fields: [subjectId], references: [subjectId])
+
 }
 
 model Attendance {
@@ -270,7 +271,7 @@ model ElectiveSubjectChoice {
 
 enum AttendanceType {
   LECTURE 
-  Lab
+  LAB
 }  
 
 enum Role {
