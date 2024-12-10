@@ -42,7 +42,7 @@ const SubjectTab: React.FC<SubjectProps> = ({ studentId }) => {
         if (!response.ok) {
           throw new Error("Failed to fetch subjects");
         }
-        const data: SubjectsData = await response.json();
+        const data: SubjectsData = await response.json(); 
         if (data.subjects.length === 0) {
           setError("No subjects found");
         }

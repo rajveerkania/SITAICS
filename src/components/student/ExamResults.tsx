@@ -23,7 +23,7 @@ const ExamResults = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isRepeater, setIsRepeater] = useState(false);
   const [name, setName] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [availableSemesters, setAvailableSemesters] = useState<number[]>([]);
   const [results, setResults] = useState<any[]>([]);
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
@@ -39,6 +39,11 @@ const ExamResults = () => {
     }
   }, [activeTab]);
 
+  const showMessage = (text: string, type: "success" | "error") => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage(null), 2000); // Clear message after 2 seconds
+  };
+
   const fetchAvailableSemesters = async () => {
     try {
       const response = await fetch("/api/student/availableSemesters");
@@ -47,6 +52,7 @@ const ExamResults = () => {
       setAvailableSemesters(semesters);
     } catch (error) {
       console.error("Error fetching semesters:", error);
+      toast.error("Failed to fetch semesters");
     }
   };
 
@@ -61,13 +67,37 @@ const ExamResults = () => {
     }
   };
 
+  const handleDeleteResult = async (resultId: string) => {
+    try {
+      const response = await fetch("/api/student/deleteResult", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: resultId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setResults(results.filter((result) => result.id !== resultId));
+        showMessage(data.message, "success");
+      } else {
+        showMessage(data.message, "error");
+      }
+    } catch (error) {
+      console.error("Error deleting result:", error);
+      showMessage("An unexpected error occurred.", "error");
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) setFile(e.target.files[0]);
   };
 
   const handleUpload = async () => {
     if (!file || !semester) {
-      setMessage("Semester and file are required.");
+      showMessage("Semester and file are required.", "error");
       return;
     }
 
@@ -83,7 +113,6 @@ const ExamResults = () => {
         body: formData,
       });
       const data = await res.json();
-      setMessage(data.message);
       if (data.success) {
         setSemester(null);
         setFile(null);
@@ -92,10 +121,13 @@ const ExamResults = () => {
         setActiveTab("view");
         fetchResults();
         fetchAvailableSemesters();
+        showMessage(data.message, "success");
+      } else {
+        showMessage(data.message, "error");
       }
     } catch (err) {
       console.error("Error uploading:", err);
-      setMessage("Failed to upload result.");
+      showMessage("Failed to upload result.", "error");
     }
   };
 
@@ -129,7 +161,17 @@ const ExamResults = () => {
         ))}
       </div>
 
-      {message && <p className="text-red-500 text-center mb-4">{message}</p>}
+      {message && (
+        <div
+          className={`text-center mb-4 py-2 rounded-md ${
+            message.type === "success"
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
 
       {activeTab === "add" ? (
         <form className="space-y-6">
@@ -201,15 +243,14 @@ const ExamResults = () => {
                 <TableRow>
                   <TableHead>Semester</TableHead>
                   <TableHead>Is Repeater</TableHead>
-                  <TableHead>Action</TableHead>
+                  <TableHead>View</TableHead>
+                  <TableHead>Delete</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {results.map((result, index) => (
-                  <TableRow key={index} className="hover:bg-gray-50">
-                    <TableCell className="font-medium">
-                      {result.semester}
-                    </TableCell>
+                {results.map((result) => (
+                  <TableRow key={result.id} className="hover:bg-gray-50">
+                    <TableCell>{result.semester}</TableCell>
                     <TableCell>{result.isRepeater ? "Yes" : "No"}</TableCell>
                     <TableCell>
                       <button
@@ -219,18 +260,27 @@ const ExamResults = () => {
                         View Result
                       </button>
                     </TableCell>
+                    <TableCell>
+                      <button
+                        onClick={() => handleDeleteResult(result.id)}
+                        className="text-red-500 hover:underline ml-2"
+                      >
+                        Delete Result
+                      </button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           )}
-          <PDFViewerModal
-            isOpen={isPdfModalOpen}
-            onClose={() => setIsPdfModalOpen(false)}
-            pdfData={selectedPdf}
-          />
         </div>
       )}
+
+      <PDFViewerModal
+        isOpen={isPdfModalOpen}
+        onClose={() => setIsPdfModalOpen(false)}
+        pdfData={selectedPdf}
+      />
     </div>
   );
 };

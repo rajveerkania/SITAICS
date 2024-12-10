@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
+import PDFViewerModal from "./PDFViewerModel"; // Make sure this path is correct
 
 type ResultComponentProps = {
   id: string; // ID to fetch the results
@@ -11,6 +12,7 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ id, isEditing, onResu
   const [results, setResults] = useState<any[]>([]); // State to store fetched results
   const [fetchedId, setFetchedId] = useState<string | null>(null); // Track the last fetched ID
   const [selectedResultUrl, setSelectedResultUrl] = useState<string | null>(null); // Selected result to display
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false); // PDF Modal state
 
   // Memoized callback for onResultsChange
   const handleResultsChange = useCallback(onResultsChange, [onResultsChange]);
@@ -41,6 +43,11 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ id, isEditing, onResu
     fetchResults();
   }, [id, fetchedId, handleResultsChange]);
 
+  const handleViewPdf = (url: string) => {
+    setSelectedResultUrl(url); // Set the URL to display
+    setIsPdfModalOpen(true); // Open the modal
+  };
+
   return (
     <div className="p-4 sm:p-6 md:p-8 bg-white rounded-lg shadow-md">
       <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
@@ -64,7 +71,7 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ id, isEditing, onResu
                   <td className="px-4 py-2 border">{result.semester}</td>
                   <td className="px-4 py-2 border text-center">
                     <button
-                      onClick={() => setSelectedResultUrl(result.url)}
+                      onClick={() => handleViewPdf(result.url)}
                       className="bg-black text-white px-3 py-1 rounded hover:bg-black"
                     >
                       View
@@ -79,24 +86,13 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ id, isEditing, onResu
         <p className="text-center text-gray-600">No results found</p>
       )}
 
-      {/* Display the selected result */}
+      {/* PDF Viewer Modal */}
       {selectedResultUrl && (
-        <div className="mt-6">
-          <h3 className="text-xl font-bold text-center text-gray-800 mb-4">
-            Result Details
-          </h3>
-          <iframe
-            src={selectedResultUrl}
-            className="w-full h-96 border rounded"
-            title="Result Details"
-          ></iframe>
-          <button
-            onClick={() => setSelectedResultUrl(null)}
-            className="mt-4 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-          >
-            Close
-          </button>
-        </div>
+        <PDFViewerModal
+          isOpen={isPdfModalOpen}
+          onClose={() => setIsPdfModalOpen(false)}
+          pdfData={selectedResultUrl}
+        />
       )}
     </div>
   );

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     // Fetch the results for the student
     const studentResults = await prisma.result.findMany({
       where: { studentId: userId },  // Query by studentId
-      select: { resultFile: true, semester: true, uploadedAt: true, isRepeater: true },
+      select: { id: true, resultFile: true, semester: true, uploadedAt: true, isRepeater: true },
     });
 
     if (!studentResults || studentResults.length === 0) {
@@ -24,12 +24,13 @@ export async function GET(request: NextRequest) {
 
     // Returning the results as base64
     const results = studentResults.map((result) => ({
+      id : result.id,
       semester: result.semester,
       uploadedAt: result.uploadedAt,
       isRepeater: result.isRepeater,
       resultFile: result.resultFile.toString("base64"),  // Sending as base64
     }));
-
+    console.log(results);
     return NextResponse.json({
       message: "Results fetched successfully!",
       success: true,
