@@ -32,3 +32,32 @@ export interface AttendanceRecord {
   date: string;
   students: Student[];
 }
+
+
+export interface NotificationPayload {
+  type: 'CIRCULAR' | 'COURSE' | 'BATCH' | 'SUBJECT';
+  recipient?: string;
+  message: string;
+  courseName?: string;
+  batchName?: string;
+  subjectId?: string;
+  sendToAllBatches?: boolean;
+}
+
+export interface Course {
+  courseName: string;
+}
+
+export interface Batch {
+  batchNames: string;
+  batchName: string;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  createdAt: string;
+  read: boolean;
+  type: string;
+}

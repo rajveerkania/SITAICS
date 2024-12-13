@@ -1,76 +1,96 @@
-import React, { useState, useEffect } from 'react';
+ import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, BookOpen, FlaskConical } from "lucide-react";
+import { Calendar, BookOpen, FlaskConical, ChevronLeft, ChevronRight } from "lucide-react";
+import LoadingSkeleton from "../LoadingSkeleton";
+import { Subject } from '@prisma/client';
 
-interface AttendanceRecord {
-  date: string;
-  status: 'present' | 'absent';
-  type: 'lecture' | 'lab';
+interface AttendanceStats {
+  totalLectures: number;
+  totalLabs: number;
+  lecturesAttended: number;
+  labsAttended: number;
+  lecturePercentage: number;
+  labPercentage: number;
+  overallPercentage: number;
+  lectureAttendance: Array<{
+    date: Date;
+    isPresent: boolean;
+  }>;
+  labAttendance: Array<{
+    date: Date;
+    isPresent: boolean;
+  }>;
 }
 
-interface SubjectAttendance {
-  name: string;
-  records: AttendanceRecord[];
+interface AttendanceProps {
+  studentId: string;
+}
+interface SubjectsData {
+  studentId: string;
+  courseName: string;
+  batchName: string;
+  subjects: Subject[];
 }
 
-const AttendanceTab: React.FC = () => {
+const AttendanceTab: React.FC<AttendanceProps> = ({ studentId }) => {
+  const [subjectsData, setSubjectsData] = useState<SubjectsData | null>(null);
+  const [attendanceData, setAttendanceData] = useState<AttendanceStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [selectedType, setSelectedType] = useState<'lecture' | 'lab'>('lecture');
   const [currentDate, setCurrentDate] = useState(new Date());
 
+  // Fetch subjects
   useEffect(() => {
-    const timer = setInterval(() => setCurrentDate(new Date()), 60000); // Update every minute
-    return () => clearInterval(timer);
-  }, []);
-
-  // This is example data. In a real application, you'd fetch this data from an API.
-  const subjects: SubjectAttendance[] = [
-    {
-      name: "Introduction to Computer Science",
-      records: [
-        { date: '2024-09-01', status: 'present', type: 'lecture' },
-        { date: '2024-09-03', status: 'present', type: 'lab' },
-        { date: '2024-09-05', status: 'absent', type: 'lecture' },
-        // ... more records
-      ]
-    },
-    {
-      name: "Calculus I",
-      records: [
-        { date: '2024-09-02', status: 'present', type: 'lecture' },
-        { date: '2024-09-04', status: 'present', type: 'lecture' },
-        { date: '2024-09-06', status: 'absent', type: 'lab' },
-        // ... more records
-      ]
-    },
-    // ... more subjects
-  ];
-
-  const getAttendanceStats = (records: AttendanceRecord[]) => {
-    const total = records.length;
-    const present = records.filter(r => r.status === 'present').length;
-    const percentage = (present / total) * 100;
-    
-    const lectures = records.filter(r => r.type === 'lecture');
-    const labs = records.filter(r => r.type === 'lab');
-    
-    const lectureStats = {
-      total: lectures.length,
-      present: lectures.filter(r => r.status === 'present').length,
-      percentage: (lectures.filter(r => r.status === 'present').length / lectures.length) * 100 || 0
+    const fetchSubjects = async () => {
+      try {
+        const response = await fetch(`/api/student/fetchSubjects?studentId=${studentId}`);
+        if (!response.ok) throw new Error("Failed to fetch subjects");
+        const data = await response.json();
+        setSubjectsData(data);
+      } catch (err) {
+        setError("Error fetching subjects. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
     };
-    
-    const labStats = {
-      total: labs.length,
-      present: labs.filter(r => r.status === 'present').length,
-      percentage: (labs.filter(r => r.status === 'present').length / labs.length) * 100 || 0
+    fetchSubjects();
+  }, [studentId]);
+
+  // Fetch attendance data when subject is selected
+  useEffect(() => {
+    if (!selectedSubject) return;
+
+    const fetchAttendance = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/student/fetchAttendance?studentId=${studentId}&subjectId=${selectedSubject}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch attendance");
+        const { data } = await response.json();
+        setAttendanceData(data);
+      } catch (err) {
+        setError("Error fetching attendance data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
     };
-    
-    return { total, present, percentage, lectureStats, labStats };
+
+    fetchAttendance();
+  }, [studentId, selectedSubject]);
+
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
-  const renderCalendar = (records: AttendanceRecord[], type: 'lecture' | 'lab') => {
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const renderCalendar = (attendance: Array<{ date: Date; isPresent: boolean }>) => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     
@@ -80,20 +100,24 @@ const AttendanceTab: React.FC = () => {
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     
-    const filteredRecords = records.filter(r => r.type === type);
-    
     const calendar = [];
     
-    // Add month and year
     calendar.push(
-      <div key="month-year" className="text-center font-bold text-lg mb-4">
-        {months[currentMonth]} {currentYear}
+      <div key="header-controls" className="flex items-center justify-between mb-4">
+        <button onClick={handlePrevMonth} className="p-2 rounded-full hover:bg-gray-200">
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <div className="text-center font-bold text-lg">
+          {months[currentMonth]} {currentYear}
+        </div>
+        <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-gray-200">
+          <ChevronRight className="h-6 w-6" />
+        </button>
       </div>
     );
 
-    // Add day headers
     calendar.push(
-      <div key="header" className="grid grid-cols-7 gap-1 mb-2">
+      <div key="days-header" className="grid grid-cols-7 gap-1 mb-2">
         {days.map(day => (
           <div key={day} className="text-center font-bold text-sm">{day}</div>
         ))}
@@ -101,34 +125,36 @@ const AttendanceTab: React.FC = () => {
     );
 
     let cells = [];
-    // Add blank cells for days before the 1st of the month
     for (let i = 0; i < firstDay; i++) {
       cells.push(<div key={`empty-${i}`} className="h-10"></div>);
     }
 
-    // Add cells for each day of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-      const record = filteredRecords.find(r => r.date === date);
+      const currentDate = new Date(currentYear, currentMonth, day);
+      const attendanceRecord = attendance.find(
+        record => new Date(record.date).toDateString() === currentDate.toDateString()
+      );
       
       let dotClass = "w-2 h-2 rounded-full mx-auto mt-1";
-      if (record) {
-        dotClass += record.status === 'present' ? " bg-green-500" : " bg-red-500";
+      if (attendanceRecord) {
+        dotClass += attendanceRecord.isPresent ? " bg-green-500" : " bg-red-500";
       }
 
-      const isToday = day === currentDate.getDate() && currentMonth === currentDate.getMonth() && currentYear === currentDate.getFullYear();
+      const isToday = day === new Date().getDate() && 
+                      currentMonth === new Date().getMonth() && 
+                      currentYear === new Date().getFullYear();
       const cellClass = `h-10 flex flex-col items-center justify-center text-sm ${isToday ? 'bg-blue-100 rounded' : ''}`;
 
       cells.push(
         <div key={day} className={cellClass}>
           <span>{day}</span>
-          <div className={dotClass}></div>
+          {attendanceRecord && <div className={dotClass}></div>}
         </div>
       );
     }
 
     calendar.push(
-      <div key="days" className="grid grid-cols-7 gap-1">
+      <div key="calendar-days" className="grid grid-cols-7 gap-1">
         {cells}
       </div>
     );
@@ -136,7 +162,9 @@ const AttendanceTab: React.FC = () => {
     return calendar;
   };
 
-  const selectedSubjectData = subjects.find(s => s.name === selectedSubject);
+  if (loading && !subjectsData) return <LoadingSkeleton loadingText="subjects" />;
+  if (error) return <div>{error}</div>;
+  if (!subjectsData) return null;
 
   return (
     <div className="space-y-6 text-black">
@@ -150,15 +178,15 @@ const AttendanceTab: React.FC = () => {
           <SelectValue placeholder="Select a subject" />
         </SelectTrigger>
         <SelectContent>
-          {subjects.map(subject => (
-            <SelectItem key={subject.name} value={subject.name}>
-              {subject.name}
+          {subjectsData.subjects.map(subject => (
+            <SelectItem key={subject.subjectId} value={subject.subjectId}>
+              {subject.subjectName}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      {selectedSubjectData && (
+      {selectedSubject && attendanceData && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="border p-4 rounded-lg">
@@ -168,10 +196,10 @@ const AttendanceTab: React.FC = () => {
               </div>
               <div className="mt-2">
                 <div className="text-2xl font-bold">
-                  {getAttendanceStats(selectedSubjectData.records).percentage.toFixed(2)}%
+                  {attendanceData.overallPercentage}%
                 </div>
                 <p className="text-xs text-gray-500">
-                  {getAttendanceStats(selectedSubjectData.records).present} / {getAttendanceStats(selectedSubjectData.records).total} classes
+                  Combined lectures and labs
                 </p>
               </div>
             </div>
@@ -182,10 +210,10 @@ const AttendanceTab: React.FC = () => {
               </div>
               <div className="mt-2">
                 <div className="text-2xl font-bold">
-                  {getAttendanceStats(selectedSubjectData.records).lectureStats.percentage.toFixed(2)}%
+                  {attendanceData.lecturePercentage}%
                 </div>
                 <p className="text-xs text-gray-500">
-                  {getAttendanceStats(selectedSubjectData.records).lectureStats.present} / {getAttendanceStats(selectedSubjectData.records).lectureStats.total} lectures
+                  {attendanceData.lecturesAttended} / {attendanceData.totalLectures} lectures
                 </p>
               </div>
             </div>
@@ -196,30 +224,26 @@ const AttendanceTab: React.FC = () => {
               </div>
               <div className="mt-2">
                 <div className="text-2xl font-bold">
-                  {getAttendanceStats(selectedSubjectData.records).labStats.percentage.toFixed(2)}%
+                  {attendanceData.labPercentage}%
                 </div>
                 <p className="text-xs text-gray-500">
-                  {getAttendanceStats(selectedSubjectData.records).labStats.present} / {getAttendanceStats(selectedSubjectData.records).labStats.total} labs
+                  {attendanceData.labsAttended} / {attendanceData.totalLabs} labs
                 </p>
               </div>
             </div>
           </div>
-
-          <div className="border rounded-lg p-4">
-            <h3 className="text-xl font-semibold mb-4">Attendance Calendar</h3>
-            <Tabs defaultValue="lecture" onValueChange={(value) => setSelectedType(value as 'lecture' | 'lab')}>
-              <TabsList className="mb-4">
-                <TabsTrigger value="lecture">Lectures</TabsTrigger>
-                <TabsTrigger value="lab">Labs</TabsTrigger>
-              </TabsList>
-              <TabsContent value="lecture">
-                {renderCalendar(selectedSubjectData.records, 'lecture')}
-              </TabsContent>
-              <TabsContent value="lab">
-                {renderCalendar(selectedSubjectData.records, 'lab')}
-              </TabsContent>
-            </Tabs>
-          </div>
+          <Tabs defaultValue="lecture" onValueChange={(val) => setSelectedType(val as 'lecture' | 'lab')}>
+            <TabsList className="w-full">
+              <TabsTrigger value="lecture">Lecture Attendance</TabsTrigger>
+              <TabsTrigger value="lab">Lab Attendance</TabsTrigger>
+            </TabsList>
+            <TabsContent value="lecture">
+              <div>{renderCalendar(attendanceData.lectureAttendance)}</div>
+            </TabsContent>
+            <TabsContent value="lab">
+              <div>{renderCalendar(attendanceData.labAttendance)}</div>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
     </div>

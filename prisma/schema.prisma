@@ -13,6 +13,54 @@ enum LeaveStatus {
   Rejected
 }
 
+enum NotificationType {
+  SPECIFIC
+  CIRCULAR
+  COURSE
+  CLASS
+  STUDENT
+  SUBJECT
+  BATCH
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+}
+
+model Notification {
+  id          String            @id @default(uuid())
+  type        NotificationType
+  message     String
+  senderId    String           // ID of the user who sent the notification
+  sender      User             @relation("SentNotifications", fields: [senderId], references: [id])
+  recipients  NotificationRecipient[]
+  courseName  String?
+  batchName   String?
+  subjectId   String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  expiresAt   DateTime?        
+  isActive    Boolean          @default(true)
+  subject     Subject?         @relation(fields: [subjectId], references: [subjectId])
+  course      Course?          @relation(fields: [courseName], references: [courseName])
+  batch       Batch?           @relation(fields: [batchName], references: [batchName])
+}
+
+model NotificationRecipient {
+  id             String            @id @default(uuid())
+  notificationId String
+  recipientId    String
+  status         NotificationStatus @default(UNREAD)
+  readAt         DateTime?
+  notification   Notification      @relation(fields: [notificationId], references: [id])
+  recipient      User              @relation(fields: [recipientId], references: [id])
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([notificationId, recipientId])
+}
+
 model Leave {
   id        String         @id @default(uuid())
   studentId String
@@ -40,6 +88,9 @@ model User {
   staffDetails             StaffDetails?
   resetPasswordToken       String?
   resetPasswordTokenExpiry DateTime?
+  sentNotifications     Notification[]         @relation("SentNotifications")
+  receivedNotifications NotificationRecipient[]
+
 }
 
 model Result {
@@ -54,7 +105,7 @@ model Result {
 
 model StudentDetails {
   id                 String                  @id
-  email              String
+  email              String                  
   username           String                  @unique
   name               String
   fatherName         String?
@@ -129,6 +180,7 @@ model Subject {
   updatedAt            DateTime                @updatedAt
   ElectiveSubjectChoice ElectiveSubjectChoice[]
   attendances          Attendance[]
+  notifications         Notification[]
 }
 
 model Course {
@@ -142,6 +194,7 @@ model Course {
   batches        Batch[]
   StudentDetails StudentDetails[]
   ElectiveGroup  ElectiveGroup[]
+  notifications         Notification[]
 }
 
 model Batch {
@@ -160,18 +213,18 @@ model Batch {
   timetable       Bytes?
   staffId         String?
   attendances     Attendance[]
+  notifications         Notification[]
 }
 
 model BatchSubject {
   id        String   @id @default(uuid())
   batchId   String
   semester  Int?
-  subjectId String
+  subjectId String 
   staffId   String?
   batch     Batch    @relation(fields: [batchId], references: [batchId])
   subject   Subject  @relation(fields: [subjectId], references: [subjectId])
 
-  @@unique([batchId, subjectId])
 }
 
 model Attendance {
@@ -191,6 +244,8 @@ model Attendance {
   updatedAt DateTime       @updatedAt
   @@index([studentId, subjectId, batchId])
   @@index([date, type])
+  @@unique([studentId, subjectId, batchId, date, type], name: "unique_attendance_record")
+
 
 }
 
@@ -218,7 +273,7 @@ model ElectiveSubjectChoice {
 
 enum AttendanceType {
   LECTURE 
-  Lab
+  LAB
 }  
 
 enum Role {

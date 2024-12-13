@@ -13,16 +13,8 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Fetch all active subjects with no assigned staff in the batchSubject table
+    // Fetch all subjects without any conditions
     const subjects = await prisma.subject.findMany({
-      where: {
-        isActive: true,
-        batches: {
-          none: {
-            staffId: { not: null }, // Only subjects with no assigned staff in any batch
-          },
-        },
-      },
       include: {
         course: {
           select: {
@@ -37,12 +29,13 @@ export async function GET(req: Request) {
                 batchName: true,
               },
             },
+            staffId: true, // Include staffId to check assignment status
           },
         },
       },
     });
 
-    // Format the response with batch and course info
+    // Format the response with batch and course info, including staffId to distinguish assigned/unassigned staff
     const formattedSubjects = subjects.map((subject) => ({
       subjectId: subject.subjectId,
       subjectName: subject.subjectName,
@@ -53,6 +46,7 @@ export async function GET(req: Request) {
       batches: subject.batches.map((batch) => ({
         batchId: batch.batch.batchId,
         batchName: batch.batch.batchName,
+        staffAssigned: batch.staffId !== null, // Indicating whether the batch has assigned staff
       })),
     }));
 

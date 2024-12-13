@@ -21,6 +21,10 @@ import {
   ChevronUp,
   ArrowLeft,
   Phone,
+  Calendar,
+  Droplet,
+  GraduationCap,
+  Users2,
 } from "lucide-react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import ResultComponent from "@/components/admin/UserDetails/result";
@@ -33,6 +37,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+interface UserRoleDetails {
+  contactNo: string;
+  enrollmentNumber?: string;
+  courseName?: string;
+  batchName?: string;
+  dateOfBirth?: string;
+  bloodGroup?: string;
+  gender?: string;
+  fatherName?: string;
+  motherName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pinCode?: string;
+  results?: any;
+  achievements?: any;
+}
+
+interface User {
+  name: string;
+  email: string;
+  role: "Student" | "Staff" | "Admin";
+  roleDetails: UserRoleDetails;
+}
+
 const UserEditPage: React.FC = () => {
   const { id } = useParams();
   const { handleBack } = usePreviousRoute();
@@ -42,28 +71,6 @@ const UserEditPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [basicInfoExpanded, setBasicInfoExpanded] = useState(true);
   const [additionalInfoExpanded, setAdditionalInfoExpanded] = useState(true);
-
-  interface UserRoleDetails {
-    contactNo: string;
-    enrollmentNumber?: string;
-    courseName?: string;
-    batchName?: string;
-    fatherName?: string;
-    motherName?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    pinCode?: string;
-    results?: any;
-    achievements?: any;
-  }
-
-  interface User {
-    name: string;
-    email: string;
-    role: "Student" | "Staff" | "Admin";
-    roleDetails: UserRoleDetails;
-  }
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -89,10 +96,10 @@ const UserEditPage: React.FC = () => {
   }, [id]);
 
   const handleSave = async () => {
-    if (!editedUser) return;
+    if (!id || !editedUser) return;
 
     try {
-      const response = await fetch(`/api/admin/updateUserDetails/${id}`, {
+      const response = await fetch(`/api/users/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -124,10 +131,7 @@ const UserEditPage: React.FC = () => {
     }
   };
 
-  const handleRoleDetailsChange = (
-    field: keyof UserRoleDetails,
-    value: any
-  ) => {
+  const handleRoleDetailsChange = (field: keyof UserRoleDetails, value: any) => {
     if (editedUser) {
       setEditedUser((prevState) => ({
         ...prevState!,
@@ -195,21 +199,6 @@ const UserEditPage: React.FC = () => {
 
               <div>
                 <label className="text-sm font-medium flex items-center mb-2">
-                  <Mail className="mr-2 h-4 w-4" /> Email
-                </label>
-                {isEditing ? (
-                  <Input
-                    value={editedUser.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="w-full"
-                  />
-                ) : (
-                  <p className="text-lg">{user.email}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="text-sm font-medium flex items-center mb-2">
                   <Users className="mr-2 h-4 w-4" /> Role
                 </label>
                 {isEditing ? (
@@ -231,29 +220,165 @@ const UserEditPage: React.FC = () => {
                 )}
               </div>
 
+              <div>
+                <label className="text-sm font-medium flex items-center mb-2">
+                  <Mail className="mr-2 h-4 w-4" /> Email
+                </label>
+                {isEditing ? (
+                  <Input
+                    value={editedUser.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    className="w-full"
+                  />
+                ) : (
+                  <p className="text-lg">{user.email}</p>
+                )}
+              </div>
+
               {(user?.role === "Student" || editedUser?.role === "Student") && (
-                <div>
-                  <label className="text-sm font-medium flex items-center mb-2">
-                    <Users className="mr-2 h-4 w-4" /> Enrollment Number
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      value={editedUser?.roleDetails?.enrollmentNumber || ""}
-                      onChange={(e) =>
-                        handleRoleDetailsChange(
-                          "enrollmentNumber",
-                          e.target.value
-                        )
-                      }
-                      className="w-full"
-                      placeholder="Enter enrollment number"
-                    />
-                  ) : (
-                    <p className="text-lg">
-                      {user?.roleDetails?.enrollmentNumber || "Not provided"}
-                    </p>
-                  )}
-                </div>
+                <>
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <GraduationCap className="mr-2 h-4 w-4" /> Course Name
+                    </label>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser?.roleDetails?.courseName || ""}
+                        onChange={(e) =>
+                          handleRoleDetailsChange("courseName", e.target.value)
+                        }
+                        className="w-full"
+                        placeholder="Enter course name"
+                      />
+                    ) : (
+                      <p className="text-lg">
+                        {user?.roleDetails?.courseName || "Not provided"}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Calendar className="mr-2 h-4 w-4" /> Date of Birth
+                    </label>
+                    {isEditing ? (
+                      <Input
+                        type="date"
+                        value={editedUser?.roleDetails?.dateOfBirth || ""}
+                        onChange={(e) =>
+                          handleRoleDetailsChange("dateOfBirth", e.target.value)
+                        }
+                        className="w-full"
+                      />
+                    ) : (
+                      <p className="text-lg">
+                        {user?.roleDetails?.dateOfBirth || "Not provided"}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Droplet className="mr-2 h-4 w-4" /> Blood Group
+                    </label>
+                    {isEditing ? (
+                      <Select
+                        value={editedUser?.roleDetails?.bloodGroup || ""}
+                        onValueChange={(value) =>
+                          handleRoleDetailsChange("bloodGroup", value)
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select blood group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A+">A+</SelectItem>
+                          <SelectItem value="A-">A-</SelectItem>
+                          <SelectItem value="B+">B+</SelectItem>
+                          <SelectItem value="B-">B-</SelectItem>
+                          <SelectItem value="AB+">AB+</SelectItem>
+                          <SelectItem value="AB-">AB-</SelectItem>
+                          <SelectItem value="O+">O+</SelectItem>
+                          <SelectItem value="O-">O-</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-lg">
+                        {user?.roleDetails?.bloodGroup || "Not provided"}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Users className="mr-2 h-4 w-4" /> Enrollment Number
+                    </label>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser?.roleDetails?.enrollmentNumber || ""}
+                        onChange={(e) =>
+                          handleRoleDetailsChange(
+                            "enrollmentNumber",
+                            e.target.value
+                          )
+                        }
+                        className="w-full"
+                        placeholder="Enter enrollment number"
+                      />
+                    ) : (
+                      <p className="text-lg">
+                        {user?.roleDetails?.enrollmentNumber || "Not provided"}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <Users2 className="mr-2 h-4 w-4" /> Batch Name
+                    </label>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser?.roleDetails?.batchName || ""}
+                        onChange={(e) =>
+                          handleRoleDetailsChange("batchName", e.target.value)
+                        }
+                        className="w-full"
+                        placeholder="Enter batch name"
+                      />
+                    ) : (
+                      <p className="text-lg">
+                        {user?.roleDetails?.batchName || "Not provided"}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      <User className="mr-2 h-4 w-4" /> Gender
+                    </label>
+                    {isEditing ? (
+                      <Select
+                        value={editedUser?.roleDetails?.gender || ""}
+                        onValueChange={(value) =>
+                          handleRoleDetailsChange("gender", value)
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Male">Male</SelectItem>
+                          <SelectItem value="Female">Female</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-lg">
+                        {user?.roleDetails?.gender || "Not provided"}
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </CardContent>
@@ -453,35 +578,77 @@ const UserEditPage: React.FC = () => {
                 {(user.role === "Student" || editedUser.role === "Student") && (
                   <>
                     <TabsContent value="result">
-                      <ResultComponent
-                        results={user.roleDetails.results}
-                        isEditing={isEditing}
-                        onResultsChange={(updatedResults: any) =>
-                          handleRoleDetailsChange("results", updatedResults)
-                        }
-                      />
-                    </TabsContent>
+                        <ResultComponent
+                          results={editedUser.roleDetails.results || []} // Pass the edited user results
+                          isEditing={isEditing} // Pass editing state
+                          onResultsChange={(updatedResults) => handleRoleDetailsChange('results', updatedResults)} // Handle changes
+                        />
+                      </TabsContent>
                     <TabsContent value="achievement">
-                      <AchievementComponent
-                        achievements={user.roleDetails.achievements}
-                        isEditing={isEditing}
-                        handleRoleDetailsChange={(field, value) =>
-                          handleRoleDetailsChange("achievements", value)
-                        }
-                      />
+                    <CardContent>
+              <p className="text-lg">
+                {/* If achievements is an array, we render each item */}
+                {Array.isArray(user.roleDetails.achievements) ? (
+                  user.roleDetails.achievements.map((achievement, index) => (
+                    <div
+                      key={index}
+                      className="border p-4 rounded shadow-md flex justify-between items-center"
+                    >
+                      <div>
+                        <h3 className="text-xl font-semibold">
+                          {achievement.title}
+                        </h3>
+                        <p className="text-gray-600">
+                          {achievement.description}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Date: {achievement.date} | Category:{" "}
+                          {achievement.category}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  // Otherwise, we display it directly as a string
+                  user.roleDetails.achievements
+                )}
+              </p>
+            </CardContent>
                     </TabsContent>
                   </>
                 )}
 
                 {(user.role === "Staff" || editedUser.role === "Staff") && (
                   <TabsContent value="achievement">
-                    <AchievementComponent
-                      achievements={user.roleDetails.achievements}
-                      isEditing={isEditing}
-                      handleRoleDetailsChange={(field, value) =>
-                        handleRoleDetailsChange("achievements", value)
-                      }
-                    />
+                                <CardContent>
+              <p className="text-lg">
+                {/* If achievements is an array, we render each item */}
+                {Array.isArray(user.roleDetails.achievements) ? (
+                  user.roleDetails.achievements.map((achievement, index) => (
+                    <div
+                      key={index}
+                      className="border p-4 rounded shadow-md flex justify-between items-center"
+                    >
+                      <div>
+                        <h3 className="text-xl font-semibold">
+                          {achievement.title}
+                        </h3>
+                        <p className="text-gray-600">
+                          {achievement.description}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Date: {achievement.date} | Category:{" "}
+                          {achievement.category}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  // Otherwise, we display it directly as a string
+                  user.roleDetails.achievements
+                )}
+              </p>
+            </CardContent>
                   </TabsContent>
                 )}
               </Tabs>

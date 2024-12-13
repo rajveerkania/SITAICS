@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     // Group attendance by type and calculate summary
     const lectureAttendance = attendanceRecords.filter(record => record.type === AttendanceType.LECTURE);
-    const labAttendance = attendanceRecords.filter(record => record.type === AttendanceType.Lab);
+    const labAttendance = attendanceRecords.filter(record => record.type === AttendanceType.LAB);
 
     const summary = {
       totalLectures: new Set(lectureAttendance.map(a => a.date.toDateString())).size,
