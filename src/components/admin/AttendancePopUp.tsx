@@ -133,20 +133,26 @@ const AttendancePopup: React.FC<AttendancePopupProps> = ({
     setLoading(true);
   
     try {
+      // Adjusting date to local time before sending
+      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+        .toISOString()
+        .split("T")[0]; // Format as YYYY-MM-DD
+  
       console.log('Sending attendance update:', { 
-        date: date.toISOString(), 
+        date: localDate, 
         studentId,
         subjectId,
         type,
         isPresent
       });
+  
       const response = await fetch('/api/updateAttendance', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          date: date.toISOString(), 
+          date: localDate, // Use the adjusted date
           studentId,
           subjectId,
           type,
@@ -213,4 +219,3 @@ const AttendancePopup: React.FC<AttendancePopupProps> = ({
 };
 
 export default AttendancePopup;
-

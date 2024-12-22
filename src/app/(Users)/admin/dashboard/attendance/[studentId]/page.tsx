@@ -27,6 +27,7 @@ interface Subject {
 }
 
 interface AttendanceRecord {
+  id:string
   date: Date;
   isPresent: boolean;
   type: AttendanceType;
@@ -301,17 +302,17 @@ const AttendanceTab: React.FC = () => {
         </div>
       )}
 
-      {isModalOpen && clickedDate && attendanceData && (
-        <AttendancePopup
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          date={clickedDate}
-          studentId={studentId}
-          subjectId={selectedSubject}
-          type={activeAttendanceTab === 'lecture' ? AttendanceType.LECTURE : AttendanceType.LAB}
-          currentStatus={selectedAttendanceRecord?.isPresent}
-          onAttendanceUpdate={handleAttendanceUpdate}
-        />
+{isModalOpen && clickedDate && attendanceData && selectedAttendanceRecord && (
+       <AttendancePopup
+       isOpen={isModalOpen}
+       onClose={closeModal}
+       date={clickedDate}
+       studentId={studentId}
+       subjectId={selectedSubject}
+       type={activeAttendanceTab === 'lecture' ? AttendanceType.LECTURE : AttendanceType.LAB}
+       currentStatus={selectedAttendanceRecord?.isPresent}
+       onAttendanceUpdate={handleAttendanceUpdate}
+     />
       )}
     </div>
   );
