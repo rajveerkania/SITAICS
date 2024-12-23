@@ -35,8 +35,47 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
     currentSemester: "",
   });
   const [courses, setCourses] = useState<Course[]>([]);
+  const [errors, setErrors] = useState({
+    batchName: "",
+    courseName: "",
+    currentSemester: "",
+  });
   const [loading, setLoading] = useState<boolean>(true);
   const [csvData, setCSVData] = useState<CSVData[]>([]);
+
+  const validateForm = (): boolean => {
+    const newErrors = {
+      batchName: "",
+      courseName: "",
+      currentSemester: "",
+    };
+    let isValid = true;
+
+    if (!/^[a-zA-Z0-9\s]{1,100}$/.test(newBatch.batchName)) {
+      newErrors.batchName =
+        "Batch name must be alphanumeric, contain spaces only, and be under 100 characters.";
+      isValid = false;
+    }
+
+    if (!newBatch.courseName) {
+      newErrors.courseName = "Please select a course.";
+      isValid = false;
+    }
+
+    const semesterNumber = parseInt(newBatch.currentSemester, 10);
+    if (
+      isNaN(semesterNumber) ||
+      semesterNumber < 1 ||
+      semesterNumber > 8
+    ) {
+      newErrors.currentSemester =
+        "Current semester must be a number between 1 and 8";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleFileUpload = async (file: File) => {
     try {
@@ -83,6 +122,10 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
 
   const handleAddBatch = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       const response = await fetch("/api/addBatch", {
         method: "POST",
@@ -112,52 +155,67 @@ const AddBatchForm: React.FC<AddBatchFormProps> = ({
 
   return (
     <form onSubmit={handleAddBatch} className="space-y-4">
-      <Input
-        placeholder="Batch Name"
-        value={newBatch.batchName}
-        onChange={(e) =>
-          setNewBatch({ ...newBatch, batchName: e.target.value })
-        }
-        required
-      />
-      <Select
-        value={newBatch.courseName}
-        onValueChange={(value) =>
-          setNewBatch({ ...newBatch, courseName: value })
-        }
-        required
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Select Course" />
-        </SelectTrigger>
-        <SelectContent>
-          {loading ? (
-            <SelectItem value="none" disabled>
-              Loading Courses...
-            </SelectItem>
-          ) : courses.length > 0 ? (
-            courses.map((course, index) => (
-              <SelectItem key={index} value={course.courseName}>
-                {course.courseName}
+      <div>
+        <Input
+          placeholder="Batch Name"
+          value={newBatch.batchName}
+          onChange={(e) =>
+            setNewBatch({ ...newBatch, batchName: e.target.value })
+          }
+          required
+        />
+        {errors.batchName && <p className="text-red-500">{errors.batchName}</p>}
+      </div>
+
+      <div>
+        <Select
+          value={newBatch.courseName}
+          onValueChange={(value) =>
+            setNewBatch({ ...newBatch, courseName: value })
+          }
+          required
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select Course" />
+          </SelectTrigger>
+          <SelectContent>
+            {loading ? (
+              <SelectItem value="none" disabled>
+                Loading Courses...
               </SelectItem>
-            ))
-          ) : (
-            <SelectItem value="none" disabled>
-              No Courses Available
-            </SelectItem>
-          )}
-        </SelectContent>
-      </Select>
-      
-      <Input
-        placeholder="Current Semester"
-        type="number"
-        value={newBatch.currentSemester}
-        onChange={(e) =>
-          setNewBatch({ ...newBatch, currentSemester: e.target.value })
-        }
-        required
-      />
+            ) : courses.length > 0 ? (
+              courses.map((course, index) => (
+                <SelectItem key={index} value={course.courseName}>
+                  {course.courseName}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="none" disabled>
+                No Courses Available
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
+        {errors.courseName && (
+          <p className="text-red-500">{errors.courseName}</p>
+        )}
+      </div>
+
+      <div>
+        <Input
+          placeholder="Current Semester"
+          type="number"
+          value={newBatch.currentSemester}
+          onChange={(e) =>
+            setNewBatch({ ...newBatch, currentSemester: e.target.value })
+          }
+          required
+        />
+        {errors.currentSemester && (
+          <p className="text-red-500">{errors.currentSemester}</p>
+        )}
+      </div>
+
       <div className="flex justify-between pt-5">
         <Button type="submit">Create Batch</Button>
         <ImportButton

@@ -35,15 +35,26 @@ export default function Login() {
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
+    
     if (!authState.emailOrUsername) {
       errors.emailOrUsername = "Email or Username is required.";
+    } else {
+      // Regular expression to validate email domains or allow usernames
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@(student\.rru\.ac\.in|rru\.ac\.in)$/;
+      const isEmail = authState.emailOrUsername.includes("@");
+  
+      if (isEmail && !emailRegex.test(authState.emailOrUsername)) {
+        errors.emailOrUsername = "Invalid email domain. Use student.rru.ac.in or rru.ac.in.";
+      }
     }
+  
     if (!authState.password) {
       errors.password = "Password is required.";
     }
-    // if (!captchaToken) {
-    //   errors.captcha = "Captcha not verified!";
-    // }
+    if (!captchaToken) {
+      errors.captcha = "Captcha not verified!";
+    }
+  
     return errors;
   };
 
