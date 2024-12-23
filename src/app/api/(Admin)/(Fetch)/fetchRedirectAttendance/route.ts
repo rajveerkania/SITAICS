@@ -28,6 +28,7 @@ interface AttendanceStats {
     batchName?: string;
   };
 }
+
 export async function GET(request: NextRequest) {
   try {
     const decodedUser = verifyToken();
@@ -131,6 +132,7 @@ export async function GET(request: NextRequest) {
 
       const attendanceEntry = {
         date: record.date,
+        type: record.type,
         isPresent: record.isPresent
       };
 
@@ -156,8 +158,8 @@ export async function GET(request: NextRequest) {
       labPercentage: number;
       overallPercentage: number;
       detailedAttendance: {
-        lectures: Array<{ date: Date; isPresent: boolean }>;
-        labs: Array<{ date: Date; isPresent: boolean }>;
+        lectures: Array<{ date: Date; type: AttendanceType; isPresent: boolean }>;
+        labs: Array<{ date: Date; type: AttendanceType; isPresent: boolean }>;
       }
     }>);
 

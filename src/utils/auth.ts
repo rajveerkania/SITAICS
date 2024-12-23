@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
 interface DecodedUser {
+  userId: any;
   id: string;
   username: string;
   email: string;

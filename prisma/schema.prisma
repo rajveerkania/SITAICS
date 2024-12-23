@@ -244,6 +244,8 @@ model Attendance {
   updatedAt DateTime       @updatedAt
   @@index([studentId, subjectId, batchId])
   @@index([date, type])
+  @@unique([studentId, subjectId, batchId, date, type], name: "unique_attendance_record")
+
 
 }
 

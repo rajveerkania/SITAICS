@@ -9,18 +9,24 @@ import {
 } from "@/components/ui/table";
 import LoadingSkeleton from "../LoadingSkeleton";
 
+interface Staff {
+  id: string;
+  name: string;
+  email: string;
+}
+
 interface Subject {
   subjectId: string;
   subjectName: string;
   subjectCode: string;
   semester: number;
-  staff: string[];
+  staff: Staff[] | "NA";
 }
 
 interface SubjectsData {
   studentId: string;
+  courseName: string;
   batchName: string;
-  currentSemester: number;
   subjects: Subject[];
 }
 
@@ -80,7 +86,9 @@ const SubjectTab: React.FC<SubjectProps> = ({ studentId }) => {
               <TableCell>{subject.subjectCode}</TableCell>
               <TableCell>{subject.semester}</TableCell>
               <TableCell>
-                {subject.staff.join(", ")}
+                {subject.staff === "NA"
+                  ? "Not Assigned"
+                  : subject.staff.map((s) => s.name).join(", ")}
               </TableCell>
             </TableRow>
           ))}
