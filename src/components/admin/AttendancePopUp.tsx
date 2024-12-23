@@ -219,4 +219,3 @@ const AttendancePopup: React.FC<AttendancePopupProps> = ({
 };
 
 export default AttendancePopup;
-
